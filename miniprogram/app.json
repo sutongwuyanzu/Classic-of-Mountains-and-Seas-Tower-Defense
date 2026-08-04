@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "山海异兽志",
+    "navigationBarBackgroundColor": "#101719",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#101719",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

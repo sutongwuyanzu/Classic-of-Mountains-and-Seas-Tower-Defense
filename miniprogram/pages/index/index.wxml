@@ -1,0 +1,67 @@
+<view class="page-shell">
+  <view wx:if="{{screen === 'select'}}" class="select-screen">
+    <view class="brand-row">
+      <view class="crest">山</view>
+      <view>
+        <text class="eyebrow">SHAN HAI FIELD GUIDE</text>
+        <view class="title">山海异兽志</view>
+      </view>
+    </view>
+    <view class="intro">布置妖灵，组合火力与阵型，守住山海裂隙中的封印。</view>
+
+    <view class="section-head"><text>选择关卡</text><text class="muted">五段旅程</text></view>
+    <view class="stage-list">
+      <view wx:for="{{levels}}" wx:key="name" class="stage-card {{item.selected ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="selectStage">
+        <text class="stage-number">0{{index + 1}}</text>
+        <view class="stage-copy"><text class="stage-name">{{item.name}}</text><text class="stage-intro">{{item.intro}}</text></view>
+        <text class="difficulty">{{item.difficulty}}</text>
+      </view>
+    </view>
+
+    <view class="section-head roster-head"><text>初始妖灵</text><text class="muted">点击选择出场单位</text></view>
+    <scroll-view scroll-x="true" class="roster-scroll">
+      <view wx:for="{{roster}}" wx:key="id" class="roster-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeast">
+        <text class="portrait" style="color:{{item.color}}">{{item.short}}</text>
+        <text class="roster-name">{{item.name}}</text>
+        <text class="roster-meta">{{item.cost}} 灵蕴</text>
+      </view>
+    </scroll-view>
+    <button class="primary-button" bindtap="startGame">开始守关 <text>→</text></button>
+    <view class="mini-note">第四、第五关拥有两个出怪口，敌群会在中央汇流。</view>
+  </view>
+
+  <view wx:elif="{{screen === 'game'}}" class="game-screen">
+    <view class="game-topbar">
+      <button class="back-button" bindtap="backToSelect">← 关卡</button>
+      <view><text class="terrain">{{currentLevel.name}}</text><text class="level">第 {{selectedStage + 1}} 关</text></view>
+      <view class="top-actions"><button bindtap="togglePause">{{paused ? '继续' : '暂停'}}</button><button bindtap="toggleSpeed">{{speed}}×</button></view>
+    </view>
+
+    <view class="hud-row">
+      <view class="stat"><text class="stat-label">封印完整度</text><text>{{hp}} / 10</text><view class="meter"><view style="width:{{hp * 10}}%"></view></view></view>
+      <view class="stat"><text class="stat-label">当前波次</text><text>{{wave}} / {{totalWaves}}</text><view class="wave-dots"><i wx:for="{{waveDots}}" wx:key="index" class="{{index < wave - 1 ? 'done' : index === wave - 1 ? 'current' : ''}}"></i></view></view>
+      <view class="stat compact"><text class="stat-label">灵蕴</text><text class="big-number">{{energy}}</text></view>
+      <view class="stat compact"><text class="stat-label">击破</text><text class="big-number">{{kills}}</text></view>
+    </view>
+
+    <view class="combat-log">{{logs[0]}}</view>
+    <canvas type="2d" id="arena" class="arena" disable-scroll="true" bindtouchstart="onTouchStart"></canvas>
+    <view class="arena-hint">点击道路两侧合法位置安置妖灵 · {{selectedBeastName}}</view>
+
+    <scroll-view scroll-x="true" class="game-roster">
+      <view wx:for="{{roster}}" wx:key="id" class="game-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeastInGame">
+        <text class="game-portrait" style="color:{{item.color}}">{{item.short}}</text><text>{{item.name}}</text><text class="cost">{{item.cost}}</text>
+      </view>
+    </scroll-view>
+    <view class="game-actions"><button class="skill-button {{skillReady ? 'ready' : ''}}" bindtap="useSkill">羁绊技 · {{skillReady ? '可用' : '需 3 只妖灵'}}</button><button class="secondary-button" bindtap="backToSelect">退出本局</button></view>
+  </view>
+
+  <view wx:else class="result-screen">
+    <text class="result-kicker">{{result.won ? '封印守住了' : '封印被突破'}}</text>
+    <view class="result-title">{{result.won ? '这一关，守住。' : '裂隙仍在扩大。'}}</view>
+    <view class="result-grid"><view><text>本局击破</text><strong>{{result.kills}}</strong></view><view><text>最高连击</text><strong>{{result.combo}}</strong></view><view><text>获得修为</text><strong>+{{result.xp}}</strong></view></view>
+    <view class="result-copy">{{result.copy}}</view>
+    <button class="primary-button" bindtap="replayGame">再守一次 <text>↻</text></button>
+    <button class="secondary-button" bindtap="backToSelect">返回关卡</button>
+  </view>
+</view>

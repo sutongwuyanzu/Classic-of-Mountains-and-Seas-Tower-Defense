@@ -1,0 +1,26 @@
+appId: com.sutongwuyanzu.shanhaidefense
+productName: 山海异兽志
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+directories:
+  output: dist
+files:
+  - index.html
+  - styles.css
+  - package.json
+  - src/**/*
+  - assets/**/*
+  - electron/**/*
+asar: true
+win:
+  target:
+    - nsis
+  signAndEditExecutable: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target:
+    - dmg
+linux:
+  target:
+    - AppImage

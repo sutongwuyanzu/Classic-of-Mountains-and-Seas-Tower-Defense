@@ -1,0 +1,15 @@
+{
+  "description": "山海异兽志微信小程序",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "shanhai-tower-defense",
+  "miniprogramRoot": "./",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true,
+    "urlCheck": false,
+    "checkSiteMap": false
+  },
+  "condition": {}
+}

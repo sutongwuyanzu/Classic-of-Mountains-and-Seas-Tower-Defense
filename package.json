@@ -2,8 +2,16 @@
   "name": "classic-of-mountains-and-seas-tower-defense",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.cjs",
   "description": "A standalone browser reconstruction of a Shan Hai Jing tower defense game.",
   "scripts": {
-    "dev": "python -m http.server 4173"
+    "dev": "python -m http.server 4173",
+    "steam": "electron electron/main.cjs",
+    "dist:steam": "electron-builder --config electron-builder.yml",
+    "dist:portable": "powershell -ExecutionPolicy Bypass -File scripts/build-portable.ps1"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
   }
 }
