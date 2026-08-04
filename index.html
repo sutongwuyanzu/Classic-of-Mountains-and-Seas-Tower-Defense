@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101719" />
+    <title>山海异兽志 · Tower Defense</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="山海异兽志主页">
+          <img src="./assets/crest.svg" alt="" />
+          <span>山海异兽志</span>
+        </a>
+        <div class="topbar-meta">
+          <span class="status-dot"></span>
+          <span id="save-status">本地存档已启用</span>
+          <button class="icon-button" id="reset-save" type="button" title="重置本地存档" aria-label="重置本地存档">↺</button>
+        </div>
+      </header>
+
+      <main>
+        <section id="select-screen" class="screen select-screen">
+          <div class="select-heading">
+            <div>
+              <p class="eyebrow">DIRECTOR'S FIELD GUIDE / 01</p>
+              <h1>守住封印，<br /><em>驭使异兽。</em></h1>
+              <p class="intro-copy">在山海裂隙中布置妖灵，组合阵型与羁绊，挡住一波又一波的异兽潮。</p>
+            </div>
+            <div class="codex-summary">
+              <span class="summary-label">妖灵谱</span>
+              <strong id="codex-count">0 / 27</strong>
+              <span id="cultivation-summary">初窥门径 · 全局战力 ×1.00</span>
+            </div>
+          </div>
+
+          <div class="select-grid">
+            <div class="stage-column">
+              <div class="section-label-row">
+                <span class="section-label">选择关卡</span>
+                <span class="section-note">五段旅程 · 重叠波次</span>
+              </div>
+              <div id="stage-list" class="stage-list"></div>
+              <div class="field-notes">
+                <div><span>01</span><p>敌人会在道路上持续前进，越靠近封印越危险。</p></div>
+                <div><span>02</span><p>自由放置，不是固定格子。离道路越近，伤害覆盖越好。</p></div>
+              </div>
+            </div>
+
+            <div class="roster-column">
+              <div class="section-label-row">
+                <span class="section-label">可用妖灵</span>
+                <span class="section-note">点击查看 · 已解锁 5 只</span>
+              </div>
+              <div id="roster-list" class="roster-list"></div>
+              <div class="bond-preview">
+                <div class="section-label-row compact">
+                  <span class="section-label">羁绊预览</span>
+                  <span class="section-note">上场后自动计算</span>
+                </div>
+                <div id="bond-preview-list" class="bond-preview-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="select-footer">
+            <div class="selection-readout"><span>当前选择</span><strong id="selected-stage-label">幽都洞窟 · 01</strong></div>
+            <button class="primary-button" id="start-game" type="button"><span>开始守关</span><b>→</b></button>
+          </div>
+        </section>
+
+        <section id="game-screen" class="screen game-screen is-hidden">
+          <div class="game-toolbar">
+            <button class="back-button" id="back-to-select" type="button" title="返回关卡选择">← <span>关卡</span></button>
+            <div class="game-title"><span id="game-terrain">幽都洞窟</span><strong id="game-level">第 1 关</strong></div>
+            <div class="game-actions">
+              <button class="small-button" id="pause-game" type="button">暂停</button>
+              <button class="small-button" id="speed-game" type="button">1×</button>
+            </div>
+          </div>
+
+          <div class="game-layout">
+            <aside class="game-side left-side">
+              <div class="metric-block seal-metric">
+                <div class="metric-label"><span>封印完整度</span><span id="hp-label">10 / 10</span></div>
+                <div class="meter"><i id="hp-meter"></i></div>
+              </div>
+              <div class="metric-block">
+                <div class="metric-label"><span>当前波次</span><span id="wave-label">1 / 8</span></div>
+                <div class="wave-track" id="wave-track"></div>
+              </div>
+              <div class="combat-log" id="combat-log" aria-live="polite">选择一只妖灵，然后点击场地上的任意合法位置。</div>
+            </aside>
+
+            <div class="arena-wrap">
+              <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
+              <div class="arena-hint" id="arena-hint">自由放置：避开道路、封印和裂隙</div>
+            </div>
+
+            <aside class="game-side right-side">
+              <div class="resource-panel">
+                <div class="resource-line"><span>灵蕴</span><strong id="essence-label">70</strong></div>
+                <div class="resource-line"><span>击破</span><strong id="kill-label">0</strong></div>
+              </div>
+              <div class="unit-panel">
+                <div class="section-label-row compact"><span class="section-label">召唤妖灵</span><span class="section-note">点击选择</span></div>
+                <div id="game-roster" class="game-roster"></div>
+              </div>
+              <div class="bond-panel">
+                <div class="section-label-row compact"><span class="section-label">场上羁绊</span><span class="section-note">阵型影响强度</span></div>
+                <div id="game-bonds" class="game-bonds"></div>
+              </div>
+              <button class="skill-button" id="team-skill" type="button"><span>羁绊技</span><strong id="skill-label">未就绪</strong></button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="result-screen" class="screen result-screen is-hidden">
+          <p class="eyebrow">FIELD REPORT / COMPLETE</p>
+          <div class="result-head"><h2 id="result-title">封印守住了</h2><span id="result-stage">幽都洞窟 · 01</span></div>
+          <div class="result-grid">
+            <div class="result-score"><span>本局击破</span><strong id="result-kills">0</strong><small>只异兽</small></div>
+            <div class="result-score"><span>获得修为</span><strong id="result-xp">+0</strong><small>点</small></div>
+            <div class="result-score"><span>最高连击</span><strong id="result-combo">0</strong><small>连</small></div>
+          </div>
+          <p class="result-copy" id="result-copy"></p>
+          <div class="result-actions"><button class="secondary-button" id="replay-game" type="button">再守一次</button><button class="primary-button" id="return-select" type="button"><span>返回关卡</span><b>→</b></button></div>
+        </section>
+      </main>
+      <footer class="footer"><span>山海异兽志 · 独立重建版本</span><span>PIXEL TACTICS / v0.1</span></footer>
+    </div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
