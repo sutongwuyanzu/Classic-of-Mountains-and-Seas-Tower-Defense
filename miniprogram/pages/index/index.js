@@ -76,20 +76,20 @@ Page({
 
   ensureCanvas() {
     if (this.canvas) return;
-    wx.createSelectorQuery().select('#arena').fields({ node: true, size: true }).exec((result) => {
+    wx.createSelectorQuery().select('#arena').fields({ node: true, size: true, rect: true }).exec((result) => {
       if (!result[0]) return;
       const info = result[0]; const dpr = wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : wx.getSystemInfoSync().pixelRatio;
-      this.canvas = info.node; this.ctx = this.canvas.getContext('2d'); this.canvasWidth = info.width; this.canvasHeight = info.height; this.dpr = dpr;
+      this.canvas = info.node; this.ctx = this.canvas.getContext('2d'); this.canvasWidth = info.width; this.canvasHeight = info.height; this.canvasRect = { left: Number(info.left) || 0, top: Number(info.top) || 0, width: info.width, height: info.height }; this.dpr = dpr;
       this.canvas.width = Math.round(info.width * dpr); this.canvas.height = Math.round(info.height * dpr);
       this.ctx.setTransform(dpr * info.width / 960, 0, 0, dpr * info.height / 540, 0, 0);
-      this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-scenes-v2.png';
-      this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.png';
-      this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.png';
+      this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-scenes-v2.webp';
+      this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.webp';
+      this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.webp';
       this.frameActive = true; this.lastFrame = Date.now(); this.frame();
     });
   },
 
-  onHide() { this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); },
+  onHide() { this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); this.frameTimer = null; },
   onShow() { if (this.data.screen === 'game' && !this.frameActive) { this.frameActive = true; this.lastFrame = Date.now(); this.frame(); } },
 
   prepareSelection(selectedStage = this.data.selectedStage, selectedBeast = this.data.selectedBeast) {
@@ -111,8 +111,9 @@ Page({
   },
 
   startGame() {
+    if (this.frameTimer) clearTimeout(this.frameTimer); this.frameTimer = null; this.frameActive = false;
     this.selectedStage = this.data.selectedStage; this.totalWaves = 8 + this.selectedStage * 3; this.waveIndex = 0; this.waveCooldown = 0; this.groups = null; this.towers = []; this.enemies = []; this.projectiles = []; this.energy = 56 + this.selectedStage * 6; this.hp = 10; this.kills = 0; this.combo = 0; this.bestCombo = 0; this.skillReady = false; this.finished = false;
-    this.setData({ screen: 'game', currentLevel: LEVELS[this.selectedStage], totalWaves: this.totalWaves, waveDots: Array(this.totalWaves).fill(0), wave: 1, energy: this.energy, hp: this.hp, kills: 0, paused: false, speed: 1, skillReady: false, logs: ['第 1 波：敌群进入道路，点击道路两侧安置妖灵。'] }, () => { this.ensureCanvas(); this.startWave(); this.syncGame(); });
+    this.setData({ screen: 'game', currentLevel: LEVELS[this.selectedStage], totalWaves: this.totalWaves, waveDots: Array(this.totalWaves).fill(0), wave: 1, energy: this.energy, hp: this.hp, kills: 0, paused: false, speed: 1, skillReady: false, logs: ['第 1 波：敌群进入道路，点击道路两侧安置妖灵。'] }, () => { this.ensureCanvas(); if (this.canvas && !this.frameActive) { this.frameActive = true; this.lastFrame = Date.now(); this.frame(); } this.startWave(); this.syncGame(); });
   },
 
   startWave() {
@@ -209,7 +210,7 @@ Page({
 
   onTouchStart(event) {
     if (this.data.screen !== 'game' || this.data.paused || !this.canvasWidth) return;
-    const touch = event.touches[0]; this.placeTower(touch.x / this.canvasWidth * 960, touch.y / this.canvasHeight * 540);
+    const touch = event.touches[0]; const rect = this.canvasRect || { left: 0, top: 0, width: this.canvasWidth, height: this.canvasHeight }; const clientX = touch.clientX === undefined ? touch.pageX === undefined ? touch.x : touch.pageX : touch.clientX; const clientY = touch.clientY === undefined ? touch.pageY === undefined ? touch.y : touch.pageY : touch.clientY; this.placeTower((clientX - rect.left) / rect.width * 960, (clientY - rect.top) / rect.height * 540);
   },
 
   useSkill() {
@@ -218,12 +219,12 @@ Page({
   },
 
   finishGame(won) {
-    if (this.finished) return; this.finished = true; const reward = won ? 30 + this.selectedStage * 12 : 0; if (won) { this.tier = Math.max(this.tier, 1 + Math.floor((this.kills + reward) / 30)); wx.setStorageSync('shan-hai-mini-save', { tier: this.tier }); }
+    if (this.finished) return; this.finished = true; this.frameActive = false; if (this.frameTimer) { clearTimeout(this.frameTimer); this.frameTimer = null; } const reward = won ? 30 + this.selectedStage * 12 : 0; if (won) { this.tier = Math.max(this.tier, 1 + Math.floor((this.kills + reward) / 30)); wx.setStorageSync('shan-hai-mini-save', { tier: this.tier }); }
     this.setData({ screen: 'result', result: { won, kills: this.kills, combo: this.bestCombo, xp: reward, copy: won ? `你在${LEVELS[this.selectedStage].name}完成了 ${this.totalWaves} 波防守。` : '优先补上交叉火力，再处理护盾与高速敌人。' } });
   },
 
   replayGame() { this.startGame(); },
-  backToSelect() { this.finished = true; this.canvas = null; this.ctx = null; this.setData({ screen: 'select' }); this.prepareSelection(); },
+  backToSelect() { this.finished = true; this.frameActive = false; if (this.frameTimer) { clearTimeout(this.frameTimer); this.frameTimer = null; } this.canvas = null; this.ctx = null; this.canvasRect = null; this.setData({ screen: 'select' }); this.prepareSelection(); },
   togglePause() { this.setData({ paused: !this.data.paused }); },
   toggleSpeed() { this.setData({ speed: this.data.speed === 1 ? 2 : 1 }); },
 
