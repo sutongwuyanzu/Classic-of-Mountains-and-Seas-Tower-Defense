@@ -82,7 +82,9 @@ Page({
       this.canvas = info.node; this.ctx = this.canvas.getContext('2d'); this.canvasWidth = info.width; this.canvasHeight = info.height; this.dpr = dpr;
       this.canvas.width = Math.round(info.width * dpr); this.canvas.height = Math.round(info.height * dpr);
       this.ctx.setTransform(dpr * info.width / 960, 0, 0, dpr * info.height / 540, 0, 0);
-      this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-atlas.png';
+      this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-scenes-v2.png';
+      this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.png';
+      this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.png';
       this.frameActive = true; this.lastFrame = Date.now(); this.frame();
     });
   },
@@ -92,7 +94,7 @@ Page({
 
   prepareSelection(selectedStage = this.data.selectedStage, selectedBeast = this.data.selectedBeast) {
     const levels = LEVELS.map((level, index) => ({ ...level, selected: index === selectedStage }));
-    const roster = ROSTER.map((beast) => ({ ...beast, selected: beast.id === selectedBeast }));
+    const roster = ROSTER.map((beast, portraitIndex) => ({ ...beast, portraitIndex, bgPos: `${(portraitIndex % 6) * 20}% ${Math.floor(portraitIndex / 6) * 25}%`, selected: beast.id === selectedBeast }));
     this.setData({ levels, roster, currentLevel: LEVELS[selectedStage], selectedBeastName: ROSTER.find((item) => item.id === selectedBeast).name });
   },
 
@@ -105,7 +107,7 @@ Page({
   },
 
   selectBeastInGame(event) {
-    const selectedBeast = event.currentTarget.dataset.id; this.setData({ selectedBeast, selectedBeastName: ROSTER.find((item) => item.id === selectedBeast).name, roster: ROSTER.map((item) => ({ ...item, selected: item.id === selectedBeast })) });
+    const selectedBeast = event.currentTarget.dataset.id; this.setData({ selectedBeast, selectedBeastName: ROSTER.find((item) => item.id === selectedBeast).name, roster: ROSTER.map((item, portraitIndex) => ({ ...item, portraitIndex, bgPos: `${(portraitIndex % 6) * 20}% ${Math.floor(portraitIndex / 6) * 25}%`, selected: item.id === selectedBeast })) });
   },
 
   startGame() {
@@ -247,6 +249,18 @@ Page({
     this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
     this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 17, 21, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tower.x, tower.y, 19, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = def.color; ctx.font = 'bold 18px Arial'; ctx.fillText(def.short, tower.x, tower.y + 6); });
     this.enemies.forEach((enemy) => { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.def.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Arial'; ctx.fillText(enemy.def.short, enemy.x, enemy.y + 3); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
+    this.projectiles.forEach((projectile) => { ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2); ctx.fill(); });
+  },
+
+  draw() {
+    if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0, 0, 960, 540); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, 960, 540);
+    if (this.atlasReady) { const panelHeight = this.atlas.height / 5; ctx.globalAlpha = .62; ctx.drawImage(this.atlas, 0, panelHeight * this.selectedStage, this.atlas.width, panelHeight, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8,17,20,.18)'; ctx.fillRect(0, 0, 960, 540); }
+    ctx.strokeStyle = 'rgba(241,236,223,.05)'; ctx.lineWidth = 1; for (let x = 20; x < 960; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 540); ctx.stroke(); } for (let y = 20; y < 540; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y); ctx.stroke(); }
+    this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#0d1617'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#b99b67'; ctx.lineWidth = 62; ctx.stroke(); ctx.strokeStyle = 'rgba(245,224,170,.28)'; ctx.lineWidth = 3; ctx.setLineDash([8, 11]); ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt'; });
+    ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(884, 270, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 884, 274);
+    this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
+    this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); const portraitIndex = ROSTER.findIndex((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 20, 27, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(tower.x, tower.y, 25, 0, Math.PI * 2); ctx.stroke(); if (this.beastAtlasReady) { const cellW = this.beastAtlas.width / 6; const cellH = this.beastAtlas.height / 5; ctx.save(); ctx.beginPath(); ctx.arc(tower.x, tower.y, 23, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.beastAtlas, (portraitIndex % 6) * cellW, Math.floor(portraitIndex / 6) * cellH, cellW, cellH, tower.x - 25, tower.y - 25, 50, 50); ctx.restore(); } });
+    this.enemies.forEach((enemy) => { const radius = enemy.def.radius * 1.35; const sprite = Object.keys(ENEMIES).indexOf(enemy.type); if (this.enemyAtlasReady) { const cellW = this.enemyAtlas.width / 5; const cellH = this.enemyAtlas.height / 2; ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.enemyAtlas, (sprite % 5) * cellW, Math.floor(sprite / 5) * cellH, cellW, cellH, enemy.x - radius, enemy.y - radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
     this.projectiles.forEach((projectile) => { ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2); ctx.fill(); });
   },
 });

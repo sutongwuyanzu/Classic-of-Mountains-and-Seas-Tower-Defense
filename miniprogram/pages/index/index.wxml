@@ -21,7 +21,7 @@
     <view class="section-head roster-head"><text>初始妖灵</text><text class="muted">点击选择出场单位</text></view>
     <scroll-view scroll-x="true" class="roster-scroll">
       <view wx:for="{{roster}}" wx:key="id" class="roster-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeast">
-        <text class="portrait" style="color:{{item.color}}">{{item.short}}</text>
+        <view class="portrait portrait-image" style="background-position:{{item.bgPos}}"></view>
         <text class="roster-name">{{item.name}}</text>
         <text class="roster-meta">{{item.cost}} 灵蕴</text>
       </view>
@@ -50,7 +50,7 @@
 
     <scroll-view scroll-x="true" class="game-roster">
       <view wx:for="{{roster}}" wx:key="id" class="game-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeastInGame">
-        <text class="game-portrait" style="color:{{item.color}}">{{item.short}}</text><text>{{item.name}}</text><text class="cost">{{item.cost}}</text>
+        <view class="game-portrait portrait-image" style="background-position:{{item.bgPos}}"></view><text>{{item.name}}</text><text class="cost">{{item.cost}}</text>
       </view>
     </scroll-view>
     <view class="game-actions"><button class="skill-button {{skillReady ? 'ready' : ''}}" bindtap="useSkill">羁绊技 · {{skillReady ? '可用' : '需 3 只妖灵'}}</button><button class="secondary-button" bindtap="backToSelect">退出本局</button></view>

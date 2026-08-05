@@ -59,6 +59,7 @@ h1 em { color: var(--coral); font-style: normal; }
 .roster-card:hover { transform: translateY(-2px); border-color: rgba(228, 180, 93, .55); }
 .roster-card.is-locked { opacity: .35; cursor: not-allowed; }
 .roster-card .portrait { width: 34px; height: 34px; margin-bottom: 9px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-size: 13px; font-weight: 700; }
+.portrait-image { background-image: url('./assets/beast-atlas.png'); background-repeat: no-repeat; background-size: 600% 500%; background-position: calc(var(--portrait-x) * 20%) calc(var(--portrait-y) * 25%); background-color: #bcae88; overflow: hidden; color: transparent; }
 .roster-card strong { display: block; font-size: 13px; }
 .roster-card small { display: block; margin-top: 3px; color: var(--paper-muted); font-size: 10px; }
 .rarity-N { color: #90a89c; } .rarity-R { color: #72a9c5; } .rarity-SR { color: #ba8fd0; } .rarity-SSR { color: #d98a67; } .rarity-UR { color: #e4b45d; }
@@ -101,6 +102,7 @@ h1 em { color: var(--coral); font-style: normal; }
 .game-card { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; padding: 7px; border: 1px solid transparent; background: rgba(255,255,255,.035); color: var(--paper); text-align: left; }
 .game-card:hover, .game-card.is-selected { border-color: var(--gold); }
 .game-card .portrait { width: 25px; height: 25px; border: 1px solid currentColor; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+.game-card .portrait-image { border-color: currentColor; }
 .game-card strong { font-size: 11px; display: block; } .game-card small { color: #879391; font-size: 9px; display: block; margin-top: 2px; }
 .game-card em { font-style: normal; color: var(--gold); font-size: 10px; }
 .bond-panel { margin-top: 21px; }

@@ -3,7 +3,11 @@ const SAVE_KEY = 'shan-hai-rebuild-v1';
 const canvas = document.querySelector('#game-canvas');
 const ctx = canvas.getContext('2d');
 const biomeAtlas = document.createElement('img');
-biomeAtlas.src = './assets/biome-atlas.png';
+biomeAtlas.src = './assets/biome-scenes-v2.png';
+const beastAtlas = document.createElement('img');
+beastAtlas.src = './assets/beast-atlas.png';
+const enemyAtlas = document.createElement('img');
+enemyAtlas.src = './assets/enemy-atlas.png';
 
 const ROSTER = [
   ['bifang', '毕方', 0], ['fuzhu', '夫诸', 0], ['jiuwei', '九尾狐', 0], ['tiangou', '天狗', 0], ['xuangui', '旋龟', 0],
@@ -11,7 +15,7 @@ const ROSTER = [
   ['qiuniu', '囚牛', 2], ['yazi', '睚眦', 2], ['chaofeng', '嘲风', 2], ['pulao', '蒲牢', 2], ['suanni', '狻猊', 2], ['bixi', '霸下', 2], ['bian', '狴犴', 2], ['fuxi_long', '负屭', 2], ['chiwen', '螭吻', 2],
   ['dayu', '大禹', 3], ['gonggong', '共工', 3],
   ['qinglong', '青龙', 4], ['baihu', '白虎', 4], ['zhuque', '朱雀', 4], ['xuanwu', '玄武', 4], ['huangdi', '黄帝', 4], ['fuxi', '伏羲', 4], ['nuwa', '女娲', 4],
-].map(([id, name, rarity]) => ({ id, name, rarity }));
+].map(([id, name, rarity], portraitIndex) => ({ id, name, rarity, portraitIndex }));
 
 const STARTER_IDS = ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'];
 const BEASTS = {
@@ -56,15 +60,15 @@ const BOND_DEFS = [
 ];
 
 const ENEMIES = {
-  xingxing: { name: '狌狌', hp: 92, speed: 45, radius: 12, color: '#b78668', reward: 1 },
-  fei: { name: '飞廉', hp: 135, speed: 62, radius: 13, color: '#8fb7b5', reward: 1 },
-  bashe: { name: '巴蛇', hp: 360, speed: 31, radius: 18, color: '#8a985e', armor: 8, reward: 2 },
-  huali: { name: '化蛇', hp: 230, speed: 38, radius: 15, color: '#6e9ab0', immuneMag: true, reward: 2 },
-  wangliang: { name: '魍魉', hp: 180, speed: 56, radius: 13, color: '#9f7db5', stealth: true, reward: 2 },
-  zhuyan: { name: '朱厌', hp: 420, speed: 28, radius: 20, color: '#bf6751', armor: 16, shield: 100, reward: 3 },
-  taotie: { name: '饕餮', hp: 760, speed: 22, radius: 25, color: '#d28e54', shield: 220, armor: 12, boss: true, skill: 'heal', reward: 5 },
-  baize: { name: '白泽', hp: 560, speed: 25, radius: 22, color: '#cfbc92', skill: 'revive', boss: true, reward: 5 },
-  shanxiao: { name: '山魈', hp: 200, speed: 50, radius: 14, color: '#9b6f59', skill: 'split', reward: 2 },
+  xingxing: { name: '狌狌', hp: 92, speed: 45, radius: 12, color: '#b78668', reward: 1, sprite: 0 },
+  fei: { name: '飞廉', hp: 135, speed: 62, radius: 13, color: '#8fb7b5', reward: 1, sprite: 1 },
+  bashe: { name: '巴蛇', hp: 360, speed: 31, radius: 18, color: '#8a985e', armor: 8, reward: 2, sprite: 2 },
+  huali: { name: '化蛇', hp: 230, speed: 38, radius: 15, color: '#6e9ab0', immuneMag: true, reward: 2, sprite: 3 },
+  wangliang: { name: '魍魉', hp: 180, speed: 56, radius: 13, color: '#9f7db5', stealth: true, reward: 2, sprite: 4 },
+  zhuyan: { name: '朱厌', hp: 420, speed: 28, radius: 20, color: '#bf6751', armor: 16, shield: 100, reward: 3, sprite: 5 },
+  taotie: { name: '饕餮', hp: 760, speed: 22, radius: 25, color: '#d28e54', shield: 220, armor: 12, boss: true, skill: 'heal', reward: 5, sprite: 6 },
+  baize: { name: '白泽', hp: 560, speed: 25, radius: 22, color: '#cfbc92', skill: 'revive', boss: true, reward: 5, sprite: 7 },
+  shanxiao: { name: '山魈', hp: 200, speed: 50, radius: 14, color: '#9b6f59', skill: 'split', reward: 2, sprite: 8 },
 };
 
 const LEVELS = [
@@ -447,6 +451,49 @@ function drawCanvas() {
 function drawTower(tower) { const def = beastDef(tower.id); ctx.save(); ctx.translate(tower.x, tower.y); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 16, 21, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = `${def.color}35`; ctx.fill(); ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 6); ctx.fillStyle = '#f1ecdf'; ctx.font = '9px Segoe UI'; ctx.fillText(`L${tower.level}`, 0, 31); ctx.restore(); }
 function drawEnemy(enemy) { ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .3 : 1; ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); ctx.fillStyle = '#2b3839'; ctx.fillRect(-enemy.radius, -enemy.radius - 9, enemy.radius * 2, 4); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e4b45d' : '#76c1a5'; ctx.fillRect(-enemy.radius, -enemy.radius - 9, enemy.radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 4); ctx.restore(); }
 function drawProjectile(projectile) { ctx.save(); ctx.strokeStyle = projectile.def.color; ctx.lineWidth = 2; ctx.globalAlpha = .5; if (projectile.trail.length > 1) { ctx.beginPath(); projectile.trail.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke(); } ctx.globalAlpha = 1; ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.def.proj === 'quake' ? 5 : 3, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+
+function renderSelect() {
+  refs.stageList.innerHTML = LEVELS.map((level, index) => `<button class="stage-card ${index === state.stage ? 'is-selected' : ''}" data-stage="${index}" type="button"><span class="stage-number">0${index + 1}</span><span><strong>${level.name}</strong><small>${level.intro}</small></span><span class="stage-difficulty">${'+'.repeat(index + 1)}</span></button>`).join('');
+  refs.stageList.querySelectorAll('[data-stage]').forEach((button) => button.addEventListener('click', () => { state.stage = Number(button.dataset.stage); renderSelect(); }));
+  refs.rosterList.innerHTML = ROSTER.map((beast) => {
+    const data = beastDef(beast.id); const locked = !state.unlocked.has(beast.id); const portraitX = beast.portraitIndex % 6; const portraitY = Math.floor(beast.portraitIndex / 6);
+    return `<button class="roster-card rarity-${RARITIES[beast.rarity]} ${locked ? 'is-locked' : ''}" data-beast="${beast.id}" type="button" ${locked ? 'disabled' : ''}><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · ${data.kindText}</small></button>`;
+  }).join('');
+  refs.rosterList.querySelectorAll('[data-beast]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = button.dataset.beast; renderSelect(); }));
+  const chosen = beastDef(state.selectedBeast);
+  refs.bondPreviewList.innerHTML = BOND_DEFS.map((bond) => `<div class="bond-row"><i class="bond-pill ${bond.members.includes(state.selectedBeast) ? 'active' : ''}" style="--bond:${bond.color}"></i><span>${bond.name}</span><strong>${bond.need} · ${bond.stat === 'power' ? '攻击' : bond.stat === 'haste' ? '攻速' : '范围'}</strong></div>`).join('');
+  refs.codexCount.textContent = `${state.unlocked.size} / ${ROSTER.length}`;
+  refs.cultivationSummary.textContent = `初始编制 · 全局战力 ×${(1 + state.tier * .04).toFixed(2)}`;
+  refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · 0${state.stage + 1} · ${chosen.name}待命`;
+}
+
+function renderGameRoster() {
+  refs.gameRoster.innerHTML = [...state.unlocked].map((id) => { const beast = beastDef(id); const portraitX = beast.portraitIndex % 6; const portraitY = Math.floor(beast.portraitIndex / 6); return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${state.selectedBeast === id ? 'is-selected' : ''}" data-beast="${id}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><strong>${beast.name}</strong><small>${beast.kindText}</small></span><em>${beast.cost}</em></button>`; }).join('');
+  refs.gameRoster.querySelectorAll('[data-beast]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = button.dataset.beast; renderGameRoster(); }));
+}
+
+function drawCanvas() {
+  const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelH = biomeAtlas.naturalHeight / 5; ctx.globalAlpha = .62; ctx.drawImage(biomeAtlas, 0, panelH * state.stage, biomeAtlas.naturalWidth, panelH, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .18)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+  pathInfo(level).forEach((route) => drawPath(route, level));
+  ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
+  pathInfo(level).forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(route.sx, route.sy, 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route.sx, route.sy + 4); });
+  if (state.mouse.inside && state.selectedBeast) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
+  state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
+}
+
+function drawTower(tower) {
+  const def = beastDef(tower.id); ctx.save(); ctx.translate(tower.x, tower.y); ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(0, 20, 27, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.stroke();
+  if (beastAtlas.complete && beastAtlas.naturalWidth) { const cellW = beastAtlas.naturalWidth / 6; const cellH = beastAtlas.naturalHeight / 5; const sx = (def.portraitIndex % 6) * cellW; const sy = Math.floor(def.portraitIndex / 6) * cellH; ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 23, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(beastAtlas, sx, sy, cellW, cellH, -25, -25, 50, 50); ctx.restore(); } else { ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 6); }
+  ctx.fillStyle = 'rgba(8,17,20,.78)'; ctx.fillRect(-14, 27, 28, 12); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 9px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(`L${tower.level}`, 0, 36); ctx.restore();
+}
+
+function drawEnemy(enemy) {
+  ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; const radius = enemy.radius * 1.35;
+  if (enemyAtlas.complete && enemyAtlas.naturalWidth) { const cellW = enemyAtlas.naturalWidth / 5; const cellH = enemyAtlas.naturalHeight / 2; const sx = (enemy.def.sprite % 5) * cellW; const sy = Math.floor(enemy.def.sprite / 5) * cellH; ctx.save(); ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(enemyAtlas, sx, sy, cellW, cellH, -radius, -radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); }
+  ctx.globalAlpha = 1; ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#2b3839'; ctx.fillRect(-radius, -radius - 10, radius * 2, 4); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e4b45d' : '#76c1a5'; ctx.fillRect(-radius, -radius - 10, radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 4); ctx.restore();
+}
 
 function tick(timestamp) {
   const rawDt = Math.min(.05, (timestamp - state.lastTime) / 1000 || 0); state.lastTime = timestamp;
