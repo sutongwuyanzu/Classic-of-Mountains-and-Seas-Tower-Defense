@@ -17,6 +17,21 @@ const beastAtlas = document.createElement('img');
 beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
 enemyAtlas.src = './assets/enemy-atlas.png';
+const combatSpriteSources = {
+  bifang: './assets/sprites/bifang.png',
+  fuzhu: './assets/sprites/fuzhu.png',
+  jiuwei: './assets/sprites/jiuwei.png',
+  tiangou: './assets/sprites/tiangou.png',
+  xuangui: './assets/sprites/xuangui.png',
+  xingxing: './assets/sprites/xingxing.png',
+  fei: './assets/sprites/fei.png',
+  bashe: './assets/sprites/bashe.png',
+};
+const combatSprites = Object.fromEntries(Object.entries(combatSpriteSources).map(([id, src]) => {
+  const image = document.createElement('img');
+  image.src = src;
+  return [id, image];
+}));
 
 const ROSTER = [
   ['bifang', '毕方', 0], ['fuzhu', '夫诸', 0], ['jiuwei', '九尾狐', 0], ['tiangou', '天狗', 0], ['xuangui', '旋龟', 0],
@@ -32,6 +47,13 @@ const ADVANCED_SUMMON_COST = 80;
 const FORTUNE_COST = 30;
 const MAX_BACKPACK = 12;
 const SUMMON_WEIGHTS = [[0, 56], [1, 28], [2, 12], [3, 3], [4, 1]];
+const CULTIVATION_STAGES = [
+  { kills: 0, name: '初窥门径', power: 0, summonLevel: 1 },
+  { kills: 30, name: '灵脉初开', power: .1, summonLevel: 1 },
+  { kills: 120, name: '丹府凝形', power: .2, summonLevel: 2 },
+  { kills: 320, name: '元神照野', power: .3, summonLevel: 2 },
+  { kills: 700, name: '山海同寿', power: .4, summonLevel: 2 },
+];
 const BEASTS = {
   bifang: { dmg: 20, interval: 1.15, range: 168, projSpeed: 380, proj: 'ember', burn: true, burnDps: .22, dmgType: 'mag', counters: ['purge'], color: '#e77854', kindText: '灼烧 · 破法', cost: 18 },
   fuzhu: { dmg: 15, interval: .92, range: 155, projSpeed: 420, proj: 'wisp', slow: .28, slowDur: 2.5, dmgType: 'mag', counters: ['insight'], color: '#80c7be', kindText: '减速 · 洞察', cost: 20 },
@@ -65,11 +87,13 @@ const BEASTS = {
 const BOND_DEFS = [
   { id: 'wild', name: '山野同气', members: ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'], need: 3, stat: 'power', bonus: .14, stepBonus: .07, shape: 'triangle', color: '#d98a67', ult: '焚野', ultMul: 2.2 },
   { id: 'fierce', name: '山海猛兽', members: ['zheng', 'kaiming', 'bo', 'shengsheng'], need: 2, stat: 'haste', bonus: .12, stepBonus: .06, shape: 'line', color: '#e1ac65', ult: '猎潮', ultMul: 2 },
-  { id: 'dragon', name: '龙生九子', members: ['qiuniu', 'yazi', 'chaofeng', 'pulao', 'suanni', 'bixi', 'bian', 'fuxi_long', 'chiwen'], need: 3, stat: 'haste', bonus: .12, stepBonus: .045, shape: 'square', color: '#b58bd0', ult: '九子镇海', ultMul: 2.6 },
+  { id: 'dragon-tide', name: '龙子·镇涛', members: ['pulao', 'chiwen', 'bixi'], need: 3, stat: 'enemySlow', bonus: .15, stepBonus: 0, shape: 'line', color: '#5bacc4', ult: '镇涛龙吟', skill: 'tide', cooldown: 7 },
+  { id: 'dragon-roar', name: '龙子·震吼', members: ['bian', 'yazi', 'chaofeng'], need: 3, stat: 'sunder', bonus: .18, stepBonus: 0, shape: 'triangle', color: '#ca8b67', ult: '震吼破甲', skill: 'roar', cooldown: 7 },
+  { id: 'dragon-fire', name: '龙子·焚天', members: ['suanni', 'qiuniu', 'fuxi_long'], need: 3, stat: 'power', bonus: .16, stepBonus: 0, shape: 'triangle', color: '#df7152', ult: '焚天龙焰', skill: 'fire', cooldown: 7 },
   { id: 'sishou', name: '四象归位', members: ['qinglong', 'baihu', 'zhuque', 'xuanwu'], need: 2, stat: 'range', bonus: .1, stepBonus: .06, shape: 'square', color: '#65b7af', ult: '四象天门', ultMul: 3.4 },
   { id: 'renzu', name: '人祖开天', members: ['huangdi', 'fuxi', 'nuwa'], need: 2, stat: 'cdr', bonus: .16, stepBonus: .1, shape: 'triangle', color: '#d4a355', ult: '开天', ultMul: 3 },
   { id: 'zhishui', name: '治水之争', members: ['dayu', 'gonggong'], need: 2, stat: 'sunder', bonus: .16, stepBonus: 0, shape: 'line', color: '#66a9c3', ult: '怒海分流', ultMul: 2.8 },
-  { id: 'yanhuo', name: '炎火同源', members: ['bifang', 'zheng', 'zhuque', 'nuwa'], need: 2, stat: 'power', bonus: .1, stepBonus: .08, shape: 'square', color: '#e66f55' },
+  { id: 'yanhuo', name: '炎火同源', members: ['bifang', 'suanni', 'zhuque', 'nuwa'], need: 2, stat: 'power', bonus: .1, stepBonus: .08, shape: 'square', color: '#e66f55' },
   { id: 'shuize', name: '水泽同流', members: ['fuzhu', 'chiwen', 'xuanwu', 'gonggong'], need: 2, stat: 'enemySlow', bonus: .09, stepBonus: .06, shape: 'cluster', color: '#5fa8b2' },
 ];
 
@@ -103,14 +127,14 @@ const WAVES = [
   [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]], [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]],
 ];
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'essenceLabel', 'killLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'essenceLabel', 'killLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 const state = {
-  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 1,
-  paused: false, resumeAfterDialog: false, draggingUnitId: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 10, battleTime: 0,
+  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 0,
+  paused: false, resumeAfterDialog: false, draggingUnitId: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], damageTexts: [], logs: [], mouse: { x: 480, y: 270, inside: false },
-  skillCooldown: 0, skillBond: null, finishTimer: 0, fusionSelection: [], signEffects: [], summonOffers: [], advancedBatch: [], lastSign: null,
+  skillCooldowns: {}, skillBond: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], advancedBatch: [], lastSign: null,
 };
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
@@ -118,6 +142,16 @@ const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const currentLevel = () => LEVELS[state.stage];
 const beastDef = (id) => ({ ...ROSTER.find((item) => item.id === id), ...BEASTS[id] });
+const cultivation = () => CULTIVATION_STAGES[state.tier] || CULTIVATION_STAGES[0];
+const cultivationTierFor = (kills) => CULTIVATION_STAGES.reduce((tier, stage, index) => (kills >= stage.kills ? index : tier), 0);
+const hasCombatSprite = (id) => Boolean(combatSpriteSources[id]);
+
+function portraitMarkup(beast) {
+  const portraitX = beast.portraitIndex % 6;
+  const portraitY = Math.floor(beast.portraitIndex / 6);
+  const spriteStyle = hasCombatSprite(beast.id) ? `--spirit-sprite:url('./assets/sprites/${beast.id}.png')` : '';
+  return `<span class="portrait portrait-image ${hasCombatSprite(beast.id) ? 'portrait-spirit' : ''}" style="--portrait-x:${portraitX};--portrait-y:${portraitY};${spriteStyle}"></span>`;
+}
 
 function pathInfo(level = currentLevel()) {
   if (level.path === 'cave') return [{ sx: 884, sy: 430, points: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]] }];
@@ -176,7 +210,7 @@ function loadSave() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
     state.xp = Number(saved.xp) || 0;
-    state.tier = Number(saved.tier) || 1;
+    state.tier = cultivationTierFor(state.xp);
     state.unlocked = new Set([...(saved.unlocked || STARTER_IDS), ...STARTER_IDS]);
   } catch {
     state.unlocked = new Set(STARTER_IDS);
@@ -200,13 +234,13 @@ function renderSelect() {
   refs.stageList.querySelectorAll('[data-stage]').forEach((button) => button.addEventListener('click', () => { state.stage = Number(button.dataset.stage); renderSelect(); }));
   refs.rosterList.innerHTML = ROSTER.map((beast) => {
     const data = beastDef(beast.id); const locked = !state.unlocked.has(beast.id);
-    return `<button class="roster-card rarity-${RARITIES[beast.rarity]} ${locked ? 'is-locked' : ''}" data-beast="${beast.id}" type="button" ${locked ? 'disabled' : ''}><span class="portrait">${beast.name.slice(0, 1)}</span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · ${data.kindText}</small></button>`;
+    return `<button class="roster-card rarity-${RARITIES[beast.rarity]} ${locked ? 'is-locked' : ''}" data-beast="${beast.id}" type="button" ${locked ? 'disabled' : ''}>${portraitMarkup(beast)}<strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · ${data.kindText}</small></button>`;
   }).join('');
   refs.rosterList.querySelectorAll('[data-beast]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = button.dataset.beast; renderSelect(); }));
   const chosen = beastDef(state.selectedBeast);
   refs.bondPreviewList.innerHTML = BOND_DEFS.map((bond) => `<div class="bond-row"><i class="bond-pill ${bond.members.includes(state.selectedBeast) ? 'active' : ''}" style="--bond:${bond.color}"></i><span>${bond.name}</span><strong>${bond.need}人 · ${bond.stat === 'power' ? '攻击' : bond.stat === 'haste' ? '攻速' : '范围'}</strong></div>`).join('');
   refs.codexCount.textContent = `${state.unlocked.size} / ${ROSTER.length}`;
-  refs.cultivationSummary.textContent = `初始编制 · 全局战力 ×${(1 + state.tier * .04).toFixed(2)}`;
+  refs.cultivationSummary.textContent = `${cultivation().name} · 全局战力 ×${(1 + cultivation().power).toFixed(2)}`;
   refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · 0${state.stage + 1} · ${chosen.name}待命`;
 }
 
@@ -233,7 +267,7 @@ function randomSummon(weights = SUMMON_WEIGHTS) {
   return randomBeastAtRarity(randomFromWeights(weights));
 }
 
-function createUnit(beast, level = 1) {
+function createUnit(beast, level = cultivation().summonLevel) {
   return { uid: `spirit-${state.nextUnitId++}`, id: beast.id, level, cd: .15, hitTarget: null, hitCount: 0 };
 }
 
@@ -245,6 +279,29 @@ function selectUnit(uid) {
   state.selectedUnitId = state.backpack.some((unit) => unit.uid === uid) ? uid : null;
   renderGameRoster();
   updateHUD();
+}
+
+function removeUnit(unit) {
+  const backpackIndex = state.backpack.findIndex((item) => item.uid === unit.uid);
+  if (backpackIndex >= 0) { state.backpack.splice(backpackIndex, 1); return; }
+  const towerIndex = state.towers.findIndex((item) => item.uid === unit.uid);
+  if (towerIndex >= 0) state.towers.splice(towerIndex, 1);
+}
+
+function receiveSummonedUnit(unit) {
+  let target = state.towers.concat(state.backpack).find((item) => item.id === unit.id && item.level === unit.level);
+  if (!target) { state.backpack.push(unit); return { unit, promotions: 0 }; }
+
+  let promotions = 1;
+  target.level += 1;
+  while (true) {
+    const peer = state.towers.concat(state.backpack).find((item) => item.uid !== target.uid && item.id === target.id && item.level === target.level);
+    if (!peer) break;
+    removeUnit(peer);
+    target.level += 1;
+    promotions += 1;
+  }
+  return { unit: target, promotions };
 }
 
 function showGameDialog(dialog) {
@@ -259,18 +316,28 @@ function closeGameDialog(dialog) {
   updateHUD();
 }
 
+function openPauseMenu() {
+  if (state.screen !== 'game' || state.paused) return;
+  state.paused = true;
+  refs.pauseDialog.showModal();
+  updateHUD();
+}
+
+function resumePauseMenu() {
+  refs.pauseDialog.close();
+  state.paused = false;
+  updateHUD();
+}
+
 function unitCard(unit, attributes = '') {
   const beast = beastDef(unit.id);
-  const portraitX = beast.portraitIndex % 6;
-  const portraitY = Math.floor(beast.portraitIndex / 6);
-  return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${attributes}" data-unit-id="${unit.uid}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · Lv.${unit.level} · ${beast.kindText}</small></span><em>${RARITIES[beast.rarity]}</em></button>`;
+  return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${attributes}" data-unit-id="${unit.uid}" type="button">${portraitMarkup(beast)}<span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · Lv.${unit.level} · ${beast.kindText}</small></span><em>${RARITIES[beast.rarity]}</em></button>`;
 }
 
 function renderSummonOffers() {
   refs.summonOffers.innerHTML = state.summonOffers.map((beast, index) => {
-    const portraitX = beast.portraitIndex % 6;
-    const portraitY = Math.floor(beast.portraitIndex / 6);
-    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>${beast.kindText}</small></span><b>请出布阵</b></button>`;
+    const data = beastDef(beast.id);
+    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button">${portraitMarkup(beast)}<span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>${data.kindText}</small></span><b>请出布阵</b></button>`;
   }).join('');
   refs.summonOffers.querySelectorAll('[data-offer-index]').forEach((button) => button.addEventListener('click', () => claimSummonOffer(Number(button.dataset.offerIndex))));
 }
@@ -278,10 +345,12 @@ function renderSummonOffers() {
 function summonBeast() {
   if (state.screen !== 'game') return;
   if (state.paused) { addLog('暂停中，继续战斗后才能召灵。'); return; }
-  if (state.energy < SUMMON_COST) { addLog(`灵蕴不足，需要 ${SUMMON_COST} 点才能召唤。`); return; }
-  if (state.backpack.length >= MAX_BACKPACK) { addLog('背包已满，请先部署、合成或遣返妖灵。'); return; }
-  state.energy -= SUMMON_COST;
-  state.summonOffers = [randomSummon(), randomSummon()];
+  if (!state.summonOffers.length) {
+    if (state.energy < SUMMON_COST) { addLog(`灵蕴不足，需要 ${SUMMON_COST} 点才能召唤。`); return; }
+    if (state.backpack.length >= MAX_BACKPACK) { addLog('背包已满，请先部署、合成或遣返妖灵。'); return; }
+    state.energy -= SUMMON_COST;
+    state.summonOffers = [randomSummon(), randomSummon()];
+  }
   renderSummonOffers();
   showGameDialog(refs.summonDialog);
 }
@@ -289,12 +358,13 @@ function summonBeast() {
 function claimSummonOffer(index) {
   const beast = state.summonOffers[index];
   if (!beast || state.backpack.length >= MAX_BACKPACK) return;
-  const unit = createUnit(beast);
-  state.backpack.push(unit);
+  const result = receiveSummonedUnit(createUnit(beast));
   state.unlocked.add(beast.id);
-  state.selectedUnitId = unit.uid;
+  state.selectedUnitId = state.backpack.some((unit) => unit.uid === result.unit.uid) ? result.unit.uid : null;
+  state.summonOffers = [];
   closeGameDialog(refs.summonDialog);
-  addLog(`${beast.name}已入阵，拖动卡牌到路边，或直接点击战场布阵。`);
+  if (state.tutorialStep === 0 && !result.promotions) { state.tutorialStep = 1; refs.arenaHint.textContent = '妖灵已入阵：点击下方妖灵卡，再点击道路两侧的空地布阵。'; }
+  addLog(result.promotions ? `${beast.name}同种同阶合成，升至 Lv.${result.unit.level}。` : `${beast.name}已入阵，拖动卡牌到路边，或直接点击战场布阵。`);
   renderGameRoster();
   updateHUD();
 }
@@ -322,51 +392,38 @@ function fusionOutcome(rarity) {
   return { rarity: Math.max(0, rarity - 1), label: '降阶' };
 }
 
-function fuseUnits(first, second, automated = false) {
+function fuseUnits(first, second) {
   const firstBeast = beastDef(first.id);
   const outcome = fusionOutcome(firstBeast.rarity);
   const result = createUnit(randomBeastAtRarity(outcome.rarity), Math.max(first.level, second.level));
   state.backpack = state.backpack.filter((unit) => unit.uid !== first.uid && unit.uid !== second.uid);
   state.backpack.push(result);
   state.unlocked.add(result.id);
-  if (!automated) addLog(`合成${outcome.label}：获得 ${beastDef(result.id).name}（${RARITIES[outcome.rarity]}）。`);
+  addLog(`随机融合${outcome.label}：获得 ${beastDef(result.id).name}（${RARITIES[outcome.rarity]}）。`);
   return outcome;
-}
-
-function autoFuseDuplicatePairs() {
-  let merged = 0;
-  const groups = new Map();
-  state.backpack.forEach((unit) => {
-    const key = `${unit.id}-${unit.level}`;
-    groups.set(key, [...(groups.get(key) || []), unit]);
-  });
-  groups.forEach((units) => {
-    while (units.length >= 2) {
-      fuseUnits(units.shift(), units.shift(), true);
-      merged += 1;
-    }
-  });
-  return merged;
 }
 
 function claimAdvancedBatch() {
   if (!state.advancedBatch.length || state.backpack.length + state.advancedBatch.length > MAX_BACKPACK) return;
-  state.backpack.push(...state.advancedBatch);
-  state.advancedBatch.forEach((unit) => state.unlocked.add(unit.id));
-  const merged = autoFuseDuplicatePairs();
+  let promotions = 0;
+  state.advancedBatch.forEach((unit) => {
+    const result = receiveSummonedUnit(unit);
+    promotions += result.promotions;
+    state.unlocked.add(unit.id);
+  });
   state.selectedUnitId = state.backpack[0]?.uid || null;
   closeGameDialog(refs.advancedDialog);
-  addLog(`高级五连入卷：${merged ? `自动合成 ${merged} 次，` : ''}其余妖灵已入背包。`);
+  addLog(`高级五连入卷：${promotions ? `同种同阶升级 ${promotions} 次，` : ''}其余妖灵已入背包。`);
   state.advancedBatch = [];
   renderGameRoster();
   updateHUD();
 }
 
 function initGame() {
-  state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 10; state.battleTime = 0;
+  state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
   state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.combo = 0; state.bestCombo = 0;
-  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldown = 0; state.skillBond = null; state.fusionSelection = []; state.signEffects = []; state.resumeAfterDialog = false; state.draggingUnitId = null;
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; addLog('整备 10 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.resumeAfterDialog = false; state.draggingUnitId = null;
+  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; refs.arenaHint.textContent = '点下方「召灵」请出 1 只异兽布阵，15s 后敌军将自右侧裂隙涌出'; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function startWave() {
@@ -375,6 +432,7 @@ function startWave() {
   state.spawning = groups.map(([type, count, gap, delay, hpMul], index) => ({ type, count, gap, delay, hpMul, spawned: 0, timer: delay, route: index % pathInfo().length }));
   state.phase = 'combat'; state.waveStarted = true; state.waveTimer = 0;
   refs.waveLabel.textContent = `${state.wave + 1} / ${8 + state.stage * 3}`;
+  refs.arenaHint.textContent = `第 ${state.wave + 1} 波敌群来袭，避开道路在两侧布置妖灵。`;
   addLog(`第 ${state.wave + 1} 波：${groups.length > 1 ? '多组敌人交错出现' : '敌群进入道路'}`);
 }
 
@@ -436,7 +494,8 @@ function bondsForTowers() {
     active.push({ ...bond, members, formation, formed, adjusted });
   }
   totals.power = Math.min(1.2, totals.power); totals.haste = Math.min(.7, totals.haste); totals.range = Math.min(.45, totals.range); totals.cdr = Math.min(.6, totals.cdr); totals.sunder = Math.min(.45, totals.sunder); totals.enemySlow = Math.min(.45, totals.enemySlow);
-  state.skillBond = active.find((bond) => bond.ult && bond.formed && bond.members.length >= bond.need) || null;
+  const skillBonds = active.filter((bond) => bond.ult && bond.formed && bond.members.length >= bond.need);
+  state.skillBond = skillBonds.find((bond) => bond.id === state.skillBond?.id) || skillBonds[0] || null;
   return { totals, active };
 }
 
@@ -481,7 +540,7 @@ function updateTowers(dt) {
     if (!target) return;
     if (tower.hitTarget === target) tower.hitCount += 1; else { tower.hitTarget = target; tower.hitCount = 1; }
     const special = def.stunEvery && tower.hitCount % def.stunEvery === 0 ? -1 : def.breakAt && tower.hitCount % def.breakAt === 0 ? -2 : 0;
-    const power = def.dmg * (1 + bondState.totals.power + (allyBlessing ? .22 : 0)) * (1 + (tower.level - 1) * .26) * (1 + state.tier * .04);
+    const power = def.dmg * (1 + bondState.totals.power + (allyBlessing ? .22 : 0)) * (1 + (tower.level - 1) * .26) * (1 + cultivation().power);
     state.projectiles.push({ x: tower.x, y: tower.y, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, trail: [] });
     tower.cd = def.interval / Math.max(.35, def.rate || 1);
   });
@@ -572,8 +631,10 @@ function killEnemy(enemy) {
 function finishGame(won) {
   if (state.screen !== 'game') return;
   state.screen = 'finishing'; state.finishTimer = 0;
-  if (won) { const unlock = ROSTER.find((beast) => !state.unlocked.has(beast.id) && beast.rarity <= Math.min(4, state.stage + 1)); if (unlock) state.unlocked.add(unlock.id); state.tier = Math.max(state.tier, 1 + Math.floor(state.xp / 30)); saveProgress(); }
-  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破'; refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`; refs.resultKills.textContent = state.kills; refs.resultXp.textContent = won ? `+${currentLevel().essence}` : '+0'; refs.resultCombo.textContent = state.bestCombo; refs.resultCopy.textContent = won ? `你在${currentLevel().name}完成了 ${8 + state.stage * 3} 波防守。阵型、伤害类型和出怪口之间的取舍已经生效。` : '道路上仍有空缺。优先补上交叉火力，再处理护盾与隐匿敌人。'; showScreen('result');
+  if (won) { const unlock = ROSTER.find((beast) => !state.unlocked.has(beast.id) && beast.rarity <= Math.min(4, state.stage + 1)); if (unlock) state.unlocked.add(unlock.id); }
+  state.tier = cultivationTierFor(state.xp);
+  saveProgress();
+  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破'; refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`; refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.kills}`; refs.resultCombo.textContent = state.bestCombo; refs.resultCopy.textContent = won ? `你在${currentLevel().name}完成了 ${8 + state.stage * 3} 波防守。阵型、伤害类型和出怪口之间的取舍已经生效。` : '本局击杀已计入修为。优先补上交叉火力，再处理护盾与隐匿敌人。'; showScreen('result');
 }
 
 function addDamageText(x, y, text, color) { state.damageTexts.push({ x, y, text, color, life: 1 }); }
@@ -589,6 +650,7 @@ function placeTower(x, y) {
   state.towers.push({ ...unit, x, y, cd: .15, hitTarget: null, hitCount: 0 });
   state.backpack = state.backpack.filter((item) => item.uid !== unit.uid);
   state.selectedUnitId = null;
+  if (state.tutorialStep === 1) { state.tutorialStep = 2; refs.arenaHint.textContent = '布阵完成：妖灵会自动攻击。注意让攻击范围覆盖道路。'; }
   addLog(`${def.name}已安置，注意与队友保持阵型间距。`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
@@ -607,8 +669,21 @@ function renderGameRoster() {
 
 function renderGameBonds() {
   const { active } = bondsForTowers();
-  refs.gameBonds.innerHTML = BOND_DEFS.map((bond) => { const current = active.find((item) => item.id === bond.id); const count = state.towers.filter((tower) => bond.members.includes(tower.id)).length; return `<div class="bond-row"><i class="bond-pill ${current ? 'active' : ''}" style="background:${bond.color}"></i><span>${bond.name}</span><strong>${count}/${bond.need}${current ? ` · ${Math.round(current.adjusted * 100)}%` : ''}</strong></div>`; }).join('');
-  refs.skillLabel.textContent = state.skillBond ? (state.skillCooldown > 0 ? `${state.skillCooldown.toFixed(1)}s` : state.skillBond.ult) : '未就绪';
+  refs.gameBonds.innerHTML = BOND_DEFS.map((bond) => {
+    const current = active.find((item) => item.id === bond.id);
+    const count = state.towers.filter((tower) => bond.members.includes(tower.id)).length;
+    const selectable = current?.ult && current.formed;
+    const tag = selectable ? 'button' : 'div';
+    const attrs = selectable ? ` data-skill-bond="${bond.id}" type="button"` : '';
+    return `<${tag} class="bond-row ${selectable ? 'bond-skill-choice' : ''} ${state.skillBond?.id === bond.id ? 'is-selected' : ''}"${attrs}><i class="bond-pill ${current ? 'active' : ''}" style="background:${bond.color}"></i><span>${bond.name}</span><strong>${count}/${bond.need}${current ? ` · ${Math.round(current.adjusted * 100)}%` : ''}</strong></${tag}>`;
+  }).join('');
+  refs.gameBonds.querySelectorAll('[data-skill-bond]').forEach((button) => button.addEventListener('click', () => {
+    const { active: current } = bondsForTowers();
+    state.skillBond = current.find((bond) => bond.id === button.dataset.skillBond) || state.skillBond;
+    updateHUD();
+  }));
+  const cooldown = state.skillBond ? (state.skillCooldowns[state.skillBond.id] || 0) : 0;
+  refs.skillLabel.textContent = state.skillBond ? (cooldown > 0 ? `${cooldown.toFixed(1)}s` : state.skillBond.ult) : '未就绪';
 }
 
 function renderBondDialog() {
@@ -659,6 +734,7 @@ function autoDeploy() {
     placed += 1;
   }
   state.selectedUnitId = null;
+  if (placed && state.tutorialStep === 1) { state.tutorialStep = 2; refs.arenaHint.textContent = '布阵完成：妖灵会自动攻击。注意让攻击范围覆盖道路。'; }
   addLog(placed ? `一键部署：${placed} 只妖灵已在路边成阵。` : '没有可部署的妖灵或合法位置。');
   renderGameRoster();
   renderBackpack();
@@ -784,9 +860,26 @@ function updateHUD() {
 }
 
 function useSkill() {
-  if (!state.skillBond || state.skillCooldown > 0) return;
-  const bond = state.skillBond; const source = state.towers[0] || { id: 'bond' }; const amount = 120 * bond.ultMul * (1 + bondTotals().power);
-  state.enemies.forEach((enemy) => damageEnemy(enemy, amount, { dmgType: 'true', counters: ['execute', 'breakShield', 'purge'], color: bond.color }, 0, source)); state.skillCooldown = 18 * Math.max(.35, 1 - bondTotals().cdr); addLog(`${bond.ult}发动：全场真伤，${bond.name}完成联动。`); renderGameBonds();
+  if (!state.skillBond || state.skillCooldowns[state.skillBond.id] > 0) return;
+  const bond = state.skillBond; const source = bond.members[0] || state.towers[0] || { id: 'bond' };
+  const nearby = (radius) => state.enemies.filter((enemy) => enemy.hp > 0 && bond.members.some((member) => Math.hypot(member.x - enemy.x, member.y - enemy.y) <= radius));
+  if (bond.skill === 'tide') {
+    nearby(250).forEach((enemy) => { enemy.slow = Math.max(enemy.slow, .6); enemy.slowTimer = Math.max(enemy.slowTimer, 3.2); burst(enemy.x, enemy.y, bond.color, 6); });
+    addLog(`${bond.ult}发动：范围内敌军减速 60%，持续 3.2 秒。`);
+  } else if (bond.skill === 'roar') {
+    nearby(235).forEach((enemy) => { enemy.stunned = Math.max(enemy.stunned || 0, 1.5); enemy.armor = Math.max(0, enemy.armor - 4); burst(enemy.x, enemy.y, bond.color, 7); });
+    addLog(`${bond.ult}发动：范围内敌军眩晕 1.5 秒并降低 4 点护甲。`);
+  } else if (bond.skill === 'fire') {
+    const amount = bond.members.reduce((sum, member) => sum + beastDef(member.id).dmg, 0) / bond.members.length * 3.4 * (1 + bondTotals().power);
+    nearby(215).forEach((enemy) => damageEnemy(enemy, amount, { dmgType: 'true', counters: ['execute', 'breakShield', 'purge'], color: bond.color, burn: true, burnDps: .22 }, 0, source));
+    addLog(`${bond.ult}发动：范围内敌军承受 3.4 倍真伤并被灼烧。`);
+  } else {
+    const amount = 120 * bond.ultMul * (1 + bondTotals().power);
+    state.enemies.forEach((enemy) => damageEnemy(enemy, amount, { dmgType: 'true', counters: ['execute', 'breakShield', 'purge'], color: bond.color }, 0, source));
+    addLog(`${bond.ult}发动：全场真伤，${bond.name}完成联动。`);
+  }
+  state.skillCooldowns[bond.id] = (bond.cooldown || 18) * Math.max(.35, 1 - bondTotals().cdr);
+  renderGameBonds();
 }
 
 function drawPath(route, level) {
@@ -824,15 +917,32 @@ function drawCanvas() {
 }
 
 function drawTower(tower) {
-  const def = beastDef(tower.id); ctx.save(); ctx.translate(tower.x, tower.y); ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(0, 20, 27, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.stroke();
-  if (beastAtlas.complete && beastAtlas.naturalWidth) { const cellW = beastAtlas.naturalWidth / 6; const cellH = beastAtlas.naturalHeight / 5; const sx = (def.portraitIndex % 6) * cellW; const sy = Math.floor(def.portraitIndex / 6) * cellH; ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 23, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(beastAtlas, sx, sy, cellW, cellH, -25, -25, 50, 50); ctx.restore(); } else { ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 6); }
-  ctx.fillStyle = 'rgba(8,17,20,.78)'; ctx.fillRect(-14, 27, 28, 12); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 9px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(`L${tower.level}`, 0, 36); ctx.restore();
+  const def = beastDef(tower.id); const sprite = combatSprites[tower.id]; const size = 78 + Math.min(18, (tower.level - 1) * 3);
+  ctx.save(); ctx.translate(tower.x, tower.y);
+  ctx.fillStyle = 'rgba(48, 35, 22, .28)'; ctx.beginPath(); ctx.ellipse(0, 18, size * .33, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = def.color; ctx.globalAlpha = .72; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, 15, size * .28, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  if (sprite?.complete && sprite.naturalWidth) {
+    ctx.drawImage(sprite, -size * .5, 15 - size, size, size);
+  } else if (beastAtlas.complete && beastAtlas.naturalWidth) {
+    const cellW = beastAtlas.naturalWidth / 6; const cellH = beastAtlas.naturalHeight / 5; const sx = (def.portraitIndex % 6) * cellW; const sy = Math.floor(def.portraitIndex / 6) * cellH;
+    ctx.save(); ctx.beginPath(); ctx.arc(0, -8, 24, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(beastAtlas, sx, sy, cellW, cellH, -24, -32, 48, 48); ctx.restore();
+  } else { ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 2); }
+  ctx.fillStyle = 'rgba(48, 35, 22, .82)'; ctx.fillRect(-15, 23, 30, 12); ctx.fillStyle = '#fff0bd'; ctx.font = 'bold 9px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(`L${tower.level}`, 0, 32); ctx.restore();
 }
 
 function drawEnemy(enemy) {
-  ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; const radius = enemy.radius * 1.35;
-  if (enemyAtlas.complete && enemyAtlas.naturalWidth) { const cellW = enemyAtlas.naturalWidth / 5; const cellH = enemyAtlas.naturalHeight / 2; const sx = (enemy.def.sprite % 5) * cellW; const sy = Math.floor(enemy.def.sprite / 5) * cellH; ctx.save(); ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(enemyAtlas, sx, sy, cellW, cellH, -radius, -radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); }
-  ctx.globalAlpha = 1; ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#2b3839'; ctx.fillRect(-radius, -radius - 10, radius * 2, 4); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e4b45d' : '#76c1a5'; ctx.fillRect(-radius, -radius - 10, radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 4); ctx.restore();
+  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * 4.3;
+  ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1;
+  ctx.fillStyle = 'rgba(43, 31, 21, .24)'; ctx.beginPath(); ctx.ellipse(0, 11, size * .29, 5, 0, 0, Math.PI * 2); ctx.fill();
+  if (sprite?.complete && sprite.naturalWidth) {
+    ctx.drawImage(sprite, -size * .5, 12 - size, size, size);
+  } else if (enemyAtlas.complete && enemyAtlas.naturalWidth) {
+    const cellW = enemyAtlas.naturalWidth / 5; const cellH = enemyAtlas.naturalHeight / 2; const sx = (enemy.def.sprite % 5) * cellW; const sy = Math.floor(enemy.def.sprite / 5) * cellH;
+    ctx.save(); ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(enemyAtlas, sx, sy, cellW, cellH, -radius, -radius, radius * 2, radius * 2); ctx.restore();
+  } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); }
+  ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(45, 35, 24, .74)'; ctx.fillRect(-radius, -size * .5 - 5, radius * 2, 5); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e2a842' : '#63a98e'; ctx.fillRect(-radius, -size * .5 - 5, radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 5);
+  if (enemy.shield > 0) { ctx.strokeStyle = '#b5e8e6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, -size * .24, radius * 1.05, size * .42, 0, 0, Math.PI * 2); ctx.stroke(); }
+  ctx.restore();
 }
 
 function renderCodex() {
@@ -840,7 +950,7 @@ function renderCodex() {
   const counterNames = { purge: '破法', execute: '斩杀', breakShield: '破盾', splash: '溅射', insight: '洞察' };
   refs.codexDialogList.innerHTML = ROSTER.map((beast) => {
     const data = beastDef(beast.id); const effects = [data.burn ? '灼烧' : '', data.splash ? `溅射 ${data.splash}` : '', data.chain ? `连锁 ${data.chain}` : '', data.slow ? `减速 ${Math.round(data.slow * 100)}%` : '', data.stunEvery ? `每 ${data.stunEvery} 次眩晕` : '', data.breakAt ? `第 ${data.breakAt} 击破甲` : ''].filter(Boolean).join(' · ') || '基础攻击';
-    return `<article class="codex-entry rarity-${RARITIES[beast.rarity]}"><span class="portrait portrait-image" style="--portrait-x:${beast.portraitIndex % 6};--portrait-y:${Math.floor(beast.portraitIndex / 6)}"></span><div class="codex-entry-head"><strong>${beast.name}</strong><em>${RARITIES[beast.rarity]}</em></div><small>${projectileNames[data.proj] || data.proj} · ${data.dmgType === 'mag' ? '法术' : data.dmgType === 'true' ? '真实' : '物理'} · ${counterNames[data.counters?.[0]] || '无克制'}</small><dl><div><dt>攻击</dt><dd>${data.dmg}</dd></div><div><dt>攻速</dt><dd>${data.interval.toFixed(2)}s</dd></div><div><dt>范围</dt><dd>${data.range}</dd></div><div><dt>召唤</dt><dd>${data.cost}</dd></div></dl><p>${effects}</p></article>`;
+    return `<article class="codex-entry rarity-${RARITIES[beast.rarity]}">${portraitMarkup(beast)}<div class="codex-entry-head"><strong>${beast.name}</strong><em>${RARITIES[beast.rarity]}</em></div><small>${projectileNames[data.proj] || data.proj} · ${data.dmgType === 'mag' ? '法术' : data.dmgType === 'true' ? '真实' : '物理'} · ${counterNames[data.counters?.[0]] || '无克制'}</small><dl><div><dt>攻击</dt><dd>${data.dmg}</dd></div><div><dt>攻速</dt><dd>${data.interval.toFixed(2)}s</dd></div><div><dt>范围</dt><dd>${data.range}</dd></div><div><dt>召唤</dt><dd>${data.cost}</dd></div></dl><p>${effects}</p></article>`;
   }).join('');
 }
 
@@ -849,7 +959,7 @@ function tick(timestamp) {
   if (state.screen === 'game' && !state.paused) {
     const simDt = rawDt * state.speed;
     state.battleTime += simDt;
-    state.skillCooldown = Math.max(0, state.skillCooldown - simDt);
+    Object.keys(state.skillCooldowns).forEach((id) => { state.skillCooldowns[id] = Math.max(0, state.skillCooldowns[id] - simDt); });
     spawnFromGroups(simDt); updateTowers(rawDt); updateProjectiles(rawDt); updateEnemies(rawDt); updateEffects(simDt); updateHUD();
   }
   if (state.screen === 'game' || state.screen === 'finishing') drawCanvas(); requestAnimationFrame(tick);
@@ -891,13 +1001,17 @@ refs.bondsClose.addEventListener('click', () => closeGameDialog(refs.bondsDialog
 [
   refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.fortuneDialog, refs.bondsDialog,
 ].forEach((dialog) => dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeGameDialog(dialog); }));
+refs.pauseDialog.addEventListener('cancel', (event) => { event.preventDefault(); resumePauseMenu(); });
 refs.codexOpen.addEventListener('click', () => { renderCodex(); refs.codexDialog.showModal(); });
 refs.codexClose.addEventListener('click', () => refs.codexDialog.close());
 refs.codexDialog.addEventListener('click', (event) => { if (event.target === refs.codexDialog) refs.codexDialog.close(); });
 refs.backToSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
 refs.returnSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
 refs.replayGame.addEventListener('click', initGame);
-refs.pauseGame.addEventListener('click', () => { state.paused = !state.paused; updateHUD(); });
+refs.pauseGame.addEventListener('click', openPauseMenu);
+refs.pauseResume.addEventListener('click', resumePauseMenu);
+refs.pauseRetry.addEventListener('click', () => { refs.pauseDialog.close(); initGame(); });
+refs.pauseExit.addEventListener('click', () => { refs.pauseDialog.close(); state.paused = false; showScreen('select'); renderSelect(); });
 refs.speedGame.addEventListener('click', () => { state.speed = state.speed === 1 ? 3 : 1; updateHUD(); });
 refs.teamSkill.addEventListener('click', useSkill);
 document.querySelector('#reset-save').addEventListener('click', () => { localStorage.removeItem(SAVE_KEY); loadSave(); renderSelect(); document.querySelector('#save-status').textContent = '存档已重置'; });
