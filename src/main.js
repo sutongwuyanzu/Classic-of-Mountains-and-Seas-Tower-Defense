@@ -4,6 +4,8 @@ const canvas = document.querySelector('#game-canvas');
 const ctx = canvas.getContext('2d');
 const biomeAtlas = document.createElement('img');
 biomeAtlas.src = './assets/biome-scenes-v2.png';
+const caveBattlefield = document.createElement('img');
+caveBattlefield.src = './assets/cave-battlefield.png';
 const beastAtlas = document.createElement('img');
 beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
@@ -89,7 +91,7 @@ const WAVES = [
   [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]], [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]],
 ];
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'essenceLabel', 'killLabel', 'gameRoster', 'gameBonds', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'essenceLabel', 'killLabel', 'gameRoster', 'gameBonds', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 const state = {
   screen: 'select', stage: 0, selectedBeast: 'bifang', unlocked: new Set(STARTER_IDS), xp: 0, tier: 1,
@@ -99,18 +101,18 @@ const state = {
   skillCooldown: 0, skillBond: null, finishTimer: 0,
 };
 
-const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 884, sealY: 270, spawnR: 30, wardR: 34, plate: 24 };
+const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const currentLevel = () => LEVELS[state.stage];
 const beastDef = (id) => ({ ...ROSTER.find((item) => item.id === id), ...BEASTS[id] });
 
 function pathInfo(level = currentLevel()) {
-  if (level.path === 'cave') return [{ sx: 74, sy: 102, points: [[74, 102], [240, 102], [330, 198], [530, 198], [644, 108], [884, 108]] }];
-  if (level.path === 'grass') return [{ sx: 74, sy: 402, points: [[74, 402], [200, 402], [316, 315], [498, 315], [622, 408], [884, 408]] }];
-  if (level.path === 'sea') return [{ sx: 74, sy: 152, points: [[74, 152], [220, 240], [348, 116], [522, 248], [680, 138], [884, 270]] }];
-  if (level.path === 'volcano') return [{ sx: 74, sy: 104, points: [[74, 104], [230, 104], [330, 270], [518, 270], [660, 270], [884, 270]] }, { sx: 74, sy: 436, points: [[74, 436], [230, 436], [330, 270], [518, 270], [660, 270], [884, 270]] }];
-  return [{ sx: 74, sy: 88, points: [[74, 88], [214, 88], [322, 190], [510, 190], [660, 270], [884, 270]] }, { sx: 74, sy: 452, points: [[74, 452], [214, 452], [322, 350], [510, 350], [660, 270], [884, 270]] }];
+  if (level.path === 'cave') return [{ sx: 884, sy: 430, points: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]] }];
+  if (level.path === 'grass') return [{ sx: 884, sy: 402, points: [[884, 402], [622, 402], [498, 315], [316, 315], [200, 402], [74, 402]] }];
+  if (level.path === 'sea') return [{ sx: 884, sy: 270, points: [[884, 270], [680, 138], [522, 248], [348, 116], [220, 240], [74, 152]] }];
+  if (level.path === 'volcano') return [{ sx: 884, sy: 270, points: [[884, 270], [660, 270], [518, 270], [330, 270], [230, 104], [74, 104]] }, { sx: 884, sy: 270, points: [[884, 270], [660, 270], [518, 270], [330, 270], [230, 436], [74, 436]] }];
+  return [{ sx: 884, sy: 270, points: [[884, 270], [660, 270], [510, 190], [322, 190], [214, 88], [74, 88]] }, { sx: 884, sy: 270, points: [[884, 270], [660, 270], [510, 350], [322, 350], [214, 452], [74, 452]] }];
 }
 
 function interpolatePath(points, distanceAlong) {
@@ -434,7 +436,7 @@ function useSkill() {
 }
 
 function drawPath(route, level) {
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(11, 20, 21, .9)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = level.tint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(241, 236, 223, .08)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
+  const roadTint = state.stage === 0 ? '#c7a56e' : level.tint; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(61, 45, 28, .82)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = roadTint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 237, 190, .42)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
 }
 
 function drawCanvas() {
@@ -474,7 +476,7 @@ function renderGameRoster() {
 
 function drawCanvas() {
   const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelH = biomeAtlas.naturalHeight / 5; ctx.globalAlpha = .62; ctx.drawImage(biomeAtlas, 0, panelH * state.stage, biomeAtlas.naturalWidth, panelH, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .18)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelH = biomeAtlas.naturalHeight / 5; ctx.globalAlpha = .62; ctx.drawImage(biomeAtlas, 0, panelH * state.stage, biomeAtlas.naturalWidth, panelH, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .18)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
   ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
   pathInfo(level).forEach((route) => drawPath(route, level));
   ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
@@ -495,6 +497,15 @@ function drawEnemy(enemy) {
   ctx.globalAlpha = 1; ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#2b3839'; ctx.fillRect(-radius, -radius - 10, radius * 2, 4); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e4b45d' : '#76c1a5'; ctx.fillRect(-radius, -radius - 10, radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 4); ctx.restore();
 }
 
+function renderCodex() {
+  const projectileNames = { ember: '焰火', splash: '溅射', wisp: '灵光', claw: '裂爪', quake: '地裂' };
+  const counterNames = { purge: '破法', execute: '斩杀', breakShield: '破盾', splash: '溅射', insight: '洞察' };
+  refs.codexDialogList.innerHTML = ROSTER.map((beast) => {
+    const data = beastDef(beast.id); const effects = [data.burn ? '灼烧' : '', data.splash ? `溅射 ${data.splash}` : '', data.chain ? `连锁 ${data.chain}` : '', data.slow ? `减速 ${Math.round(data.slow * 100)}%` : '', data.stunEvery ? `每 ${data.stunEvery} 次眩晕` : '', data.breakAt ? `第 ${data.breakAt} 击破甲` : ''].filter(Boolean).join(' · ') || '基础攻击';
+    return `<article class="codex-entry rarity-${RARITIES[beast.rarity]}"><span class="portrait portrait-image" style="--portrait-x:${beast.portraitIndex % 6};--portrait-y:${Math.floor(beast.portraitIndex / 6)}"></span><div class="codex-entry-head"><strong>${beast.name}</strong><em>${RARITIES[beast.rarity]}</em></div><small>${projectileNames[data.proj] || data.proj} · ${data.dmgType === 'mag' ? '法术' : data.dmgType === 'true' ? '真实' : '物理'} · ${counterNames[data.counters?.[0]] || '无克制'}</small><dl><div><dt>攻击</dt><dd>${data.dmg}</dd></div><div><dt>攻速</dt><dd>${data.interval.toFixed(2)}s</dd></div><div><dt>范围</dt><dd>${data.range}</dd></div><div><dt>召唤</dt><dd>${data.cost}</dd></div></dl><p>${effects}</p></article>`;
+  }).join('');
+}
+
 function tick(timestamp) {
   const rawDt = Math.min(.05, (timestamp - state.lastTime) / 1000 || 0); state.lastTime = timestamp;
   if (state.screen === 'game' && !state.paused) {
@@ -508,6 +519,9 @@ canvas.addEventListener('pointermove', (event) => { Object.assign(state.mouse, c
 canvas.addEventListener('pointerleave', () => { state.mouse.inside = false; });
 canvas.addEventListener('pointerdown', (event) => { if (state.screen !== 'game' || state.paused) return; const point = canvasPoint(event); placeTower(point.x, point.y); });
 refs.startGame.addEventListener('click', initGame);
+refs.codexOpen.addEventListener('click', () => { renderCodex(); refs.codexDialog.showModal(); });
+refs.codexClose.addEventListener('click', () => refs.codexDialog.close());
+refs.codexDialog.addEventListener('click', (event) => { if (event.target === refs.codexDialog) refs.codexDialog.close(); });
 refs.backToSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
 refs.returnSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
 refs.replayGame.addEventListener('click', initGame);

@@ -32,11 +32,11 @@ const WAVES = [
 ];
 
 const ROUTES = {
-  cave: [[74, 102], [240, 102], [330, 198], [530, 198], [644, 108], [884, 108]],
-  grass: [[74, 402], [200, 402], [316, 315], [498, 315], [622, 408], [884, 408]],
-  sea: [[74, 152], [220, 240], [348, 116], [522, 248], [680, 138], [884, 270]],
-  volcano: [[[74, 104], [230, 104], [330, 270], [518, 270], [660, 270], [884, 270]], [[74, 436], [230, 436], [330, 270], [518, 270], [660, 270], [884, 270]]],
-  cloud: [[[74, 88], [214, 88], [322, 190], [510, 190], [660, 270], [884, 270]], [[74, 452], [214, 452], [322, 350], [510, 350], [660, 270], [884, 270]]],
+  cave: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]],
+  grass: [[884, 402], [622, 402], [498, 315], [316, 315], [200, 402], [74, 402]],
+  sea: [[884, 270], [680, 138], [522, 248], [348, 116], [220, 240], [74, 152]],
+  volcano: [[[884, 270], [660, 270], [518, 270], [330, 270], [230, 104], [74, 104]], [[884, 270], [660, 270], [518, 270], [330, 270], [230, 436], [74, 436]]],
+  cloud: [[[884, 270], [660, 270], [510, 190], [322, 190], [214, 88], [74, 88]], [[884, 270], [660, 270], [510, 350], [322, 350], [214, 452], [74, 452]]],
 };
 
 function distance(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
@@ -83,6 +83,7 @@ Page({
       this.canvas.width = Math.round(info.width * dpr); this.canvas.height = Math.round(info.height * dpr);
       this.ctx.setTransform(dpr * info.width / 960, 0, 0, dpr * info.height / 540, 0, 0);
       this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-scenes-v2.webp';
+      this.caveBackdrop = this.canvas.createImage(); this.caveBackdrop.onload = () => { this.caveBackdropReady = true; }; this.caveBackdrop.src = '../../assets/cave-battlefield.webp';
       this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.webp';
       this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.webp';
       this.frameActive = true; this.lastFrame = Date.now(); this.frame();
@@ -197,7 +198,7 @@ Page({
   validPlace(x, y) {
     if (x < 50 || x > 910 || y < 45 || y > 505) return false;
     if (this.routeList().some((route) => route.some((point, index) => index && segmentDistance(x, y, route[index - 1], point) < 48))) return false;
-    if (Math.hypot(x - 884, y - 270) < 55) return false;
+    if (Math.hypot(x - 74, y - 108) < 55 || Math.hypot(x - 884, y - 430) < 45) return false;
     return !this.towers.some((tower) => Math.hypot(tower.x - x, tower.y - y) < 78);
   },
 
@@ -246,7 +247,7 @@ Page({
     if (this.atlasReady) { const panelWidth = this.atlas.width / 5; ctx.globalAlpha = .2; ctx.drawImage(this.atlas, panelWidth * this.selectedStage, 0, panelWidth, this.atlas.height, 0, 0, 960, 540); ctx.globalAlpha = 1; }
     ctx.strokeStyle = 'rgba(241,236,223,.05)'; ctx.lineWidth = 1; for (let x = 20; x < 960; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 540); ctx.stroke(); } for (let y = 20; y < 540; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y); ctx.stroke(); }
     this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#0d1617'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#394d49'; ctx.lineWidth = 62; ctx.stroke(); ctx.lineCap = 'butt'; });
-    ctx.fillStyle = 'rgba(228,180,93,.18)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(884, 270, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 884, 274);
+    ctx.fillStyle = 'rgba(228,180,93,.18)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(74, 108, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 74, 112);
     this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
     this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 17, 21, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tower.x, tower.y, 19, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = def.color; ctx.font = 'bold 18px Arial'; ctx.fillText(def.short, tower.x, tower.y + 6); });
     this.enemies.forEach((enemy) => { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.def.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Arial'; ctx.fillText(enemy.def.short, enemy.x, enemy.y + 3); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
@@ -255,10 +256,10 @@ Page({
 
   draw() {
     if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0, 0, 960, 540); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, 960, 540);
-    if (this.atlasReady) { const panelHeight = this.atlas.height / 5; ctx.globalAlpha = .62; ctx.drawImage(this.atlas, 0, panelHeight * this.selectedStage, this.atlas.width, panelHeight, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8,17,20,.18)'; ctx.fillRect(0, 0, 960, 540); }
+    if (this.selectedStage === 0 && this.caveBackdropReady) { ctx.globalAlpha = .96; ctx.drawImage(this.caveBackdrop, 0, 0, this.caveBackdrop.width, this.caveBackdrop.height, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111,87,48,.12)'; ctx.fillRect(0, 0, 960, 540); } else if (this.atlasReady) { const panelHeight = this.atlas.height / 5; ctx.globalAlpha = .62; ctx.drawImage(this.atlas, 0, panelHeight * this.selectedStage, this.atlas.width, panelHeight, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8,17,20,.18)'; ctx.fillRect(0, 0, 960, 540); }
     ctx.strokeStyle = 'rgba(241,236,223,.05)'; ctx.lineWidth = 1; for (let x = 20; x < 960; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 540); ctx.stroke(); } for (let y = 20; y < 540; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y); ctx.stroke(); }
     this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#0d1617'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#b99b67'; ctx.lineWidth = 62; ctx.stroke(); ctx.strokeStyle = 'rgba(245,224,170,.28)'; ctx.lineWidth = 3; ctx.setLineDash([8, 11]); ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt'; });
-    ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(884, 270, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 884, 274);
+    ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(74, 108, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 74, 112);
     this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
     this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); const portraitIndex = ROSTER.findIndex((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 20, 27, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(tower.x, tower.y, 25, 0, Math.PI * 2); ctx.stroke(); if (this.beastAtlasReady) { const cellW = this.beastAtlas.width / 6; const cellH = this.beastAtlas.height / 5; ctx.save(); ctx.beginPath(); ctx.arc(tower.x, tower.y, 23, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.beastAtlas, (portraitIndex % 6) * cellW, Math.floor(portraitIndex / 6) * cellH, cellW, cellH, tower.x - 25, tower.y - 25, 50, 50); ctx.restore(); } });
     this.enemies.forEach((enemy) => { const radius = enemy.def.radius * 1.35; const sprite = Object.keys(ENEMIES).indexOf(enemy.type); if (this.enemyAtlasReady) { const cellW = this.enemyAtlas.width / 5; const cellH = this.enemyAtlas.height / 2; ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.enemyAtlas, (sprite % 5) * cellW, Math.floor(sprite / 5) * cellH, cellW, cellH, enemy.x - radius, enemy.y - radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
