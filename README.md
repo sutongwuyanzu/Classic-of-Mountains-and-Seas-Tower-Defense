@@ -10,7 +10,7 @@
 npm run dev
 ```
 
-然后打开 `http://localhost:4173`。也可以直接用浏览器打开 `index.html`，但本地服务器更适合测试模块脚本。
+然后打开 `http://localhost:4173`。也可以直接双击 `index.html`；Windows 用户也可以双击 `start-game.cmd` 自动启动服务器并打开游戏。
 
 ## 发行目标
 
