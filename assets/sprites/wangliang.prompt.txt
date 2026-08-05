@@ -1,0 +1,4 @@
+Use case: combat enemy sprite for a Chinese myth tower-defense game.
+Subject: 魍魉, a small agile shadow spirit with a violet-black mask-like face, smoky shoulders, and long tapering wisps.
+Style: premium hand-painted Chinese myth game illustration, readable silhouette at small size, dark indigo and plum palette, spectral rim light.
+Output: one centered full-body sprite, no text, no frame, flat #FF00FF background for chroma-key extraction.

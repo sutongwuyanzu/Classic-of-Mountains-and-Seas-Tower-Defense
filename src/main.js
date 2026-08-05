@@ -26,6 +26,12 @@ const combatSpriteSources = {
   xingxing: './assets/sprites/xingxing.png',
   fei: './assets/sprites/fei.png',
   bashe: './assets/sprites/bashe.png',
+  huali: './assets/sprites/huali.png',
+  wangliang: './assets/sprites/wangliang.png',
+  zhuyan: './assets/sprites/zhuyan.png',
+  shanxiao: './assets/sprites/shanxiao.png',
+  taotie: './assets/sprites/taotie.png',
+  baize: './assets/sprites/baize.png',
 };
 const combatSprites = Object.fromEntries(Object.entries(combatSpriteSources).map(([id, src]) => {
   const image = document.createElement('img');
@@ -110,11 +116,11 @@ const ENEMIES = {
 };
 
 const LEVELS = [
-  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', path: 'cave', spawnCount: 1 },
-  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', hpMul: 1.25, spdMul: 1.05, essence: 62, tint: '#7d9d81', path: 'grass', spawnCount: 1 },
-  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', hpMul: 1.55, spdMul: 1.1, essence: 70, tint: '#5b8e9c', path: 'sea', spawnCount: 1 },
-  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', hpMul: 1.9, spdMul: 1.15, essence: 78, tint: '#b56454', path: 'volcano', spawnCount: 2 },
-  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', hpMul: 2.3, spdMul: 1.2, essence: 86, tint: '#8a82aa', path: 'cloud', spawnCount: 2 },
+  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', accent: '#75c9c0', path: 'cave', spawnCount: 1, seals: [[74, 108]], spawnPoints: [[884, 430]] },
+  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', hpMul: 1.25, spdMul: 1.05, essence: 62, tint: '#7d9d81', accent: '#d8bc74', path: 'grass', spawnCount: 1, seals: [[74, 402]], spawnPoints: [[884, 402]] },
+  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', hpMul: 1.55, spdMul: 1.1, essence: 70, tint: '#5b8e9c', accent: '#9ed6d0', path: 'sea', spawnCount: 1, seals: [[74, 152]], spawnPoints: [[884, 270]] },
+  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', hpMul: 1.9, spdMul: 1.15, essence: 78, tint: '#b56454', accent: '#f2b35e', path: 'volcano', spawnCount: 2, seals: [[74, 104], [74, 436]], spawnPoints: [[884, 118], [884, 422]] },
+  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', hpMul: 2.3, spdMul: 1.2, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 88], [74, 452]], spawnPoints: [[884, 118], [884, 422]] },
 ];
 
 const WAVES = [
@@ -141,6 +147,8 @@ const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, s
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const currentLevel = () => LEVELS[state.stage];
+const levelSeals = (level = currentLevel()) => level.seals || [[arena.sealX, arena.sealY]];
+const levelSpawns = (level = currentLevel()) => level.spawnPoints || [[884, 270]];
 const beastDef = (id) => ({ ...ROSTER.find((item) => item.id === id), ...BEASTS[id] });
 const cultivation = () => CULTIVATION_STAGES[state.tier] || CULTIVATION_STAGES[0];
 const cultivationTierFor = (kills) => CULTIVATION_STAGES.reduce((tier, stage, index) => (kills >= stage.kills ? index : tier), 0);
@@ -157,8 +165,8 @@ function pathInfo(level = currentLevel()) {
   if (level.path === 'cave') return [{ sx: 884, sy: 430, points: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]] }];
   if (level.path === 'grass') return [{ sx: 884, sy: 402, points: [[884, 402], [622, 402], [498, 315], [316, 315], [200, 402], [74, 402]] }];
   if (level.path === 'sea') return [{ sx: 884, sy: 270, points: [[884, 270], [680, 138], [522, 248], [348, 116], [220, 240], [74, 152]] }];
-  if (level.path === 'volcano') return [{ sx: 884, sy: 270, points: [[884, 270], [660, 270], [518, 270], [330, 270], [230, 104], [74, 104]] }, { sx: 884, sy: 270, points: [[884, 270], [660, 270], [518, 270], [330, 270], [230, 436], [74, 436]] }];
-  return [{ sx: 884, sy: 270, points: [[884, 270], [660, 270], [510, 190], [322, 190], [214, 88], [74, 88]] }, { sx: 884, sy: 270, points: [[884, 270], [660, 270], [510, 350], [322, 350], [214, 452], [74, 452]] }];
+  if (level.path === 'volcano') return [{ sx: 884, sy: 118, points: [[884, 118], [690, 118], [555, 196], [370, 196], [230, 104], [74, 104]] }, { sx: 884, sy: 422, points: [[884, 422], [690, 422], [555, 344], [370, 344], [230, 436], [74, 436]] }];
+  return [{ sx: 884, sy: 118, points: [[884, 118], [692, 118], [520, 180], [322, 180], [214, 88], [74, 88]] }, { sx: 884, sy: 422, points: [[884, 422], [692, 422], [520, 350], [322, 350], [214, 452], [74, 452]] }];
 }
 
 function interpolatePath(points, distanceAlong) {
@@ -198,7 +206,8 @@ function distToPath(x, y, level = currentLevel()) {
 function canPlaceAt(x, y, ignoreSlot = -1) {
   if (x < arena.left + arena.plate * .5 || x > arena.right - arena.plate * .5 || y < arena.top + 30 || y > arena.bot - 6) return false;
   if (distToPath(x, y) < arena.roadW * .5 + arena.plate * .5) return false;
-  if (Math.hypot(x - arena.sealX, y - arena.sealY) < arena.wardR + arena.plate * .4) return false;
+  if (levelSeals().some(([sealX, sealY]) => Math.hypot(x - sealX, y - sealY) < arena.wardR + arena.plate * .4)) return false;
+  if (levelSpawns().some(([spawnX, spawnY]) => Math.hypot(x - spawnX, y - spawnY) < arena.spawnR + arena.plate * .4)) return false;
   for (let i = 0; i < state.towers.length; i += 1) {
     if (i === ignoreSlot) continue;
     if (Math.hypot(state.towers[i].x - x, state.towers[i].y - y) < arena.plate * 3.25) return false;
@@ -423,7 +432,7 @@ function initGame() {
   state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
   state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.combo = 0; state.bestCombo = 0;
   state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.resumeAfterDialog = false; state.draggingUnitId = null;
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; refs.arenaHint.textContent = '点下方「召灵」请出 1 只异兽布阵，15s 后敌军将自右侧裂隙涌出'; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
+  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; refs.arenaHint.textContent = `点下方「召灵」请出 1 只异兽布阵，15s 后${currentLevel().spawnCount > 1 ? '两道裂口' : '右侧裂口'}将同时涌出敌军`; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function startWave() {
@@ -454,7 +463,7 @@ function spawnFromGroups(dt) {
     group.timer -= dt;
     if (group.spawned < group.count) {
       allDone = false;
-      if (group.timer <= 0) { spawnEnemy(group.type, group.hpMul, group.route); group.spawned += 1; group.timer = group.gap; }
+      if (group.timer <= 0) { spawnEnemy(group.type, group.hpMul, (group.route + group.spawned) % pathInfo().length); group.spawned += 1; group.timer = group.gap; }
     }
   });
   if (allDone && state.enemies.length === 0) {
@@ -883,7 +892,44 @@ function useSkill() {
 }
 
 function drawPath(route, level) {
-  const roadTint = state.stage === 0 ? '#c7a56e' : level.tint; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(61, 45, 28, .82)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = roadTint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 237, 190, .42)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
+  const roadTint = state.stage === 0 ? '#c7a56e' : level.tint; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(61, 45, 28, .82)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = roadTint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 237, 190, .42)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.lineDashOffset = -state.battleTime * 36; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+}
+
+function drawStageAtmosphere(level) {
+  ctx.save();
+  ctx.globalAlpha = .32;
+  ctx.strokeStyle = level.accent;
+  ctx.lineWidth = 1.2;
+  if (level.path === 'cave') {
+    for (let x = 90; x < 900; x += 120) { ctx.beginPath(); ctx.moveTo(x, 18); ctx.lineTo(x + 18, 46); ctx.lineTo(x + 7, 74); ctx.stroke(); }
+  } else if (level.path === 'grass') {
+    ctx.globalAlpha = .23;
+    for (let x = 16; x < 940; x += 26) { const y = x % 52 ? 502 : 64; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 5, y - 16); ctx.moveTo(x, y); ctx.lineTo(x + 7, y - 12); ctx.stroke(); }
+  } else if (level.path === 'sea') {
+    ctx.globalAlpha = .28;
+    for (let i = 0; i < 5; i += 1) { const x = 150 + i * 172; const y = 76 + (i % 2) * 338; ctx.beginPath(); ctx.ellipse(x, y, 54, 11, 0, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.ellipse(x, y, 32, 6, 0, 0, Math.PI * 2); ctx.stroke(); }
+  } else if (level.path === 'volcano') {
+    ctx.globalAlpha = .4;
+    for (let i = 0; i < 4; i += 1) { const x = 110 + i * 235; ctx.beginPath(); ctx.moveTo(x, 510); ctx.lineTo(x + 22, 476); ctx.lineTo(x + 8, 446); ctx.lineTo(x + 34, 414); ctx.stroke(); }
+  } else {
+    ctx.globalAlpha = .23;
+    for (let i = 0; i < 4; i += 1) { const y = 72 + i * 118; ctx.beginPath(); ctx.arc(118 + i * 180, y, 72, Math.PI * .12, Math.PI * .82); ctx.stroke(); ctx.beginPath(); ctx.arc(208 + i * 160, y + 26, 52, Math.PI * 1.14, Math.PI * 1.85); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+
+function drawSeal(x, y, level, index) {
+  const pulse = 1 + Math.sin(state.battleTime * 2.2 + index) * .035;
+  ctx.save(); ctx.translate(x, y); ctx.scale(pulse, pulse);
+  ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = level.accent; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(240, 211, 154, .42)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, arena.wardR - 7, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = level.accent; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', 0, 4); ctx.restore();
+}
+
+function drawSpawnFissure(x, y, level, index) {
+  ctx.save(); ctx.translate(x, y); ctx.strokeStyle = level.path === 'volcano' ? '#f06e4e' : level.accent; ctx.globalAlpha = .8; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 22 + Math.sin(state.battleTime * 2 + index) * 2, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-9, -5); ctx.lineTo(-3, 3); ctx.lineTo(-8, 12); ctx.moveTo(7, -11); ctx.lineTo(2, -2); ctx.lineTo(9, 7); ctx.stroke(); ctx.fillStyle = level.path === 'volcano' ? '#f3a355' : level.accent; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('裂口', 0, 4); ctx.restore();
 }
 
 function drawProjectile(projectile) {
@@ -908,10 +954,11 @@ function drawCanvas() {
   const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   const stageBackground = stageBackgrounds[state.stage];
   if (stageBackground?.complete && stageBackground.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(stageBackground, 0, 0, stageBackground.naturalWidth, stageBackground.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .10)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelW = biomeAtlas.naturalWidth / 5; ctx.globalAlpha = .72; ctx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  drawStageAtmosphere(level);
   ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
   pathInfo(level).forEach((route) => drawPath(route, level));
-  ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
-  pathInfo(level).forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(route.sx, route.sy, 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route.sx, route.sy + 4); });
+  levelSeals(level).forEach(([x, y], index) => drawSeal(x, y, level, index));
+  levelSpawns(level).forEach(([x, y], index) => drawSpawnFissure(x, y, level, index));
   if (state.mouse.inside && selectedUnit()) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
   state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
 }
@@ -931,9 +978,10 @@ function drawTower(tower) {
 }
 
 function drawEnemy(enemy) {
-  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * 4.3;
+  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * (enemy.def.boss ? 5.2 : 4.3);
   ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1;
   ctx.fillStyle = 'rgba(43, 31, 21, .24)'; ctx.beginPath(); ctx.ellipse(0, 11, size * .29, 5, 0, 0, Math.PI * 2); ctx.fill();
+  if (enemy.def.boss) { ctx.strokeStyle = enemy.def.color; ctx.globalAlpha *= .38; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -size * .22, size * .34, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; }
   if (sprite?.complete && sprite.naturalWidth) {
     ctx.drawImage(sprite, -size * .5, 12 - size, size, size);
   } else if (enemyAtlas.complete && enemyAtlas.naturalWidth) {

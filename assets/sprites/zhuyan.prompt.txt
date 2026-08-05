@@ -1,0 +1,4 @@
+Use case: combat enemy sprite for a Chinese myth tower-defense game.
+Subject: 朱厌, a hulking red-brown ape-like war demon with pale bone markings, heavy shoulders, and a fierce battle stance.
+Style: premium hand-painted Chinese myth game illustration, tactile fur and brush texture, strong readable silhouette, restrained vermilion and charcoal palette.
+Output: one centered full-body sprite, no text, no frame, flat #FF00FF background for chroma-key extraction.

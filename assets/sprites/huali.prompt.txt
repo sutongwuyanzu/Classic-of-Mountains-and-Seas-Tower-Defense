@@ -1,0 +1,4 @@
+Use case: combat enemy sprite for a Chinese myth tower-defense game.
+Subject: 化蛇, a coiled jade-cyan water serpent with a long elegant body, small horns, and a focused expression.
+Style: premium hand-painted Chinese shan-shui game illustration, crisp silhouette, subtle ink texture, luminous turquoise accents, front three-quarter view.
+Output: one centered full-body sprite, no text, no frame, flat #FF00FF background for chroma-key extraction.

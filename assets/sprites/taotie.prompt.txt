@@ -1,0 +1,4 @@
+Use case: boss enemy sprite for a Chinese myth tower-defense game.
+Subject: 饕餮, a massive black-jade and bronze horned guardian beast with a monumental mask and an ominous glowing mouth motif.
+Style: premium hand-painted Chinese myth game illustration, boss-scale silhouette, carved jade and bronze material, ember highlights, dramatic but clean edges.
+Output: one centered full-body sprite, no text, no frame, flat #FF00FF background for chroma-key extraction.

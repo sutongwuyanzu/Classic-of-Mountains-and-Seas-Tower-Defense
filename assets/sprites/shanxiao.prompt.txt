@@ -1,0 +1,4 @@
+Use case: combat enemy sprite for a Chinese myth tower-defense game.
+Subject: 山魈, a wiry rust-brown mountain beast with long forearms, a sharp mask-like face, and an alert crouched pose.
+Style: premium hand-painted Chinese myth game illustration, energetic silhouette, layered fur strokes, stone and copper color accents, front three-quarter view.
+Output: one centered full-body sprite, no text, no frame, flat #FF00FF background for chroma-key extraction.

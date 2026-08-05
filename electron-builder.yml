@@ -9,6 +9,8 @@ files:
   - package.json
   - src/**/*
   - assets/**/*
+  - '!assets/sprites/*-source.png'
+  - '!assets/sprites/*.prompt.txt'
   - electron/**/*
 asar: true
 win:
