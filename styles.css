@@ -247,3 +247,66 @@ h1 em { color: var(--coral); font-style: normal; }
 @media (max-width: 760px) {
   .select-screen { padding-top: 22px; }.codex-dialog { padding: 16px; }.codex-dialog-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* The battle controls use a fixed command rail, while summoning and deployment
+   stay together in the lower tray like the reference game's playable loop. */
+.unit-panel { height: 142px; }
+.unit-panel .section-label-row { padding-bottom: 4px; }
+.unit-panel .game-roster { min-height: 49px; }
+.unit-panel .game-card { min-width: min(360px, 100%); height: 48px; }
+.battle-bottom-actions { display: grid; grid-template-columns: 1fr 1.1fr 1fr; gap: 7px; margin-top: 6px; }
+.bottom-command, .battle-command { min-height: 38px; color: #fff3cf; background: rgba(64, 47, 30, .9); border: 1px solid #c59c50; border-radius: 3px; box-shadow: 0 2px 0 rgba(69, 40, 20, .24); font-size: 12px; font-weight: 800; }
+.bottom-command:hover, .battle-command:hover { background: #5c4127; }
+.bottom-command-primary { color: #fff3d3; background: #bd3b2c; border-color: #f0bd58; font-size: 15px; }
+.bottom-command:disabled, .battle-command:disabled { cursor: not-allowed; opacity: .42; }
+.battle-command-stack { position: fixed; z-index: 26; top: 122px; right: 30px; display: grid; width: 198px; gap: 7px; }
+.battle-command { display: flex; align-items: center; justify-content: space-between; padding: 0 13px; text-align: left; }
+.battle-command strong { color: #f0bd58; font-size: 14px; }
+.battle-command-warn { background: #984626; }
+.battle-command-luck { background: #936422; }
+.battle-command-stack .skill-button { position: static; width: auto; margin: 0; padding: 10px 12px; font-size: 13px; }
+.bond-panel { bottom: 14px; height: 112px; }
+.unit-panel { bottom: 14px; }
+
+.game-dialog { width: min(860px, calc(100vw - 36px)); max-height: min(720px, calc(100vh - 36px)); padding: 22px; color: #3b2b1e; background: #e5cb92; border: 2px solid #976a35; box-shadow: 0 22px 72px rgba(22, 13, 6, .58); }
+.game-dialog::backdrop { background: rgba(30, 20, 10, .62); }
+.dialog-head { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding-bottom: 16px; border-bottom: 1px solid rgba(83, 56, 27, .36); }
+.dialog-head .eyebrow { margin: 0 0 4px; color: #9b412c; font-size: 10px; }
+.dialog-head h2 { margin: 0; font-family: Georgia, "Microsoft YaHei", serif; font-size: 30px; }
+.dialog-head span { display: block; max-width: 570px; margin-top: 5px; color: #765a3d; font-size: 12px; line-height: 1.5; }
+.dialog-close { width: 34px; height: 34px; padding: 0; color: #4f311d; background: rgba(255, 244, 207, .28); border: 1px solid rgba(78, 51, 26, .45); border-radius: 2px; font-size: 23px; }
+.summon-offers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 0 2px; }
+.summon-offer { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 14px; min-height: 136px; padding: 15px; color: #3a2a1c; background: rgba(255, 239, 195, .72); border: 2px solid rgba(105, 72, 35, .38); border-radius: 4px; text-align: left; }
+.summon-offer:hover { border-color: #b63425; background: #fff0bd; transform: translateY(-1px); }
+.summon-offer .portrait { width: 74px; height: 74px; }
+.summon-offer em { display: block; color: #9b3c2b; font-size: 12px; font-style: normal; font-weight: 900; }
+.summon-offer strong { display: block; margin-top: 3px; font-size: 24px; }
+.summon-offer small { display: block; margin-top: 5px; color: #765a3d; font-size: 12px; }
+.summon-offer b { grid-column: 2; color: #a03d28; font-size: 12px; }
+.advanced-results { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; padding: 20px 0; }
+.advanced-results .game-card, .backpack-list .game-card { min-width: 0; height: auto; min-height: 82px; grid-template-columns: 44px 1fr; }
+.advanced-results .game-card em, .backpack-list .game-card em { display: none; }
+.dialog-primary, .dialog-secondary { min-height: 42px; padding: 0 18px; color: #fff2cf; border: 1px solid #bd8e42; border-radius: 3px; font-size: 14px; font-weight: 800; }
+.dialog-primary { width: 100%; background: #b53829; }
+.dialog-primary:hover { background: #cd4934; }
+.dialog-primary:disabled { cursor: not-allowed; opacity: .45; }
+.dialog-secondary { background: rgba(73, 51, 30, .86); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.backpack-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; max-height: 470px; overflow: auto; padding: 18px 2px 2px; }
+.backpack-list .game-card { display: grid; padding: 8px; }
+.backpack-list .game-card.is-fusing { border-color: #bb3728; background: #ffe9ae; box-shadow: inset 0 0 0 2px rgba(187, 55, 40, .18); }
+.dialog-empty { grid-column: 1 / -1; margin: 12px 0; color: #765a3d; font-size: 13px; }
+.fortune-dialog { width: min(470px, calc(100vw - 36px)); }
+.fortune-result { display: grid; min-height: 116px; place-content: center; gap: 10px; margin: 20px 0; padding: 20px; color: #73553a; background: rgba(255, 239, 195, .54); border: 1px solid rgba(105, 72, 35, .34); font-size: 14px; line-height: 1.6; text-align: center; }
+.fortune-result strong { display: block; font-size: 28px; font-family: Georgia, "Microsoft YaHei", serif; }
+.fortune-good { color: #1d6f62; }.fortune-bad { color: #a43b28; }
+.bond-dialog-list { display: grid; gap: 7px; max-height: 480px; overflow: auto; padding: 18px 2px 2px; }
+.bond-detail { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 239, 195, .52); border: 1px solid rgba(105, 72, 35, .32); }
+.bond-detail i { width: 8px; height: 38px; border-radius: 2px; }.bond-detail strong { display: block; font-size: 14px; }.bond-detail small { display: block; margin-top: 3px; color: #765a3d; font-size: 11px; }.bond-detail b { color: #9a402a; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .battle-command-stack { right: 12px; width: 150px; }.battle-command { padding: 0 9px; font-size: 11px; }.unit-panel { left: 62px; right: 12px; }.advanced-results { grid-template-columns: repeat(3, minmax(0, 1fr)); }.backpack-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .battle-command-stack { width: 120px; top: 114px; gap: 4px; }.battle-command { min-height: 34px; font-size: 10px; }.battle-command strong { font-size: 11px; }.battle-command-stack .skill-button { padding: 8px; font-size: 10px; }.unit-panel { left: 8px; right: 8px; bottom: 8px; height: 132px; }.battle-bottom-actions { gap: 4px; }.bottom-command { font-size: 10px; }.bottom-command-primary { font-size: 12px; }.summon-offers, .backpack-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }.summon-offer { grid-template-columns: 1fr; min-height: 160px; }.summon-offer .portrait { width: 58px; height: 58px; }.summon-offer b { grid-column: auto; }.advanced-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }.game-dialog { padding: 16px; }.dialog-head h2 { font-size: 24px; }
+}

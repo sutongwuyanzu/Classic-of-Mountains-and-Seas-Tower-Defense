@@ -111,14 +111,26 @@
                 <div class="resource-line best-score"><span>最高</span><strong>11872</strong></div>
               </div>
               <div class="unit-panel">
-                <div class="section-label-row compact"><span class="section-label">召唤妖灵</span><button class="summon-button" id="summon-beast" type="button">召唤妖灵 28</button></div>
+                <div class="section-label-row compact"><span class="section-label">当前妖灵</span><span id="selected-unit-label" class="section-note">未选择妖灵</span></div>
                 <div id="game-roster" class="game-roster"></div>
+                <div class="battle-bottom-actions">
+                  <button class="bottom-command" id="upgrade-all" type="button">一键升级</button>
+                  <button class="bottom-command bottom-command-primary" id="summon-beast" type="button">召灵 20</button>
+                  <button class="bottom-command" id="advanced-summon" type="button">高级五连 80</button>
+                </div>
               </div>
               <div class="bond-panel">
                 <div class="section-label-row compact"><span class="section-label">场上羁绊</span><span class="section-note">阵型影响强度</span></div>
                 <div id="game-bonds" class="game-bonds"></div>
               </div>
-              <button class="skill-button" id="team-skill" type="button"><span>羁绊技</span><strong id="skill-label">未就绪</strong></button>
+              <div class="battle-command-stack">
+                <button class="battle-command" id="open-backpack" type="button">背包 <strong id="backpack-label">0/12</strong></button>
+                <button class="battle-command" id="open-bonds" type="button">羁绊</button>
+                <button class="battle-command" id="auto-deploy" type="button">一键部署</button>
+                <button class="battle-command battle-command-warn" id="recall-all" type="button">一键下场</button>
+                <button class="battle-command battle-command-luck" id="fortune-sign" type="button">转运签 · 需上阵</button>
+                <button class="skill-button" id="team-skill" type="button"><span>羁绊技</span><strong id="skill-label">未就绪</strong></button>
+              </div>
             </aside>
           </div>
         </section>
@@ -129,6 +141,40 @@
             <button class="icon-button codex-close" id="codex-close" type="button" aria-label="关闭图谱">×</button>
           </div>
           <div id="codex-dialog-list" class="codex-dialog-list"></div>
+        </dialog>
+
+        <dialog id="summon-dialog" class="game-dialog summon-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">SPIRIT CALLING</p><h2>召灵 · 二选一</h2><span>消耗 20 灵蕴，请出一只异兽后拖至路边。</span></div><button class="dialog-close" id="summon-close" type="button" aria-label="关闭">×</button></div>
+          <div id="summon-offers" class="summon-offers"></div>
+        </dialog>
+
+        <dialog id="advanced-dialog" class="game-dialog advanced-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">HIGH INVOCATION</p><h2>高级召灵 · 五连</h2><span>消耗 80 灵蕴，入卷后自动处理同种同级的重复妖灵。</span></div><button class="dialog-close" id="advanced-close" type="button" aria-label="关闭">×</button></div>
+          <div id="advanced-results" class="advanced-results"></div>
+          <button id="advanced-claim" class="dialog-primary" type="button">入卷 · 自动合成</button>
+        </dialog>
+
+        <dialog id="backpack-dialog" class="game-dialog backpack-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">SPIRIT SATCHEL</p><h2>背包</h2><span>点击卡牌选择上阵；场上与背包妖灵会一并升级。</span></div><button class="dialog-close" id="backpack-close" type="button" aria-label="关闭">×</button></div>
+          <div id="backpack-list" class="backpack-list"></div>
+          <div class="dialog-actions"><button id="open-fusion" class="dialog-secondary" type="button">异兽合成</button></div>
+        </dialog>
+
+        <dialog id="fusion-dialog" class="game-dialog fusion-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">ASCENSION</p><h2>异兽合成</h2><span id="fusion-selection">选择两只同稀有度妖灵</span></div><button class="dialog-close" id="fusion-close" type="button" aria-label="关闭">×</button></div>
+          <div id="fusion-list" class="backpack-list"></div>
+          <button id="fuse-beasts" class="dialog-primary" type="button">合成 18</button>
+        </dialog>
+
+        <dialog id="fortune-dialog" class="game-dialog fortune-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">FORTUNE LOT</p><h2>转运签</h2><span>福祸随机，效果立即作用于本局。</span></div><button class="dialog-close" id="fortune-close" type="button" aria-label="关闭">×</button></div>
+          <div id="fortune-result" class="fortune-result">每签消耗 30 灵蕴。福祸皆有，签文会即时作用于本局战场。</div>
+          <button id="fortune-draw" class="dialog-primary" type="button">摇签 30</button>
+        </dialog>
+
+        <dialog id="bonds-dialog" class="game-dialog bonds-dialog">
+          <div class="dialog-head"><div><p class="eyebrow">RESONANCE</p><h2>羁绊 · 同列者共鸣</h2><span>同族数量决定生效，阵型决定强度。</span></div><button class="dialog-close" id="bonds-close" type="button" aria-label="关闭">×</button></div>
+          <div id="bond-dialog-list" class="bond-dialog-list"></div>
         </dialog>
 
         <section id="result-screen" class="screen result-screen is-hidden">
@@ -145,6 +191,6 @@
       </main>
       <footer class="footer"><span>山海异兽志 · 独立重建版本</span><span>PIXEL TACTICS / v0.1</span></footer>
     </div>
-    <script src="./src/main.js?v=art-14"></script>
+    <script src="./src/main.js?v=summon-20-fix"></script>
   </body>
 </html>

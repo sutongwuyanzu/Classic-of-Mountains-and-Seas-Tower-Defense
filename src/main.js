@@ -27,8 +27,10 @@ const ROSTER = [
 ].map(([id, name, rarity], portraitIndex) => ({ id, name, rarity, portraitIndex }));
 
 const STARTER_IDS = ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'];
-const SUMMON_COST = 28;
-const MAX_HAND = 12;
+const SUMMON_COST = 20;
+const ADVANCED_SUMMON_COST = 80;
+const FORTUNE_COST = 30;
+const MAX_BACKPACK = 12;
 const SUMMON_WEIGHTS = [[0, 56], [1, 28], [2, 12], [3, 3], [4, 1]];
 const BEASTS = {
   bifang: { dmg: 20, interval: 1.15, range: 168, projSpeed: 380, proj: 'ember', burn: true, burnDps: .22, dmgType: 'mag', counters: ['purge'], color: '#e77854', kindText: '灼烧 · 破法', cost: 18 },
@@ -101,14 +103,14 @@ const WAVES = [
   [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]], [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]],
 ];
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'essenceLabel', 'killLabel', 'populationLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'essenceLabel', 'killLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 const state = {
-  screen: 'select', stage: 0, selectedBeast: 'bifang', hand: [], maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 1,
-  paused: false, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0,
+  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 1,
+  paused: false, resumeAfterDialog: false, draggingUnitId: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 10, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], damageTexts: [], logs: [], mouse: { x: 480, y: 270, inside: false },
-  skillCooldown: 0, skillBond: null, finishTimer: 0,
+  skillCooldown: 0, skillBond: null, finishTimer: 0, fusionSelection: [], signEffects: [], summonOffers: [], advancedBatch: [], lastSign: null,
 };
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
@@ -213,47 +215,175 @@ function addLog(message) {
   refs.combatLog.innerHTML = state.logs.map((item) => `<div>${item}</div>`).join('');
 }
 
-function randomSummon() {
-  let roll = Math.random() * SUMMON_WEIGHTS.reduce((sum, [, weight]) => sum + weight, 0);
-  let rarity = 0;
-  for (const [candidate, weight] of SUMMON_WEIGHTS) {
+function randomFromWeights(weights) {
+  let roll = Math.random() * weights.reduce((sum, [, weight]) => sum + weight, 0);
+  for (const [candidate, weight] of weights) {
     roll -= weight;
-    if (roll <= 0) { rarity = candidate; break; }
+    if (roll < 0) return candidate;
   }
+  return weights[weights.length - 1][0];
+}
+
+function randomBeastAtRarity(rarity) {
   const pool = ROSTER.filter((beast) => beast.rarity === rarity);
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function randomSummon(weights = SUMMON_WEIGHTS) {
+  return randomBeastAtRarity(randomFromWeights(weights));
+}
+
+function createUnit(beast, level = 1) {
+  return { uid: `spirit-${state.nextUnitId++}`, id: beast.id, level, cd: .15, hitTarget: null, hitCount: 0 };
+}
+
+function selectedUnit() {
+  return state.backpack.find((unit) => unit.uid === state.selectedUnitId) || null;
+}
+
+function selectUnit(uid) {
+  state.selectedUnitId = state.backpack.some((unit) => unit.uid === uid) ? uid : null;
+  renderGameRoster();
+  updateHUD();
+}
+
+function showGameDialog(dialog) {
+  if (!state.paused) { state.paused = true; state.resumeAfterDialog = true; }
+  dialog.showModal();
+  updateHUD();
+}
+
+function closeGameDialog(dialog) {
+  dialog.close();
+  if (state.resumeAfterDialog) { state.paused = false; state.resumeAfterDialog = false; }
+  updateHUD();
+}
+
+function unitCard(unit, attributes = '') {
+  const beast = beastDef(unit.id);
+  const portraitX = beast.portraitIndex % 6;
+  const portraitY = Math.floor(beast.portraitIndex / 6);
+  return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${attributes}" data-unit-id="${unit.uid}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · Lv.${unit.level} · ${beast.kindText}</small></span><em>${RARITIES[beast.rarity]}</em></button>`;
+}
+
+function renderSummonOffers() {
+  refs.summonOffers.innerHTML = state.summonOffers.map((beast, index) => {
+    const portraitX = beast.portraitIndex % 6;
+    const portraitY = Math.floor(beast.portraitIndex / 6);
+    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>${beast.kindText}</small></span><b>请出布阵</b></button>`;
+  }).join('');
+  refs.summonOffers.querySelectorAll('[data-offer-index]').forEach((button) => button.addEventListener('click', () => claimSummonOffer(Number(button.dataset.offerIndex))));
+}
+
 function summonBeast() {
-  if (state.screen !== 'game' || state.paused) return;
+  if (state.screen !== 'game') return;
+  if (state.paused) { addLog('暂停中，继续战斗后才能召灵。'); return; }
   if (state.energy < SUMMON_COST) { addLog(`灵蕴不足，需要 ${SUMMON_COST} 点才能召唤。`); return; }
-  if (state.hand.length >= MAX_HAND) { addLog('召唤栏已满，请先放置手牌中的妖灵。'); return; }
-  const beast = randomSummon();
+  if (state.backpack.length >= MAX_BACKPACK) { addLog('背包已满，请先部署、合成或遣返妖灵。'); return; }
   state.energy -= SUMMON_COST;
-  state.hand.push(beast.id);
-  state.selectedBeast = beast.id;
-  addLog(`召唤成功：${beast.name}（${RARITIES[beast.rarity]}），点击卡牌后放置。`);
+  state.summonOffers = [randomSummon(), randomSummon()];
+  renderSummonOffers();
+  showGameDialog(refs.summonDialog);
+}
+
+function claimSummonOffer(index) {
+  const beast = state.summonOffers[index];
+  if (!beast || state.backpack.length >= MAX_BACKPACK) return;
+  const unit = createUnit(beast);
+  state.backpack.push(unit);
+  state.unlocked.add(beast.id);
+  state.selectedUnitId = unit.uid;
+  closeGameDialog(refs.summonDialog);
+  addLog(`${beast.name}已入阵，拖动卡牌到路边，或直接点击战场布阵。`);
+  renderGameRoster();
+  updateHUD();
+}
+
+function renderAdvancedResults() {
+  refs.advancedResults.innerHTML = state.advancedBatch.map((unit) => unitCard(unit, 'is-result')).join('');
+}
+
+function advancedSummon() {
+  if (state.screen !== 'game' || state.paused) return;
+  if (state.energy < ADVANCED_SUMMON_COST) { addLog(`灵蕴不足，需要 ${ADVANCED_SUMMON_COST} 点进行高级五连。`); return; }
+  if (state.backpack.length + 5 > MAX_BACKPACK) { addLog('背包至少需要留出 5 个位置，才能进行高级五连。'); return; }
+  const advancedWeights = [[0, 22], [1, 28], [2, 33], [3, 13], [4, 4]];
+  state.energy -= ADVANCED_SUMMON_COST;
+  state.advancedBatch = Array.from({ length: 5 }, () => createUnit(randomSummon(advancedWeights)));
+  renderAdvancedResults();
+  refs.advancedClaim.textContent = '入卷 · 自动合成';
+  showGameDialog(refs.advancedDialog);
+}
+
+function fusionOutcome(rarity) {
+  const roll = Math.random();
+  if (roll < .15) return { rarity: Math.min(4, rarity + 1), label: '上跃' };
+  if (roll < .50) return { rarity, label: '同级' };
+  return { rarity: Math.max(0, rarity - 1), label: '降阶' };
+}
+
+function fuseUnits(first, second, automated = false) {
+  const firstBeast = beastDef(first.id);
+  const outcome = fusionOutcome(firstBeast.rarity);
+  const result = createUnit(randomBeastAtRarity(outcome.rarity), Math.max(first.level, second.level));
+  state.backpack = state.backpack.filter((unit) => unit.uid !== first.uid && unit.uid !== second.uid);
+  state.backpack.push(result);
+  state.unlocked.add(result.id);
+  if (!automated) addLog(`合成${outcome.label}：获得 ${beastDef(result.id).name}（${RARITIES[outcome.rarity]}）。`);
+  return outcome;
+}
+
+function autoFuseDuplicatePairs() {
+  let merged = 0;
+  const groups = new Map();
+  state.backpack.forEach((unit) => {
+    const key = `${unit.id}-${unit.level}`;
+    groups.set(key, [...(groups.get(key) || []), unit]);
+  });
+  groups.forEach((units) => {
+    while (units.length >= 2) {
+      fuseUnits(units.shift(), units.shift(), true);
+      merged += 1;
+    }
+  });
+  return merged;
+}
+
+function claimAdvancedBatch() {
+  if (!state.advancedBatch.length || state.backpack.length + state.advancedBatch.length > MAX_BACKPACK) return;
+  state.backpack.push(...state.advancedBatch);
+  state.advancedBatch.forEach((unit) => state.unlocked.add(unit.id));
+  const merged = autoFuseDuplicatePairs();
+  state.selectedUnitId = state.backpack[0]?.uid || null;
+  closeGameDialog(refs.advancedDialog);
+  addLog(`高级五连入卷：${merged ? `自动合成 ${merged} 次，` : ''}其余妖灵已入背包。`);
+  state.advancedBatch = [];
   renderGameRoster();
   updateHUD();
 }
 
 function initGame() {
-  state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0;
+  state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 10; state.battleTime = 0;
   state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.combo = 0; state.bestCombo = 0;
-  state.towers = []; state.hand = []; state.selectedBeast = null; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldown = 0; state.skillBond = null;
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; addLog('点击“召唤妖灵”，随机获得 N 至 UR 妖灵。'); renderGameRoster(); renderGameBonds(); startWave(); updateHUD();
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldown = 0; state.skillBond = null; state.fusionSelection = []; state.signEffects = []; state.resumeAfterDialog = false; state.draggingUnitId = null;
+  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; addLog('整备 10 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function startWave() {
   if (state.wave >= 21 || state.wave >= 8 + state.stage * 3) return;
   const groups = WAVES[state.wave];
   state.spawning = groups.map(([type, count, gap, delay, hpMul], index) => ({ type, count, gap, delay, hpMul, spawned: 0, timer: delay, route: index % pathInfo().length }));
-  state.waveStarted = true; state.waveTimer = 0;
+  state.phase = 'combat'; state.waveStarted = true; state.waveTimer = 0;
   refs.waveLabel.textContent = `${state.wave + 1} / ${8 + state.stage * 3}`;
   addLog(`第 ${state.wave + 1} 波：${groups.length > 1 ? '多组敌人交错出现' : '敌群进入道路'}`);
 }
 
 function spawnFromGroups(dt) {
+  if (state.phase === 'prep') {
+    state.prepTimer = Math.max(0, state.prepTimer - dt);
+    if (state.prepTimer <= 0) startWave();
+    return;
+  }
   if (!state.spawning) {
     if (state.waveCooldown > 0) {
       state.waveCooldown -= dt;
@@ -270,14 +400,23 @@ function spawnFromGroups(dt) {
     }
   });
   if (allDone && state.enemies.length === 0) {
-    state.spawning = null; state.wave += 1; state.waveCooldown = 2.4;
-    if (state.wave >= 8 + state.stage * 3) { finishGame(true); }
+    state.spawning = null; state.wave += 1;
+    if (state.wave >= 8 + state.stage * 3) { finishGame(true); return; }
+    state.phase = 'rest'; state.waveCooldown = 7;
+    addLog(`第 ${state.wave + 1} 波前喘息 ${state.waveCooldown} 秒，可调整背包和阵型。`);
   }
+}
+
+function activeSignEffect(type) {
+  return state.signEffects.find((effect) => effect.type === type);
 }
 
 function spawnEnemy(type, hpMul, routeIndex = 0) {
   const def = ENEMIES[type]; const route = pathInfo()[routeIndex] || pathInfo()[0];
-  const enemy = { type, def, x: route.sx, y: route.sy, d: 0, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp: def.hp * currentLevel().hpMul * hpMul, maxHp: def.hp * currentLevel().hpMul * hpMul, speed: def.speed * currentLevel().spdMul, radius: def.radius, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
+  const enemyBlessing = activeSignEffect('enemyBuff');
+  const enemyDebuff = activeSignEffect('enemyDebuff');
+  const hp = def.hp * currentLevel().hpMul * hpMul * (enemyBlessing ? 1.18 : 1);
+  const enemy = { type, def, x: route.sx, y: route.sy, d: 0, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp, maxHp: hp, speed: def.speed * currentLevel().spdMul * (enemyBlessing ? 1.16 : 1) * (enemyDebuff ? .72 : 1), radius: def.radius, shield: def.shield || 0, armor: Math.max(0, (def.armor || 0) + (enemyBlessing ? 5 : 0) - (enemyDebuff ? 8 : 0)), slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
   state.enemies.push(enemy);
 }
 
@@ -331,9 +470,10 @@ function formationScore(shape, members) {
 
 function updateTowers(dt) {
   const bondState = bondsForTowers();
+  const allyBlessing = activeSignEffect('allyBuff');
   state.towers.forEach((tower) => {
     const def = beastDef(tower.id);
-    tower.cd -= dt * state.speed * (1 + bondState.totals.haste);
+    tower.cd -= dt * state.speed * (1 + bondState.totals.haste + (allyBlessing ? .2 : 0));
     if (tower.cd > 0) return;
     const range = def.range * (1 + bondState.totals.range);
     let target = state.enemies.filter((enemy) => enemy.hp > 0 && enemy.stealthTimer <= 0 && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range && enemy.hp - incomingDamage(enemy) > 0).sort((a, b) => b.d - a.d)[0];
@@ -341,7 +481,7 @@ function updateTowers(dt) {
     if (!target) return;
     if (tower.hitTarget === target) tower.hitCount += 1; else { tower.hitTarget = target; tower.hitCount = 1; }
     const special = def.stunEvery && tower.hitCount % def.stunEvery === 0 ? -1 : def.breakAt && tower.hitCount % def.breakAt === 0 ? -2 : 0;
-    const power = def.dmg * (1 + bondState.totals.power) * (1 + (tower.level - 1) * .26) * (1 + state.tier * .04);
+    const power = def.dmg * (1 + bondState.totals.power + (allyBlessing ? .22 : 0)) * (1 + (tower.level - 1) * .26) * (1 + state.tier * .04);
     state.projectiles.push({ x: tower.x, y: tower.y, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, trail: [] });
     tower.cd = def.interval / Math.max(.35, def.rate || 1);
   });
@@ -426,7 +566,7 @@ function killEnemy(enemy) {
     enemy.split = true;
     for (let i = 0; i < 2; i += 1) spawnEnemy('xingxing', .55, enemy.route);
   }
-  state.kills += enemy.def.reward; state.combo += 1; state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(140, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.def.boss ? 18 : 8);
+  state.kills += enemy.def.reward; state.combo += 1; state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(9999, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.def.boss ? 18 : 8);
 }
 
 function finishGame(won) {
@@ -441,21 +581,28 @@ function burst(x, y, color, count = 6) { for (let i = 0; i < count; i += 1) stat
 function updateEffects(dt) { state.particles = state.particles.filter((item) => { item.life -= dt; item.x += item.dx * dt; item.y += item.dy * dt; return item.life > 0; }); state.damageTexts = state.damageTexts.filter((item) => { item.life -= dt; item.y -= dt * 18; return item.life > 0; }); }
 
 function placeTower(x, y) {
-  if (!state.selectedBeast) { addLog('请先点击“召唤妖灵”获得一张手牌。'); return; }
+  const unit = selectedUnit();
+  if (!unit) { addLog('请先召灵，再从背包选择一只妖灵。'); return; }
   if (state.towers.length >= state.maxPopulation) { addLog('人口已满，无法继续部署妖灵。'); return; }
   if (!canPlaceAt(x, y)) { addLog(distToPath(x, y) < arena.roadW * .5 + arena.plate * .5 ? '不能放在怪物行进的道路上。' : '此处不能安置。'); return; }
-  const def = beastDef(state.selectedBeast);
-  const handIndex = state.hand.indexOf(state.selectedBeast);
-  if (handIndex < 0) { state.selectedBeast = null; renderGameRoster(); return; }
-  state.towers.push({ id: state.selectedBeast, x, y, level: 1, cd: .15, hitTarget: null, hitCount: 0 });
-  state.hand.splice(handIndex, 1);
-  state.selectedBeast = state.hand[0] || null;
+  const def = beastDef(unit.id);
+  state.towers.push({ ...unit, x, y, cd: .15, hitTarget: null, hitCount: 0 });
+  state.backpack = state.backpack.filter((item) => item.uid !== unit.uid);
+  state.selectedUnitId = null;
   addLog(`${def.name}已安置，注意与队友保持阵型间距。`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function renderGameRoster() {
-  refs.gameRoster.innerHTML = [...state.unlocked].map((id) => { const beast = beastDef(id); return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${state.selectedBeast === id ? 'is-selected' : ''}" data-beast="${id}" type="button"><span class="portrait">${beast.name.slice(0, 1)}</span><span><strong>${beast.name}</strong><small>${beast.kindText}</small></span><em>${beast.cost}</em></button>`; }).join('');
-  refs.gameRoster.querySelectorAll('[data-beast]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = button.dataset.beast; renderGameRoster(); }));
+  const unit = selectedUnit();
+  refs.gameRoster.innerHTML = unit ? unitCard(unit, 'is-selected') : '<div class="summon-empty">从背包选择妖灵，或点击“召灵 20”请出一只异兽。</div>';
+  refs.gameRoster.querySelectorAll('[data-unit-id]').forEach((button) => {
+    button.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      selectUnit(button.dataset.unitId);
+      state.draggingUnitId = button.dataset.unitId;
+    });
+    button.addEventListener('click', () => selectUnit(button.dataset.unitId));
+  });
 }
 
 function renderGameBonds() {
@@ -464,9 +611,176 @@ function renderGameBonds() {
   refs.skillLabel.textContent = state.skillBond ? (state.skillCooldown > 0 ? `${state.skillCooldown.toFixed(1)}s` : state.skillBond.ult) : '未就绪';
 }
 
+function renderBondDialog() {
+  const { active } = bondsForTowers();
+  refs.bondDialogList.innerHTML = BOND_DEFS.map((bond) => {
+    const current = active.find((item) => item.id === bond.id);
+    const count = state.towers.filter((tower) => bond.members.includes(tower.id)).length;
+    const status = current ? `${current.formed ? '成阵' : '散阵'} · ${Math.round(current.adjusted * 100)}%` : '未触发';
+    return `<article class="bond-detail"><i style="background:${bond.color}"></i><div><strong>${bond.name}</strong><small>${count}/${bond.members.length} · ${bond.need}只触发 · ${bond.shape === 'line' ? '横列' : bond.shape === 'triangle' ? '三才' : bond.shape === 'square' ? '四镇' : '聚拢'}阵</small></div><b>${status}</b></article>`;
+  }).join('');
+}
+
+function upgradeCost() {
+  return Math.max(12, state.towers.concat(state.backpack).reduce((sum, unit) => sum + unit.level * 4, 0));
+}
+
+function upgradeAll() {
+  const units = state.towers.concat(state.backpack);
+  const cost = upgradeCost();
+  if (!units.length || state.energy < cost) { addLog(`升级需要 ${cost} 灵蕴。`); return; }
+  state.energy -= cost;
+  units.forEach((unit) => { unit.level = Math.min(9, unit.level + 1); });
+  addLog(`一键升级完成：${units.length} 只妖灵修为提升。`);
+  renderGameRoster();
+  renderBackpack();
+  updateHUD();
+}
+
+function autoSpot() {
+  let best = null;
+  for (let y = 78; y <= 478; y += 22) for (let x = 94; x <= 866; x += 22) {
+    if (!canPlaceAt(x, y)) continue;
+    const road = distToPath(x, y);
+    const neighbors = state.towers.reduce((sum, tower) => sum + Math.min(170, Math.hypot(tower.x - x, tower.y - y)), 0) / Math.max(state.towers.length, 1);
+    const score = -Math.abs(road - 68) * 1.25 + neighbors * .24 + Math.abs(y - 270) * .08;
+    if (!best || score > best.score) best = { x, y, score };
+  }
+  return best;
+}
+
+function autoDeploy() {
+  let placed = 0;
+  while (state.backpack.length && state.towers.length < state.maxPopulation) {
+    const spot = autoSpot();
+    if (!spot) break;
+    const unit = state.backpack.shift();
+    state.towers.push({ ...unit, x: spot.x, y: spot.y, cd: .15, hitTarget: null, hitCount: 0 });
+    placed += 1;
+  }
+  state.selectedUnitId = null;
+  addLog(placed ? `一键部署：${placed} 只妖灵已在路边成阵。` : '没有可部署的妖灵或合法位置。');
+  renderGameRoster();
+  renderBackpack();
+  updateHUD();
+}
+
+function recallAll() {
+  const room = MAX_BACKPACK - state.backpack.length;
+  const returning = state.towers.splice(0, Math.max(0, room));
+  state.backpack.push(...returning.map(({ x, y, ...unit }) => unit));
+  state.selectedUnitId = state.backpack[0]?.uid || null;
+  addLog(returning.length ? (state.towers.length ? `背包空间有限，已下场 ${returning.length} 只；仍有 ${state.towers.length} 只留在场上。` : `已下场 ${returning.length} 只妖灵，收入背包。`) : '背包已满，无法下场。');
+  renderGameRoster();
+  renderBackpack();
+  updateHUD();
+}
+
+function renderBackpack() {
+  if (!refs.backpackList) return;
+  refs.backpackList.innerHTML = state.backpack.length ? state.backpack.map((unit) => unitCard(unit, `${state.selectedUnitId === unit.uid ? 'is-selected' : ''} ${state.fusionSelection.includes(unit.uid) ? 'is-fusing' : ''}`)).join('') : '<p class="dialog-empty">背包为空。普通召灵为二选一，高级召灵一次请出五只。</p>';
+  refs.backpackList.querySelectorAll('[data-unit-id]').forEach((button) => button.addEventListener('click', () => {
+    const uid = button.dataset.unitId;
+    if (refs.fusionDialog.open) toggleFusionUnit(uid); else { selectUnit(uid); closeGameDialog(refs.backpackDialog); }
+  }));
+}
+
+function openFusion() {
+  if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return; }
+  state.fusionSelection = [];
+  renderFusion();
+  showGameDialog(refs.fusionDialog);
+}
+
+function toggleFusionUnit(uid) {
+  const unit = state.backpack.find((item) => item.uid === uid);
+  if (!unit) return;
+  if (state.fusionSelection.includes(uid)) state.fusionSelection = state.fusionSelection.filter((item) => item !== uid);
+  else if (state.fusionSelection.length < 2) state.fusionSelection.push(uid);
+  renderFusion();
+}
+
+function renderFusion() {
+  const selected = state.fusionSelection.map((uid) => state.backpack.find((unit) => unit.uid === uid)).filter(Boolean);
+  refs.fusionList.innerHTML = state.backpack.map((unit) => unitCard(unit, state.fusionSelection.includes(unit.uid) ? 'is-fusing' : '')).join('');
+  refs.fusionList.querySelectorAll('[data-unit-id]').forEach((button) => button.addEventListener('click', () => toggleFusionUnit(button.dataset.unitId)));
+  refs.fusionSelection.textContent = selected.length === 2 ? `已选：${beastDef(selected[0].id).name} 与 ${beastDef(selected[1].id).name} · 消耗 18 灵蕴` : `选择两只同稀有度妖灵 · 15% 上跃 / 35% 同级 / 50% 降阶`;
+  refs.fuseBeasts.disabled = selected.length !== 2 || beastDef(selected[0].id).rarity !== beastDef(selected[1].id).rarity || state.energy < 18;
+}
+
+function fuseSelected() {
+  const units = state.fusionSelection.map((uid) => state.backpack.find((unit) => unit.uid === uid)).filter(Boolean);
+  if (units.length !== 2 || beastDef(units[0].id).rarity !== beastDef(units[1].id).rarity || state.energy < 18) return;
+  state.energy -= 18;
+  const outcome = fuseUnits(units[0], units[1]);
+  state.fusionSelection = [];
+  closeGameDialog(refs.fusionDialog);
+  addLog(`合成结果：${outcome.label}。`);
+  renderGameRoster();
+  renderBackpack();
+  updateHUD();
+}
+
+function openFortuneSign() {
+  if (!state.towers.length) { addLog('至少上阵一只妖灵后才能摇签。'); return; }
+  refs.fortuneResult.textContent = '每签消耗 30 灵蕴。福祸皆有，签文会即时作用于本局战场。';
+  refs.fortuneDraw.disabled = state.energy < FORTUNE_COST;
+  refs.fortuneDraw.textContent = `摇签 ${FORTUNE_COST}`;
+  showGameDialog(refs.fortuneDialog);
+}
+
+function addSignEffect(type, label) {
+  state.signEffects = state.signEffects.filter((effect) => effect.type !== type);
+  state.signEffects.push({ type, label });
+}
+
+function drawFortune() {
+  if (state.energy < FORTUNE_COST || !state.towers.length) return;
+  state.energy -= FORTUNE_COST;
+  const outcome = randomFromWeights([
+    ['ally', 25], ['enemy', 14], ['debuff', 22], ['half', 11], ['full', 11], ['double', 5], ['tenfold', 2], ['empty', 10],
+  ]);
+  let result;
+  if (outcome === 'ally') {
+    addSignEffect('allyBuff', '天佑：全军攻防加持');
+    result = { name: '天佑', text: '本局全军攻击与攻速提升。', tone: 'good' };
+  } else if (outcome === 'enemy') {
+    const existed = Boolean(activeSignEffect('enemyBuff'));
+    addSignEffect('enemyBuff', '凶煞：敌军受益');
+    if (!existed) state.enemies.forEach((enemy) => { enemy.maxHp *= 1.18; enemy.hp *= 1.18; enemy.speed *= 1.16; enemy.armor += 5; });
+    result = { name: '凶煞', text: '本局敌军生命、移速与护甲提升。', tone: 'bad' };
+  } else if (outcome === 'debuff') {
+    const existed = Boolean(activeSignEffect('enemyDebuff'));
+    addSignEffect('enemyDebuff', '破甲迟滞：敌军受制');
+    if (!existed) state.enemies.forEach((enemy) => { enemy.speed *= .72; enemy.armor = Math.max(0, enemy.armor - 8); });
+    result = { name: '破甲迟滞', text: '本局敌军减速并降低护甲。', tone: 'good' };
+  } else {
+    const refunds = { half: 15, full: 30, double: 60, tenfold: 300, empty: 0 };
+    const labels = { half: '半签返蕴', full: '全额返还', double: '双倍返蕴', tenfold: '天命十返', empty: '谢谢惠顾' };
+    const refund = refunds[outcome];
+    state.energy += refund;
+    result = { name: labels[outcome], text: refund ? `返还 ${refund} 灵蕴。` : '灵蕴未返还，本签落空。', tone: refund ? 'good' : 'bad' };
+  }
+  state.lastSign = result;
+  refs.fortuneResult.innerHTML = `<strong class="fortune-${result.tone}">${result.name}</strong><span>${result.text}</span>`;
+  refs.fortuneDraw.disabled = true;
+  addLog(`转运签：${result.name}。${result.text}`);
+  updateHUD();
+}
+
 function updateHUD() {
-  refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.kills; refs.waveLabel.textContent = `${Math.min(state.wave + 1, 8 + state.stage * 3)} / ${8 + state.stage * 3}`;
-  refs.waveTrack.innerHTML = Array.from({ length: 8 + state.stage * 3 }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.textContent = state.paused ? '继续' : '暂停'; refs.speedGame.textContent = `${state.speed}×`; refs.populationLabel.textContent = `${state.towers.length} / ${state.maxPopulation}`; refs.summonBeast.disabled = state.energy < SUMMON_COST || state.hand.length >= MAX_HAND; refs.summonBeast.textContent = `召唤妖灵 ${SUMMON_COST}`; renderGameBonds();
+  const totalWaves = 8 + state.stage * 3;
+  const phaseText = state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `喘息 ${Math.ceil(state.waveCooldown)}s` : `余敌 ${state.enemies.length}`;
+  const selected = selectedUnit();
+  refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.kills; refs.waveLabel.textContent = `波次 ${Math.min(state.wave + 1, totalWaves)} / ${phaseText}`;
+  refs.waveTrack.innerHTML = Array.from({ length: totalWaves }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.textContent = state.paused ? '继续' : '暂停'; refs.speedGame.textContent = `${state.speed}×`; refs.populationLabel.textContent = `${state.towers.length} / ${state.maxPopulation}`;
+  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} Lv.${selected.level} · 点击战场布阵` : '未选择妖灵';
+  refs.summonBeast.disabled = state.paused || state.energy < SUMMON_COST || state.backpack.length >= MAX_BACKPACK; refs.summonBeast.textContent = `召灵 ${SUMMON_COST}`;
+  refs.advancedSummon.disabled = state.paused || state.energy < ADVANCED_SUMMON_COST || state.backpack.length + 5 > MAX_BACKPACK; refs.advancedSummon.textContent = `高级五连 ${ADVANCED_SUMMON_COST}`;
+  refs.upgradeAll.disabled = !state.towers.length && !state.backpack.length || state.energy < upgradeCost(); refs.upgradeAll.textContent = `一键升级 ${upgradeCost()}`;
+  refs.autoDeploy.disabled = !state.backpack.length || state.towers.length >= state.maxPopulation; refs.recallAll.disabled = !state.towers.length || state.backpack.length >= MAX_BACKPACK;
+  refs.fortuneSign.disabled = state.paused || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.textContent = state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
+  renderGameBonds();
 }
 
 function useSkill() {
@@ -479,41 +793,22 @@ function drawPath(route, level) {
   const roadTint = state.stage === 0 ? '#c7a56e' : level.tint; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(61, 45, 28, .82)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = roadTint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 237, 190, .42)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]);
 }
 
-function drawCanvas() {
-  const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelW = biomeAtlas.naturalWidth / 5; ctx.globalAlpha = .22; ctx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; }
-  ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
-  pathInfo(level).forEach((route) => drawPath(route, level));
-  ctx.fillStyle = '#d86c4e'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fillStyle = 'rgba(216,108,78,.18)'; ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
-  pathInfo(level).forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(route.sx, route.sy, 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route.sx, route.sy + 4); });
-  if (state.mouse.inside && state.selectedBeast) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
-  state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
-}
-
-function drawTower(tower) { const def = beastDef(tower.id); ctx.save(); ctx.translate(tower.x, tower.y); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 16, 21, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 19, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = `${def.color}35`; ctx.fill(); ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 6); ctx.fillStyle = '#f1ecdf'; ctx.font = '9px Segoe UI'; ctx.fillText(`L${tower.level}`, 0, 31); ctx.restore(); }
-function drawEnemy(enemy) { ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .3 : 1; ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); ctx.fillStyle = '#2b3839'; ctx.fillRect(-enemy.radius, -enemy.radius - 9, enemy.radius * 2, 4); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e4b45d' : '#76c1a5'; ctx.fillRect(-enemy.radius, -enemy.radius - 9, enemy.radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 4); ctx.restore(); }
-function drawProjectile(projectile) { ctx.save(); ctx.strokeStyle = projectile.def.color; ctx.lineWidth = 2; ctx.globalAlpha = .5; if (projectile.trail.length > 1) { ctx.beginPath(); projectile.trail.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)); ctx.stroke(); } ctx.globalAlpha = 1; ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, projectile.def.proj === 'quake' ? 5 : 3, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-
-function renderSelect() {
-  const selectionId = state.selectedBeast || STARTER_IDS[0];
-  refs.stageList.innerHTML = LEVELS.map((level, index) => `<button class="stage-card ${index === state.stage ? 'is-selected' : ''}" data-stage="${index}" type="button"><span class="stage-number">0${index + 1}</span><span><strong>${level.name}</strong><small>${level.intro}</small></span><span class="stage-difficulty">${'+'.repeat(index + 1)}</span></button>`).join('');
-  refs.stageList.querySelectorAll('[data-stage]').forEach((button) => button.addEventListener('click', () => { state.stage = Number(button.dataset.stage); renderSelect(); }));
-  refs.rosterList.innerHTML = ROSTER.map((beast) => {
-    const data = beastDef(beast.id); const locked = !state.unlocked.has(beast.id); const portraitX = beast.portraitIndex % 6; const portraitY = Math.floor(beast.portraitIndex / 6);
-    return `<button class="roster-card rarity-${RARITIES[beast.rarity]} ${locked ? 'is-locked' : ''} ${selectionId === beast.id ? 'is-selected' : ''}" data-beast="${beast.id}" type="button" ${locked ? 'disabled' : ''}><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · ${data.kindText}</small></button>`;
-  }).join('');
-  refs.rosterList.querySelectorAll('[data-beast]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = button.dataset.beast; renderSelect(); }));
-  const chosen = beastDef(selectionId);
-  refs.bondPreviewList.innerHTML = BOND_DEFS.map((bond) => `<div class="bond-row"><i class="bond-pill ${bond.members.includes(selectionId) ? 'active' : ''}" style="--bond:${bond.color}"></i><span>${bond.name}</span><strong>${bond.need} · ${bond.stat === 'power' ? '攻击' : bond.stat === 'haste' ? '攻速' : '范围'}</strong></div>`).join('');
-  refs.codexCount.textContent = `${state.unlocked.size} / ${ROSTER.length}`;
-  refs.cultivationSummary.textContent = `初始编制 · 全局战力 ×${(1 + state.tier * .04).toFixed(2)}`;
-  refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · 0${state.stage + 1} · ${chosen.name}待命`;
-}
-
-function renderGameRoster() {
-  if (!state.hand.length) { refs.gameRoster.innerHTML = '<div class="summon-empty">暂无手牌，点击上方“召唤妖灵”</div>'; return; }
-  refs.gameRoster.innerHTML = state.hand.map((id, index) => { const beast = beastDef(id); const portraitX = beast.portraitIndex % 6; const portraitY = Math.floor(beast.portraitIndex / 6); return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${state.selectedBeast === id ? 'is-selected' : ''}" data-hand-index="${index}" type="button"><span class="portrait portrait-image" style="--portrait-x:${portraitX};--portrait-y:${portraitY}"></span><span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · ${beast.kindText}</small></span><em>${beast.cost}</em></button>`; }).join('');
-  refs.gameRoster.querySelectorAll('[data-hand-index]').forEach((button) => button.addEventListener('click', () => { state.selectedBeast = state.hand[Number(button.dataset.handIndex)]; renderGameRoster(); }));
+function drawProjectile(projectile) {
+  ctx.save();
+  ctx.strokeStyle = projectile.def.color;
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = .5;
+  if (projectile.trail.length > 1) {
+    ctx.beginPath();
+    projectile.trail.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = projectile.def.color;
+  ctx.beginPath();
+  ctx.arc(projectile.x, projectile.y, projectile.def.proj === 'quake' ? 5 : 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawCanvas() {
@@ -524,7 +819,7 @@ function drawCanvas() {
   pathInfo(level).forEach((route) => drawPath(route, level));
   ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
   pathInfo(level).forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(route.sx, route.sy, 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route.sx, route.sy + 4); });
-  if (state.mouse.inside && state.selectedBeast) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
+  if (state.mouse.inside && selectedUnit()) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
   state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
 }
 
@@ -552,7 +847,10 @@ function renderCodex() {
 function tick(timestamp) {
   const rawDt = Math.min(.05, (timestamp - state.lastTime) / 1000 || 0); state.lastTime = timestamp;
   if (state.screen === 'game' && !state.paused) {
-    const dt = rawDt * state.speed; state.skillCooldown = Math.max(0, state.skillCooldown - dt); spawnFromGroups(dt); updateTowers(dt); updateProjectiles(dt); updateEnemies(dt); updateEffects(dt); updateHUD();
+    const simDt = rawDt * state.speed;
+    state.battleTime += simDt;
+    state.skillCooldown = Math.max(0, state.skillCooldown - simDt);
+    spawnFromGroups(simDt); updateTowers(rawDt); updateProjectiles(rawDt); updateEnemies(rawDt); updateEffects(simDt); updateHUD();
   }
   if (state.screen === 'game' || state.screen === 'finishing') drawCanvas(); requestAnimationFrame(tick);
 }
@@ -561,8 +859,38 @@ function canvasPoint(event) { const rect = canvas.getBoundingClientRect(); retur
 canvas.addEventListener('pointermove', (event) => { Object.assign(state.mouse, canvasPoint(event), { inside: true }); });
 canvas.addEventListener('pointerleave', () => { state.mouse.inside = false; });
 canvas.addEventListener('pointerdown', (event) => { if (state.screen !== 'game' || state.paused) return; const point = canvasPoint(event); placeTower(point.x, point.y); });
+document.addEventListener('pointerup', (event) => {
+  const unitId = state.draggingUnitId;
+  state.draggingUnitId = null;
+  if (!unitId || state.screen !== 'game' || state.paused) return;
+  const rect = canvas.getBoundingClientRect();
+  if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
+  state.selectedUnitId = unitId;
+  const point = canvasPoint(event);
+  placeTower(point.x, point.y);
+});
 refs.startGame.addEventListener('click', initGame);
 refs.summonBeast.addEventListener('click', summonBeast);
+refs.advancedSummon.addEventListener('click', advancedSummon);
+refs.advancedClaim.addEventListener('click', claimAdvancedBatch);
+refs.upgradeAll.addEventListener('click', upgradeAll);
+refs.openBackpack.addEventListener('click', () => { renderBackpack(); showGameDialog(refs.backpackDialog); });
+refs.openBonds.addEventListener('click', () => { renderBondDialog(); showGameDialog(refs.bondsDialog); });
+refs.autoDeploy.addEventListener('click', autoDeploy);
+refs.recallAll.addEventListener('click', recallAll);
+refs.fortuneSign.addEventListener('click', openFortuneSign);
+refs.openFusion.addEventListener('click', () => { refs.backpackDialog.close(); openFusion(); });
+refs.fuseBeasts.addEventListener('click', fuseSelected);
+refs.fortuneDraw.addEventListener('click', drawFortune);
+refs.summonClose.addEventListener('click', () => closeGameDialog(refs.summonDialog));
+refs.advancedClose.addEventListener('click', () => closeGameDialog(refs.advancedDialog));
+refs.backpackClose.addEventListener('click', () => closeGameDialog(refs.backpackDialog));
+refs.fusionClose.addEventListener('click', () => closeGameDialog(refs.fusionDialog));
+refs.fortuneClose.addEventListener('click', () => closeGameDialog(refs.fortuneDialog));
+refs.bondsClose.addEventListener('click', () => closeGameDialog(refs.bondsDialog));
+[
+  refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.fortuneDialog, refs.bondsDialog,
+].forEach((dialog) => dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeGameDialog(dialog); }));
 refs.codexOpen.addEventListener('click', () => { renderCodex(); refs.codexDialog.showModal(); });
 refs.codexClose.addEventListener('click', () => refs.codexDialog.close());
 refs.codexDialog.addEventListener('click', (event) => { if (event.target === refs.codexDialog) refs.codexDialog.close(); });
@@ -570,7 +898,7 @@ refs.backToSelect.addEventListener('click', () => { showScreen('select'); render
 refs.returnSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
 refs.replayGame.addEventListener('click', initGame);
 refs.pauseGame.addEventListener('click', () => { state.paused = !state.paused; updateHUD(); });
-refs.speedGame.addEventListener('click', () => { state.speed = state.speed === 1 ? 2 : 1; updateHUD(); });
+refs.speedGame.addEventListener('click', () => { state.speed = state.speed === 1 ? 3 : 1; updateHUD(); });
 refs.teamSkill.addEventListener('click', useSkill);
 document.querySelector('#reset-save').addEventListener('click', () => { localStorage.removeItem(SAVE_KEY); loadSave(); renderSelect(); document.querySelector('#save-status').textContent = '存档已重置'; });
 
