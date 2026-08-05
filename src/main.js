@@ -3,9 +3,16 @@ const SAVE_KEY = 'shan-hai-rebuild-v1';
 const canvas = document.querySelector('#game-canvas');
 const ctx = canvas.getContext('2d');
 const biomeAtlas = document.createElement('img');
-biomeAtlas.src = './assets/biome-scenes-v2.png';
+biomeAtlas.src = './assets/biome-atlas.png';
 const caveBattlefield = document.createElement('img');
 caveBattlefield.src = './assets/cave-battlefield.png';
+const stageBackgrounds = [
+  './assets/background-cave.png',
+  './assets/background-grass.png',
+  './assets/background-sea.png',
+  './assets/background-volcano.png',
+  './assets/background-heaven.png',
+].map((src) => { const image = document.createElement('img'); image.src = src; return image; });
 const beastAtlas = document.createElement('img');
 beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
@@ -511,7 +518,8 @@ function renderGameRoster() {
 
 function drawCanvas() {
   const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelH = biomeAtlas.naturalHeight / 5; ctx.globalAlpha = .62; ctx.drawImage(biomeAtlas, 0, panelH * state.stage, biomeAtlas.naturalWidth, panelH, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .18)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  const stageBackground = stageBackgrounds[state.stage];
+  if (stageBackground?.complete && stageBackground.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(stageBackground, 0, 0, stageBackground.naturalWidth, stageBackground.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .10)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelW = biomeAtlas.naturalWidth / 5; ctx.globalAlpha = .72; ctx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
   ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
   pathInfo(level).forEach((route) => drawPath(route, level));
   ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(arena.sealX, arena.sealY, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', arena.sealX, arena.sealY + 4);
