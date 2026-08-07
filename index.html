@@ -2,204 +2,170 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#101719" />
-    <title>山海异兽志 · Tower Defense</title>
-    <link rel="stylesheet" href="./styles.css?v=art-16" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#17120d" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
+    <title>山海异兽志</title>
+    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-9" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <a class="brand" href="./" aria-label="山海异兽志主页">
-          <img src="./assets/crest.svg" alt="" />
-          <span>山海异兽志</span>
-        </a>
-        <div class="topbar-meta">
-          <span class="status-dot"></span>
-          <span id="save-status">本地存档已启用</span>
-          <button class="icon-button" id="reset-save" type="button" title="重置本地存档" aria-label="重置本地存档">↺</button>
-        </div>
-      </header>
-
+    <div class="app-shell" id="app-shell">
       <main>
         <section id="select-screen" class="screen select-screen">
-          <div class="select-heading">
-            <div>
-              <p class="eyebrow">DIRECTOR'S FIELD GUIDE / 01</p>
-              <h1>守住封印，<br /><em>驭使异兽。</em></h1>
-              <p class="intro-copy">在山海裂隙中布置妖灵，组合阵型与羁绊，挡住一波又一波的异兽潮。</p>
-            </div>
-            <div class="codex-summary">
-              <span class="summary-label">妖灵谱</span>
-              <strong id="codex-count">0 / 27</strong>
-              <span id="cultivation-summary">初窥门径 · 全局战力 ×1.00</span>
-            </div>
+          <div class="select-title">
+            <span class="title-rule"></span>
+            <h1>山海异兽志</h1>
+            <p>择一关而守 · <strong id="cultivation-summary">初窥门径</strong></p>
+            <span class="title-rule"></span>
           </div>
 
-          <div class="select-grid">
-            <div class="stage-column">
-              <div class="section-label-row">
-                <span class="section-label">选择关卡</span>
-                <span class="section-note">五段旅程 · 重叠波次</span>
-              </div>
-              <div id="stage-list" class="stage-list"></div>
-              <div class="field-notes">
-                <div><span>01</span><p>敌人会在道路上持续前进，越靠近封印越危险。</p></div>
-                <div><span>02</span><p>自由放置，不是固定格子。离道路越近，伤害覆盖越好。</p></div>
-              </div>
-            </div>
+          <button class="tutorial-entry" type="button" data-start-tutorial>
+            <span>序章</span><strong>教学关 · 已开放</strong><small>熟悉召灵、布阵与封印</small>
+          </button>
 
-            <div class="roster-column">
-              <div class="section-label-row">
-                <span class="section-label">可用妖灵</span>
-                <span class="section-note">点击查看 · 已解锁 5 只</span>
-              </div>
-              <details class="roster-details">
-                <summary><span>展开妖灵编制</span><span>查看已解锁阵容</span></summary>
-                <div id="roster-list" class="roster-list"></div>
-              </details>
-              <button class="codex-button" id="codex-open" type="button">打开山海经图谱</button>
-              <div class="bond-preview">
-                <div class="section-label-row compact">
-                  <span class="section-label">羁绊预览</span>
-                  <span class="section-note">上场后自动计算</span>
-                </div>
-                <div id="bond-preview-list" class="bond-preview-list"></div>
-              </div>
-            </div>
-          </div>
+          <div id="stage-list" class="stage-list" aria-label="关卡选择"></div>
 
-          <div class="select-footer">
+          <div class="select-actions">
             <div class="selection-readout"><span>当前选择</span><strong id="selected-stage-label">幽都洞窟 · 01</strong></div>
-            <button class="primary-button" id="start-game" type="button"><span>开始守关</span><b>→</b></button>
+            <button class="primary-button" id="start-game" type="button"><span>开始守关</span><b>入卷</b></button>
+            <button class="codex-button" id="codex-open" type="button"><span>山海经图谱</span><strong id="codex-count">5 / 27</strong></button>
+          </div>
+
+          <details class="roster-details">
+            <summary><span>妖灵资料</span><small>可收起</small></summary>
+            <div id="roster-list" class="roster-list"></div>
+          </details>
+          <div id="bond-preview-list" class="bond-preview-list" hidden></div>
+
+          <div class="save-strip">
+            <span id="save-status">本地存档已启用</span>
+            <button id="reset-save" type="button" title="重置存档">重置</button>
           </div>
         </section>
 
         <section id="game-screen" class="screen game-screen is-hidden">
-          <div class="game-toolbar">
-            <button class="back-button" id="back-to-select" type="button" title="返回关卡选择">← <span>关卡</span></button>
-            <div class="game-title"><span id="game-terrain">幽都洞窟</span><strong id="game-level">第 1 关</strong></div>
-            <div class="game-actions">
-              <button class="small-button" id="pause-game" type="button">暂停</button>
-              <button class="small-button" id="speed-game" type="button">1×</button>
+          <header class="battle-header">
+            <div class="seal-status">
+              <button class="back-button" id="back-to-select" type="button" title="返回关卡">封印</button>
+              <div class="seal-blocks" id="hp-blocks" aria-hidden="true"></div>
+              <span id="hp-label">10 / 10</span>
+              <div class="meter" aria-hidden="true"><i id="hp-meter"></i></div>
             </div>
+            <div class="battle-title">
+              <strong id="game-terrain">幽都洞窟</strong><span>·</span><b id="game-level">波次 1 / 整备</b>
+              <div class="wave-track" id="wave-track"></div>
+              <span id="wave-label" class="sr-only">1 / 8</span>
+            </div>
+            <div class="resource-panel">
+              <div class="resource-line"><span>灵蕴</span><strong id="essence-label">56</strong></div>
+              <div class="resource-line"><span>分数</span><strong id="kill-label">0</strong></div>
+              <div class="resource-line best-score"><span>最高</span><strong id="best-score-label">0</strong></div>
+              <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 20</strong></div>
+              <button class="sound-toggle" id="sound-toggle" type="button" title="开关音效" aria-label="开关音效">♪</button>
+            </div>
+          </header>
+
+          <div class="arena-wrap">
+            <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
+            <div class="arena-message" id="arena-hint">怪物自右而来，守住左侧封印</div>
+            <div class="combat-log" id="combat-log" aria-live="polite"></div>
           </div>
 
-          <div class="game-layout">
-            <aside class="game-side left-side">
-              <div class="metric-block seal-metric">
-                <div class="metric-label"><span>封印完整度</span><span id="hp-label">10 / 10</span></div>
-                <div class="meter"><i id="hp-meter"></i></div>
-              </div>
-              <div class="metric-block">
-                <div class="metric-label"><span>当前波次</span><span id="wave-label">1 / 8</span></div>
-                <div class="wave-track" id="wave-track"></div>
-              </div>
-              <div class="combat-log" id="combat-log" aria-live="polite">选择一只妖灵，然后点击场地上的任意合法位置。</div>
-            </aside>
+          <aside class="satchel-tab" aria-label="背包概览">
+            <button id="open-backpack" type="button">
+              <span class="satchel-icon">囊</span>
+              <strong>背包 <b id="backpack-label">0/12</b></strong>
+            </button>
+          </aside>
 
-            <div class="arena-wrap">
-              <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
-              <div class="arena-hint" id="arena-hint">自由放置：避开道路、封印和裂隙</div>
-            </div>
+          <aside class="command-rail">
+            <button class="rail-command" id="pause-game" type="button"><span>Ⅱ</span><strong>暂停</strong></button>
+            <button class="rail-command" id="speed-game" type="button"><span>▶</span><strong>1倍速</strong></button>
+            <button class="rail-command" id="open-bonds" type="button"><span>契</span><strong>羁绊</strong></button>
+            <button class="rail-command" id="auto-deploy" type="button"><span>阵</span><strong>一键部署</strong></button>
+            <button class="rail-command rail-warn" id="recall-all" type="button"><span>退</span><strong>一键下场</strong></button>
+            <button class="rail-command rail-luck" id="fortune-sign" type="button"><span>签</span><strong>转运签 30</strong></button>
+            <button class="rail-command rail-skill" id="team-skill" type="button"><span>技</span><strong id="skill-label">羁绊技</strong></button>
+          </aside>
 
-            <aside class="game-side right-side">
-              <div class="resource-panel">
-                <div class="resource-line"><span>灵蕴</span><strong id="essence-label">70</strong></div>
-                <div class="resource-line"><span>击破</span><strong id="kill-label">0</strong></div>
-                <div class="resource-line"><span>人口</span><strong id="population-label">0 / 20</strong></div>
-                <div class="resource-line best-score"><span>最高</span><strong>11872</strong></div>
-              </div>
-              <div class="unit-panel">
-                <div class="section-label-row compact"><span class="section-label">当前妖灵</span><span id="selected-unit-label" class="section-note">未选择妖灵</span></div>
-                <div id="game-roster" class="game-roster"></div>
-                <div class="battle-bottom-actions">
-                  <button class="bottom-command" id="upgrade-all" type="button">一键升级</button>
-                  <button class="bottom-command bottom-command-primary" id="summon-beast" type="button">召灵 20</button>
-                  <button class="bottom-command" id="advanced-summon" type="button">高级五连 80</button>
-                </div>
-              </div>
-              <div class="bond-panel">
-                <div class="section-label-row compact"><span class="section-label">场上羁绊</span><span class="section-note">阵型影响强度</span></div>
-                <div id="game-bonds" class="game-bonds"></div>
-              </div>
-              <div class="battle-command-stack">
-                <button class="battle-command" id="open-backpack" type="button">背包 <strong id="backpack-label">0/12</strong></button>
-                <button class="battle-command" id="open-bonds" type="button">羁绊</button>
-                <button class="battle-command" id="auto-deploy" type="button">一键部署</button>
-                <button class="battle-command battle-command-warn" id="recall-all" type="button">一键下场</button>
-                <button class="battle-command battle-command-luck" id="fortune-sign" type="button">转运签 · 需上阵</button>
-                <button class="skill-button" id="team-skill" type="button"><span>羁绊技</span><strong id="skill-label">未就绪</strong></button>
-              </div>
-            </aside>
-          </div>
+          <section class="selected-spirit-bar">
+            <span class="selected-spirit-mark">灵</span>
+            <div id="game-roster" class="game-roster"></div>
+            <strong id="selected-unit-label">未选择妖灵</strong>
+          </section>
+
+          <section class="summon-dock">
+            <button class="dock-command" id="upgrade-all" type="button"><span>一键升级</span><small>全卷共修</small></button>
+            <button class="dock-command dock-primary" id="summon-beast" type="button"><span>召灵 20</span><small>二选一 · N 至 UR</small></button>
+            <button class="dock-command dock-advanced" id="advanced-summon" type="button"><span>高级五连 80</span><small>至少一只 SR+</small></button>
+          </section>
+
+          <section class="bond-panel" hidden>
+            <div id="game-bonds" class="game-bonds"></div>
+          </section>
         </section>
-
-        <dialog id="codex-dialog" class="codex-dialog">
-          <div class="codex-dialog-head">
-            <div><p class="eyebrow">SHAN HAI JING / CODEX</p><h2>山海经图谱</h2><span>二十七只妖灵的战斗档案</span></div>
-            <button class="icon-button codex-close" id="codex-close" type="button" aria-label="关闭图谱">×</button>
-          </div>
-          <div id="codex-dialog-list" class="codex-dialog-list"></div>
-        </dialog>
-
-        <dialog id="summon-dialog" class="game-dialog summon-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">SPIRIT CALLING</p><h2>召灵 · 二选一</h2><span>消耗 20 灵蕴，请出一只异兽后拖至路边。</span></div><button class="dialog-close" id="summon-close" type="button" aria-label="关闭">×</button></div>
-          <div id="summon-offers" class="summon-offers"></div>
-        </dialog>
-
-        <dialog id="advanced-dialog" class="game-dialog advanced-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">HIGH INVOCATION</p><h2>高级召灵 · 五连</h2><span>消耗 80 灵蕴，入卷后自动处理同种同级的重复妖灵。</span></div><button class="dialog-close" id="advanced-close" type="button" aria-label="关闭">×</button></div>
-          <div id="advanced-results" class="advanced-results"></div>
-          <button id="advanced-claim" class="dialog-primary" type="button">入卷 · 自动合成</button>
-        </dialog>
-
-        <dialog id="backpack-dialog" class="game-dialog backpack-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">SPIRIT SATCHEL</p><h2>背包</h2><span>点击卡牌选择上阵；场上与背包妖灵会一并升级。</span></div><button class="dialog-close" id="backpack-close" type="button" aria-label="关闭">×</button></div>
-          <div id="backpack-list" class="backpack-list"></div>
-          <div class="dialog-actions"><button id="open-fusion" class="dialog-secondary" type="button">异兽合成</button></div>
-        </dialog>
-
-        <dialog id="fusion-dialog" class="game-dialog fusion-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">ASCENSION</p><h2>异兽合成</h2><span id="fusion-selection">选择两只同稀有度妖灵</span></div><button class="dialog-close" id="fusion-close" type="button" aria-label="关闭">×</button></div>
-          <div id="fusion-list" class="backpack-list"></div>
-          <button id="fuse-beasts" class="dialog-primary" type="button">合成 18</button>
-        </dialog>
-
-        <dialog id="fortune-dialog" class="game-dialog fortune-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">FORTUNE LOT</p><h2>转运签</h2><span>福祸随机，效果立即作用于本局。</span></div><button class="dialog-close" id="fortune-close" type="button" aria-label="关闭">×</button></div>
-          <div id="fortune-result" class="fortune-result">每签消耗 30 灵蕴。福祸皆有，签文会即时作用于本局战场。</div>
-          <button id="fortune-draw" class="dialog-primary" type="button">摇签 30</button>
-        </dialog>
-
-        <dialog id="bonds-dialog" class="game-dialog bonds-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">RESONANCE</p><h2>羁绊 · 同列者共鸣</h2><span>同族数量决定生效，阵型决定强度。</span></div><button class="dialog-close" id="bonds-close" type="button" aria-label="关闭">×</button></div>
-          <div id="bond-dialog-list" class="bond-dialog-list"></div>
-        </dialog>
-
-        <dialog id="pause-dialog" class="game-dialog pause-dialog">
-          <div class="dialog-head"><div><p class="eyebrow">BATTLE PAUSED</p><h2>战局暂停</h2><span>封印与敌群都已静止。</span></div></div>
-          <div class="pause-actions">
-            <button id="pause-resume" class="dialog-primary" type="button">继续守关</button>
-            <button id="pause-retry" class="dialog-secondary" type="button">重新守关</button>
-            <button id="pause-exit" class="dialog-secondary" type="button">返回关卡</button>
-          </div>
-        </dialog>
 
         <section id="result-screen" class="screen result-screen is-hidden">
-          <p class="eyebrow">FIELD REPORT / COMPLETE</p>
-          <div class="result-head"><h2 id="result-title">封印守住了</h2><span id="result-stage">幽都洞窟 · 01</span></div>
-          <div class="result-grid">
-            <div class="result-score"><span>本局击破</span><strong id="result-kills">0</strong><small>只异兽</small></div>
-            <div class="result-score"><span>获得修为</span><strong id="result-xp">+0</strong><small>点</small></div>
-            <div class="result-score"><span>最高连击</span><strong id="result-combo">0</strong><small>连</small></div>
+          <div class="result-paper">
+            <span class="result-stamp" id="result-score-stamp">守</span>
+            <p>山海录 · 守关结算</p>
+            <h2 id="result-title">封印守住了</h2>
+            <strong id="result-stage">幽都洞窟 · 01</strong>
+            <div class="result-grid">
+              <div><span>击破</span><b id="result-kills">0</b></div>
+              <div><span>修为</span><b id="result-xp">+0</b></div>
+              <div><span>连击</span><b id="result-combo">0</b></div>
+            </div>
+            <p class="result-copy" id="result-copy"></p>
+            <div class="result-actions"><button id="replay-game" type="button">再守一次</button><button id="return-select" type="button">返回关卡</button></div>
           </div>
-          <p class="result-copy" id="result-copy"></p>
-          <div class="result-actions"><button class="secondary-button" id="replay-game" type="button">再守一次</button><button class="primary-button" id="return-select" type="button"><span>返回关卡</span><b>→</b></button></div>
         </section>
       </main>
-      <footer class="footer"><span>山海异兽志 · 独立重建版本</span><span>PIXEL TACTICS / v0.1</span></footer>
+
+      <dialog id="codex-dialog" class="codex-dialog">
+        <div class="dialog-head"><div><span>SHAN HAI JING</span><h2>山海经图谱</h2><p>二十七只妖灵的战斗档案</p></div><button id="codex-close" type="button" aria-label="关闭">×</button></div>
+        <div id="codex-dialog-list" class="codex-dialog-list"></div>
+      </dialog>
+
+      <dialog id="summon-dialog" class="game-dialog summon-dialog">
+        <div class="dialog-head"><div><span>SPIRIT CALLING</span><h2>召灵 · 二选一</h2><p>请出一只异兽，随后拖至道路两侧布阵。</p></div><button id="summon-close" type="button" aria-label="关闭">×</button></div>
+        <div id="summon-offers" class="summon-offers"></div>
+      </dialog>
+
+      <dialog id="advanced-dialog" class="game-dialog advanced-dialog">
+        <div class="dialog-head"><div><span>HIGH INVOCATION</span><h2>高级召灵 · 五连</h2><p>同种同级妖灵入卷后自动合成。</p></div><button id="advanced-close" type="button" aria-label="关闭">×</button></div>
+        <div id="advanced-results" class="advanced-results"></div>
+        <button id="advanced-claim" class="dialog-primary" type="button">入卷 · 自动合成</button>
+      </dialog>
+
+      <dialog id="backpack-dialog" class="game-dialog backpack-dialog">
+        <div class="dialog-head"><div><span>SPIRIT SATCHEL</span><h2>背包</h2><p>点击妖灵后回到战场布阵；场上与背包共享升级。</p></div><button id="backpack-close" type="button" aria-label="关闭">×</button></div>
+        <div id="backpack-list" class="backpack-list"></div>
+        <div class="dialog-actions"><button id="open-fusion" class="dialog-secondary" type="button">异兽合成</button></div>
+      </dialog>
+
+      <dialog id="fusion-dialog" class="game-dialog fusion-dialog">
+        <div class="dialog-head"><div><span>ASCENSION</span><h2>异兽合成</h2><p id="fusion-selection">选择两只同稀有度妖灵</p></div><button id="fusion-close" type="button" aria-label="关闭">×</button></div>
+        <div id="fusion-list" class="backpack-list"></div>
+        <button id="fuse-beasts" class="dialog-primary" type="button">合成 18</button>
+      </dialog>
+
+      <dialog id="fortune-dialog" class="game-dialog fortune-dialog">
+        <div class="dialog-head"><div><span>FORTUNE LOT</span><h2>转运签</h2><p>福祸随机，签文立即作用于本局。</p></div><button id="fortune-close" type="button" aria-label="关闭">×</button></div>
+        <div id="fortune-result" class="fortune-result">每签消耗 30 灵蕴。友军增益、敌军福祸与灵蕴返还皆有可能。</div>
+        <button id="fortune-draw" class="dialog-primary" type="button">摇签 30</button>
+      </dialog>
+
+      <dialog id="bonds-dialog" class="game-dialog bonds-dialog">
+        <div class="dialog-head"><div><span>RESONANCE</span><h2>羁绊 · 阵型共鸣</h2><p>成员决定触发，站位决定强度与羁绊技。</p></div><button id="bonds-close" type="button" aria-label="关闭">×</button></div>
+        <div id="bond-dialog-list" class="bond-dialog-list"></div>
+      </dialog>
+
+      <dialog id="pause-dialog" class="game-dialog pause-dialog">
+        <div class="dialog-head"><div><span>BATTLE PAUSED</span><h2>战局暂停</h2><p>封印、敌群与投射物均已静止。</p></div></div>
+        <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">返回关卡</button></div>
+      </dialog>
     </div>
-    <script src="./src/main.js?v=art-sprites-5"></script>
+    <script src="./src/main.js?v=sol-rebuild-9"></script>
   </body>
 </html>

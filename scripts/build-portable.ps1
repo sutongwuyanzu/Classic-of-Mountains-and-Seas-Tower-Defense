@@ -24,6 +24,6 @@ Copy-Item -LiteralPath (Join-Path $root 'src') -Destination $app -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root 'assets') -Destination $app -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root 'electron') -Destination $app -Recurse -Force
 
-Get-ChildItem -LiteralPath (Join-Path $app 'assets\sprites') -File | Where-Object { $_.Name -like '*-source.png' -or $_.Name -like '*.prompt.txt' } | Remove-Item -Force
+Get-ChildItem -LiteralPath (Join-Path $app 'assets') -Recurse -File | Where-Object { $_.Name -like '*-source.png' -or $_.Name -like '*.prompt.txt' } | Remove-Item -Force
 
 Write-Output "Portable build created: $output"

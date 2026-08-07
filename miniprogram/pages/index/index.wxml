@@ -1,67 +1,29 @@
 <view class="page-shell">
   <view wx:if="{{screen === 'select'}}" class="select-screen">
-    <view class="brand-row">
-      <view class="crest">山</view>
-      <view>
-        <text class="eyebrow">SHAN HAI FIELD GUIDE</text>
-        <view class="title">山海异兽志</view>
-      </view>
-    </view>
-    <view class="intro">布置妖灵，组合火力与阵型，守住山海裂隙中的封印。</view>
-
-    <view class="section-head"><text>选择关卡</text><text class="muted">五段旅程</text></view>
-    <view class="stage-list">
-      <view wx:for="{{levels}}" wx:key="name" class="stage-card {{item.selected ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="selectStage">
-        <text class="stage-number">0{{index + 1}}</text>
-        <view class="stage-copy"><text class="stage-name">{{item.name}}</text><text class="stage-intro">{{item.intro}}</text></view>
-        <text class="difficulty">{{item.difficulty}}</text>
-      </view>
-    </view>
-
-    <view class="section-head roster-head"><text>初始妖灵</text><text class="muted">点击选择出场单位</text></view>
-    <scroll-view scroll-x="true" class="roster-scroll">
-      <view wx:for="{{roster}}" wx:key="id" class="roster-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeast">
-        <view class="portrait portrait-image" style="background-position:{{item.bgPos}}"></view>
-        <text class="roster-name">{{item.name}}</text>
-        <text class="roster-meta">{{item.cost}} 灵蕴</text>
-      </view>
-    </scroll-view>
-    <button class="primary-button" bindtap="startGame">开始守关 <text>→</text></button>
-    <view class="mini-note">第四、第五关拥有两个出怪口，敌群会在中央汇流。</view>
+    <view class="brand-row"><view class="crest">山</view><view><text class="eyebrow">SHAN HAI FIELD GUIDE</text><view class="title">山海异兽志</view></view></view>
+    <view class="intro">召灵入阵，观测妖灵羁绊，守住山海裂隙中的封印。</view>
+    <view class="section-head"><text>选择关卡</text><text class="muted">五段旅程 · 波次 8 / 9 / 9 / 9 / 12</text></view>
+    <view class="stage-list"><view wx:for="{{levels}}" wx:key="name" class="stage-card {{item.selected ? 'is-selected' : ''}}" data-index="{{index}}" bindtap="selectStage"><view class="stage-art stage-art-{{index}}"></view><view class="stage-copy"><text class="stage-number">0{{index + 1}}</text><text class="stage-name">{{item.name}}</text><text class="stage-intro">{{item.intro}}</text></view><view class="stage-side"><text class="difficulty">{{item.difficulty}}</text><text class="wave-count">{{item.waves}} 波</text></view></view></view>
+    <view class="select-actions"><button class="primary-button" bindtap="startGame">开始守关 <text>→</text></button><button class="outline-button" bindtap="selectAtlas">山海经图谱 <text>◈</text></button></view>
+    <view class="selection-note">第四、第五关为双裂口路线；先进入战场后使用普通召灵或高级召灵获得妖灵。</view>
   </view>
 
   <view wx:elif="{{screen === 'game'}}" class="game-screen">
-    <view class="game-topbar">
-      <button class="back-button" bindtap="backToSelect">← 关卡</button>
-      <view><text class="terrain">{{currentLevel.name}}</text><text class="level">第 {{selectedStage + 1}} 关</text></view>
-      <view class="top-actions"><button bindtap="togglePause">{{paused ? '继续' : '暂停'}}</button><button bindtap="toggleSpeed">{{speed}}×</button></view>
-    </view>
-
-    <view class="hud-row">
-      <view class="stat"><text class="stat-label">封印完整度</text><text>{{hp}} / 10</text><view class="meter"><view style="width:{{hp * 10}}%"></view></view></view>
-      <view class="stat"><text class="stat-label">当前波次</text><text>{{wave}} / {{totalWaves}}</text><view class="wave-dots"><i wx:for="{{waveDots}}" wx:key="index" class="{{index < wave - 1 ? 'done' : index === wave - 1 ? 'current' : ''}}"></i></view></view>
-      <view class="stat compact"><text class="stat-label">灵蕴</text><text class="big-number">{{energy}}</text></view>
-      <view class="stat compact"><text class="stat-label">击破</text><text class="big-number">{{kills}}</text></view>
-    </view>
-
+    <view class="game-topbar"><button class="back-button" bindtap="backToSelect">← 关卡</button><view class="top-title"><text class="terrain">{{currentLevel.name}}</text><text class="level">第 {{selectedStage + 1}} 关 · {{wave}} / {{totalWaves}} 波</text></view><view class="top-actions"><button bindtap="togglePause">{{paused ? '继续' : '暂停'}}</button><button bindtap="toggleSpeed">{{speed}}×</button></view></view>
+    <view class="hud-row"><view class="stat seal-stat"><text class="stat-label">封印完整度</text><text class="stat-value">{{hp}} / 10</text><view class="meter"><view style="width:{{hp * 10}}%"></view></view></view><view class="stat wave-stat"><text class="stat-label">当前波次</text><text class="stat-value">{{wave}} / {{totalWaves}}</text><view class="wave-dots"><view wx:for="{{waveDots}}" wx:key="index" class="dot {{index < wave - 1 ? 'done' : index === wave - 1 ? 'current' : ''}}"></view></view></view><view class="stat compact"><text class="stat-label">灵蕴</text><text class="big-number">{{energy}}</text></view><view class="stat compact"><text class="stat-label">击破</text><text class="big-number">{{kills}}</text></view></view>
     <view class="combat-log">{{logs[0]}}</view>
-    <canvas type="2d" id="arena" class="arena" disable-scroll="true" bindtouchstart="onTouchStart"></canvas>
-    <view class="arena-hint">点击道路两侧合法位置安置妖灵 · {{selectedBeastName}}</view>
-
-    <scroll-view scroll-x="true" class="game-roster">
-      <view wx:for="{{roster}}" wx:key="id" class="game-card {{item.selected ? 'is-selected' : ''}}" data-id="{{item.id}}" bindtap="selectBeastInGame">
-        <view class="game-portrait portrait-image" style="background-position:{{item.bgPos}}"></view><text>{{item.name}}</text><text class="cost">{{item.cost}}</text>
-      </view>
-    </scroll-view>
-    <view class="game-actions"><button class="skill-button {{skillReady ? 'ready' : ''}}" bindtap="useSkill">羁绊技 · {{skillReady ? '可用' : '需 3 只妖灵'}}</button><button class="secondary-button" bindtap="backToSelect">退出本局</button></view>
+    <view class="battle-wrap"><canvas type="2d" id="arena" class="arena" disable-scroll="true" bindtouchstart="onTouchStart"></canvas><view class="arena-hint">{{selectedOwnedId ? '已选背包妖灵 · 点击战场两侧合法空位部署' : '从下方背包选择妖灵，再点击战场空位部署'}}</view></view>
+    <view class="command-rail"><button class="rail-button" bindtap="openBackpack"><text class="rail-title">背包</text><text class="rail-sub">{{collection.length}} / 12</text></button><button class="rail-button" bindtap="openBonds"><text class="rail-title">羁绊</text><text class="rail-sub">{{fieldCount}} 只在场</text></button><button class="rail-button fortune-button" bindtap="useFortune"><text class="rail-title">转运签</text><text class="rail-sub">30 灵蕴</text></button></view>
+    <view class="summon-dock"><view class="dock-title"><text>召灵</text><text class="muted">随机获得 N - UR · 背包最多 12 只</text><button class="small-link" bindtap="openSummonOffers" wx:if="{{summonOffers.length}}">继续查看结果</button></view><scroll-view scroll-x="true" class="owned-scroll"><view wx:if="{{!collection.length}}" class="empty-owned">尚未召灵 · 普通召灵 20 / 高级五连 80</view><view wx:for="{{collection}}" wx:key="uid" class="owned-card {{item.uid === selectedOwnedId ? 'is-selected' : ''}}" data-uid="{{item.uid}}" bindtap="selectOwned"><view class="game-portrait portrait-image" style="background-position:{{item.bgPos}};border-color:{{item.rarityColor}}"></view><view class="owned-copy"><text>{{item.name}}</text><text class="rarity" style="color:{{item.rarityColor}}">{{item.rarityLabel}} · {{item.skill}}</text></view></view></scroll-view><view class="summon-actions"><button class="summon-button" data-mode="normal" bindtap="openSummon">普通召灵 <text>20</text></button><button class="summon-button advanced" data-mode="advanced" bindtap="openSummon">高级召灵 · 五连 <text>80</text></button><button class="skill-button {{skillReady ? 'ready' : ''}}" bindtap="useSkill">羁绊技</button></view></view>
   </view>
 
-  <view wx:else class="result-screen">
-    <text class="result-kicker">{{result.won ? '封印守住了' : '封印被突破'}}</text>
-    <view class="result-title">{{result.won ? '这一关，守住。' : '裂隙仍在扩大。'}}</view>
-    <view class="result-grid"><view><text>本局击破</text><strong>{{result.kills}}</strong></view><view><text>最高连击</text><strong>{{result.combo}}</strong></view><view><text>获得修为</text><strong>+{{result.xp}}</strong></view></view>
-    <view class="result-copy">{{result.copy}}</view>
-    <button class="primary-button" bindtap="replayGame">再守一次 <text>↻</text></button>
-    <button class="secondary-button" bindtap="backToSelect">返回关卡</button>
-  </view>
+  <view wx:else class="result-screen"><text class="result-kicker">{{result.won ? '封印守住了' : '封印被突破'}}</text><view class="result-title">{{result.won ? '这一关，守住。' : '裂隙仍在扩大。'}}</view><view class="result-grid"><view><text>本局击破</text><text class="result-number">{{result.kills}}</text></view><view><text>最高连击</text><text class="result-number">{{result.combo}}</text></view><view><text>获得修为</text><text class="result-number">+{{result.xp}}</text></view></view><view class="result-copy">{{result.copy}}</view><button class="primary-button" bindtap="replayGame">再守一次 <text>↻</text></button><button class="secondary-button" bindtap="backToSelect">返回关卡</button></view>
+
+  <view wx:if="{{modal}}" class="modal-mask" catchtap="closeModal"><view class="modal-sheet" catchtap="stopEvent"><view class="modal-head"><text>{{modalTitle}}</text><button bindtap="closeModal">×</button></view>
+    <view wx:if="{{modal === 'summon'}}" class="summon-modal"><view class="modal-tip">{{summonMode === 'advanced' ? '五只全部入卷，至少一只为 SR 及以上妖灵' : '二选一，随机出现 N - UR 妖灵'}}</view><view class="offer-grid"><view wx:for="{{summonOffers}}" wx:key="id" class="offer-card" data-index="{{index}}" bindtap="claimSummon"><view class="large-portrait portrait-image" style="background-position:{{item.bgPos}};border-color:{{item.rarityColor}}"></view><text class="offer-name">{{item.name}}</text><text class="offer-rarity" style="color:{{item.rarityColor}}">{{item.rarityLabel}} · {{item.rarity}}</text><text class="offer-skill">{{item.skill}}</text><text class="claim-label">{{summonMode === 'advanced' ? '五只全部入卷' : '收入背包'}}</text></view></view></view>
+    <view wx:elif="{{modal === 'backpack'}}" class="backpack-modal"><view class="modal-tip">点击妖灵后关闭面板，再点击战场空位部署，不会再次扣除灵蕴。</view><view class="backpack-grid"><view wx:for="{{collection}}" wx:key="uid" class="backpack-card" data-uid="{{item.uid}}" bindtap="selectOwned"><view class="large-portrait portrait-image" style="background-position:{{item.bgPos}};border-color:{{item.rarityColor}}"></view><text>{{item.name}}</text><text style="color:{{item.rarityColor}}">{{item.rarityLabel}}</text></view></view></view>
+    <view wx:elif="{{modal === 'atlas'}}" class="atlas-modal"><view class="modal-tip">27 只妖灵 · 稀有度、定位与战斗属性全部收录。</view><scroll-view scroll-y="true" class="atlas-scroll"><view class="atlas-grid"><view wx:for="{{atlas}}" wx:key="id" class="atlas-card"><view class="large-portrait portrait-image" style="background-position:{{item.bgPos}};border-color:{{item.rarityColor}}"></view><view><text class="atlas-name">{{item.name}}</text><text class="atlas-meta" style="color:{{item.rarityColor}}">{{item.rarityLabel}} · {{item.rarity}}</text><text class="atlas-meta">{{item.skill}} · 攻 {{item.dmg}} · 射程 {{item.range}}</text></view></view></view></scroll-view></view>
+    <view wx:elif="{{modal === 'bonds'}}" class="bonds-modal"><view wx:for="{{bondRows}}" wx:key="name" class="bond-row {{item.ready ? 'ready' : ''}}"><view><text class="bond-name">{{item.name}}</text><text class="bond-effect">{{item.effect}}</text></view><text class="bond-count">{{item.count}} / {{item.need}}</text></view></view>
+    <view wx:elif="{{modal === 'fortune'}}" class="fortune-modal"><view class="fortune-seal">签</view><text class="fortune-result">{{fortuneResult}}</text><text class="fortune-refund" wx:if="{{fortuneRefund}}">返还灵蕴 +{{fortuneRefund}}</text><button class="primary-button" bindtap="closeModal">收下签文</button></view>
+  </view></view>
 </view>

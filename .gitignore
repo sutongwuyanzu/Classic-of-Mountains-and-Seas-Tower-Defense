@@ -3,4 +3,7 @@ node_modules/
 *.log
 dist/
 release/
+assets/sprites/*-source.png
+assets/fx/*-source.png
+codex-workbench/
 miniprogram/project.private.config.json

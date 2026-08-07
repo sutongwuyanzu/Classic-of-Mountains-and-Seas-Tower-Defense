@@ -1,270 +1,84 @@
+const RARITY_ORDER = ['N', 'R', 'SR', 'SSR', 'UR'];
+const RARITY_LABEL = { N: '凡', R: '良', SR: '珍', SSR: '极', UR: '上古' };
+const RARITY_COLOR = { N: '#9b8065', R: '#5b9d8f', SR: '#6f8ec1', SSR: '#c46c91', UR: '#d39a43' };
+
 const ROSTER = [
-  { id: 'bifang', name: '毕方', short: '毕', color: '#e77854', cost: 18, dmg: 20, interval: 1.15, range: 168, type: 'mag', burn: true },
-  { id: 'fuzhu', name: '夫诸', short: '夫', color: '#80c7be', cost: 20, dmg: 15, interval: .92, range: 155, type: 'mag', slow: .28 },
-  { id: 'jiuwei', name: '九尾狐', short: '九', color: '#b78ed5', cost: 24, dmg: 25, interval: 1.48, range: 175, type: 'mag', splash: true },
-  { id: 'tiangou', name: '天狗', short: '天', color: '#dca85e', cost: 22, dmg: 17, interval: .82, range: 145, type: 'phy', stun: true },
-  { id: 'xuangui', name: '旋龟', short: '旋', color: '#76a8c4', cost: 26, dmg: 34, interval: 1.85, range: 138, type: 'phy', splash: true, breakShield: true },
-];
+  ['bifang', '毕方', 'N', '火焰', 26, 22, 1.15, 170, '#e77854'], ['fuzhu', '夫诸', 'N', '寒潮', 22, 16, .92, 158, '#80c7be'], ['jiuwei', '九尾狐', 'N', '魅惑', 32, 28, 1.48, 182, '#b78ed5'], ['tiangou', '天狗', 'N', '碎星', 28, 18, .82, 150, '#dca85e'], ['xuangui', '旋龟', 'N', '重击', 36, 35, 1.85, 142, '#76a8c4'],
+  ['shengsheng', '狌狌', 'R', '迅爪', 30, 25, .72, 140, '#a97e64'], ['kaiming', '开明兽', 'R', '镇岳', 40, 42, 1.65, 154, '#d6a35b'], ['bo', '驳', 'R', '破甲', 34, 30, 1.12, 160, '#8aaf9c'], ['zheng', '狰', 'R', '裂地', 38, 32, 1.26, 148, '#bd7560'],
+  ['qiuniu', '囚牛', 'SR', '镇魂', 44, 36, .98, 182, '#e0b469'], ['yazi', '睚眦', 'SR', '追猎', 42, 48, .9, 145, '#be6b62'], ['chaofeng', '嘲风', 'SR', '风刃', 46, 31, .68, 195, '#7bb1b1'], ['pulao', '蒲牢', 'SR', '雷鸣', 50, 45, 1.35, 174, '#8c8fc8'], ['suanni', '狻猊', 'SR', '香火', 48, 34, 1.08, 162, '#c49265'], ['bixi', '霸下', 'SR', '负岳', 52, 55, 2.05, 132, '#749b83'], ['bian', '狴犴', 'SR', '执法', 47, 39, .88, 155, '#d08c70'], ['fuxi_long', '负屭', 'SR', '碑文', 45, 26, .75, 210, '#a991bd'], ['chiwen', '螭吻', 'SR', '吞火', 51, 44, 1.52, 166, '#d47765'],
+  ['dayu', '大禹', 'SSR', '治水', 62, 58, 1.2, 188, '#5e9f9a'], ['gonggong', '共工', 'SSR', '怒潮', 64, 72, 1.72, 170, '#527ca5'],
+  ['qinglong', '青龙', 'UR', '苍雷', 82, 86, 1.1, 222, '#4da895'], ['baihu', '白虎', 'UR', '肃杀', 78, 102, 1.3, 190, '#d2b26a'], ['zhuque', '朱雀', 'UR', '离火', 84, 74, .78, 218, '#d76755'], ['xuanwu', '玄武', 'UR', '玄甲', 88, 92, 1.9, 178, '#668e9b'], ['huangdi', '黄帝', 'UR', '轩辕', 90, 66, 1.05, 206, '#d4a34e'], ['fuxi', '伏羲', 'UR', '八卦', 86, 58, .72, 232, '#b091c4'], ['nuwa', '女娲', 'UR', '补天', 92, 52, .94, 214, '#c9878b'],
+].map((item, index) => ({
+  id: item[0], name: item[1], rarity: item[2], skill: item[3], cost: item[4], dmg: item[5], interval: item[6], range: item[7], color: item[8], portraitIndex: index,
+  dmgType: ['dayu', 'gonggong', 'xuanwu', 'huangdi', 'nuwa'].includes(item[0]) ? 'true' : ['tiangou', 'xuangui', 'shengsheng', 'kaiming', 'bo', 'zheng', 'yazi', 'bixi', 'bian', 'baihu'].includes(item[0]) ? 'phy' : 'mag',
+  breakShield: ['bo', 'bixi', 'dayu', 'baihu', 'xuanwu', 'nuwa'].includes(item[0]),
+  slow: ['fuzhu', 'chaofeng', 'chiwen', 'dayu', 'gonggong', 'qinglong', 'xuanwu', 'nuwa'].includes(item[0]) ? .22 : 0,
+  splash: ['bifang', 'xuangui', 'pulao', 'bixi', 'dayu', 'zhuque', 'nuwa'].includes(item[0]),
+}));
 
 const LEVELS = [
-  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', path: 'cave', difficulty: '◆' },
-  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', path: 'grass', difficulty: '◆◆' },
-  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', path: 'sea', difficulty: '◆◆◆' },
-  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', path: 'volcano', difficulty: '◆◆◆◆' },
-  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', path: 'cloud', difficulty: '◆◆◆◆◆' },
+  { name: '幽都洞窟', intro: '窄路折返，火力要覆盖两段转弯。', path: 'cave', background: 'cave', from: 0, to: 8, waves: 8, essence: 56, difficulty: '◆' },
+  { name: '北野草原', intro: '开阔战场，远程妖灵更容易拉开射程。', path: 'grass', background: 'grass', from: 4, to: 13, waves: 9, essence: 62, difficulty: '◆◆' },
+  { name: '沧海之上', intro: '潮汐折返，减速与范围攻击决定守线。', path: 'sea', background: 'sea', from: 8, to: 17, waves: 9, essence: 70, difficulty: '◆◆◆' },
+  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散布阵。', path: 'volcano', background: 'volcano', from: 12, to: 21, waves: 9, essence: 78, difficulty: '◆◆◆◆' },
+  { name: '天庭云阶', intro: '双路汇流，护盾与复活敌人最后登场。', path: 'cloud', background: 'heaven', from: 9, to: 21, waves: 12, essence: 86, difficulty: '◆◆◆◆◆' },
 ];
-
-const ENEMIES = {
-  xingxing: { name: '狌狌', short: '狌', hp: 92, speed: 45, radius: 12, color: '#b78668', reward: 1 },
-  fei: { name: '飞廉', short: '飞', hp: 135, speed: 62, radius: 13, color: '#8fb7b5', reward: 1 },
-  bashe: { name: '巴蛇', short: '巴', hp: 360, speed: 31, radius: 18, color: '#8a985e', armor: 8, reward: 2 },
-  huali: { name: '化蛇', short: '化', hp: 230, speed: 38, radius: 15, color: '#6e9ab0', immuneMag: true, reward: 2 },
-  zhuyan: { name: '朱厌', short: '朱', hp: 420, speed: 28, radius: 20, color: '#bf6751', armor: 16, shield: 100, reward: 3 },
-  taotie: { name: '饕餮', short: '饕', hp: 760, speed: 22, radius: 25, color: '#d28e54', shield: 220, armor: 12, boss: true, reward: 5 },
-  baize: { name: '白泽', short: '泽', hp: 560, speed: 25, radius: 22, color: '#cfbc92', revive: true, boss: true, reward: 5 },
-  shanxiao: { name: '山魈', short: '魈', hp: 200, speed: 50, radius: 14, color: '#9b6f59', split: true, reward: 2 },
-};
-
-const WAVES = [
+const ENEMIES = { xingxing: { name: '狌狌', short: '狌', hp: 92, speed: 45, radius: 12, color: '#b78668', reward: 1 }, fei: { name: '飞廉', short: '飞', hp: 135, speed: 62, radius: 13, color: '#8fb7b5', reward: 1 }, bashe: { name: '巴蛇', short: '巴', hp: 360, speed: 31, radius: 18, color: '#8a985e', armor: 8, reward: 2 }, huali: { name: '化蛇', short: '化', hp: 230, speed: 38, radius: 15, color: '#6e9ab0', immuneMag: true, reward: 2 }, wangliang: { name: '魍魉', short: '魍', hp: 180, speed: 56, radius: 13, color: '#9f7db5', reward: 2 }, zhuyan: { name: '朱厌', short: '朱', hp: 420, speed: 28, radius: 20, color: '#bf6751', armor: 16, shield: 100, reward: 3 }, taotie: { name: '饕餮', short: '饕', hp: 760, speed: 22, radius: 25, color: '#d28e54', shield: 220, armor: 12, boss: true, reward: 5 }, baize: { name: '白泽', short: '泽', hp: 560, speed: 25, radius: 22, color: '#cfbc92', revive: true, boss: true, reward: 5 }, shanxiao: { name: '山魈', short: '魈', hp: 200, speed: 50, radius: 14, color: '#9b6f59', split: true, reward: 2 } };
+const WAVE_DEFS = [
   [['xingxing', 7, 1.1, 0, 1]], [['xingxing', 8, 1, 0, 1], ['fei', 2, 1.4, 3, 1]], [['xingxing', 8, .9, 0, 1], ['bashe', 1, 0, 5, 1]],
-  [['fei', 6, 1, 0, 1], ['xingxing', 4, 1.5, 2, 1]], [['xingxing', 10, .72, 0, 1.1], ['bashe', 2, 1.3, 4, 1]], [['huali', 5, 1.1, 0, 1], ['fei', 5, .9, 1, 1]],
-  [['zhuyan', 1, 0, 5, 1], ['xingxing', 10, .65, 0, 1.1]], [['shanxiao', 3, 1.2, 0, 1], ['huali', 6, .8, 2, 1]],
+  [['fei', 6, 1, 0, 1], ['wangliang', 2, 1.5, 2, 1]], [['xingxing', 10, .72, 0, 1.1], ['bashe', 2, 1.3, 4, 1]], [['huali', 5, 1.1, 0, 1], ['fei', 5, .9, 1, 1]],
+  [['wangliang', 5, .9, 0, 1], ['zhuyan', 1, 0, 7, 1]], [['xingxing', 12, .65, 0, 1.1], ['shanxiao', 3, 1.2, 3, 1]], [['bashe', 4, 1.2, 0, 1], ['fei', 8, .7, 1, 1]],
+  [['huali', 7, .9, 0, 1], ['wangliang', 4, 1, 2, 1]], [['zhuyan', 2, 0, 0, 1], ['xingxing', 13, .55, 1, 1.1]], [['shanxiao', 6, .85, 0, 1], ['bashe', 4, 1.1, 2, 1.1]],
+  [['huali', 10, .72, 0, 1.1], ['zhuyan', 2, 0, 5, 1]], [['fei', 15, .5, 0, 1.2], ['wangliang', 4, 1, 2, 1]], [['bashe', 7, .9, 0, 1.2], ['shanxiao', 7, .7, 1, 1.2]],
+  [['zhuyan', 3, 0, 0, 1.2], ['huali', 10, .72, 2, 1.2]], [['taotie', 1, 0, 0, 1.15], ['xingxing', 16, .44, 1, 1.25]], [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]],
+  [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]], [['wangliang', 6, .7, 0, 1.3], ['huali', 5, .8, 4, 1.3], ['shanxiao', 6, .65, 8, 1.4], ['zhuyan', 3, 2, 12, 1.3]],
 ];
-
-const ROUTES = {
-  cave: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]],
-  grass: [[884, 402], [622, 402], [498, 315], [316, 315], [200, 402], [74, 402]],
-  sea: [[884, 270], [680, 138], [522, 248], [348, 116], [220, 240], [74, 152]],
-  volcano: [[[884, 270], [660, 270], [518, 270], [330, 270], [230, 104], [74, 104]], [[884, 270], [660, 270], [518, 270], [330, 270], [230, 436], [74, 436]]],
-  cloud: [[[884, 270], [660, 270], [510, 190], [322, 190], [214, 88], [74, 88]], [[884, 270], [660, 270], [510, 350], [322, 350], [214, 452], [74, 452]]],
-};
+const ROUTES = { cave: [[884, 430], [220, 430], [220, 280], [884, 280], [884, 108], [74, 108]], grass: [[884, 402], [622, 402], [498, 315], [316, 315], [200, 402], [74, 402]], sea: [[884, 270], [680, 138], [522, 248], [348, 116], [220, 240], [74, 152]], volcano: [[[884, 118], [700, 118], [560, 218], [420, 270], [260, 170], [74, 104]], [[884, 422], [700, 422], [560, 322], [420, 270], [260, 370], [74, 436]]], cloud: [[[884, 118], [712, 118], [548, 210], [370, 190], [214, 88], [74, 88]], [[884, 422], [712, 422], [548, 330], [370, 350], [214, 452], [74, 452]]] };
+const BONDS = [{ name: '山野同气', members: ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'], effect: '全队攻速 +12%', need: 3 }, { name: '山海猛兽', members: ['shengsheng', 'kaiming', 'bo', 'zheng'], effect: '全队伤害 +15%', need: 2 }, { name: '龙生九子', members: ['qiuniu', 'yazi', 'chaofeng', 'pulao', 'suanni', 'bixi', 'bian', 'fuxi_long', 'chiwen'], effect: '护盾伤害 +20%', need: 3 }, { name: '四象归位', members: ['qinglong', 'baihu', 'zhuque', 'xuanwu'], effect: '全队射程 +10%', need: 2 }, { name: '人祖开天', members: ['huangdi', 'fuxi', 'nuwa'], effect: '全队伤害 +16%', need: 2 }, { name: '治水之争', members: ['dayu', 'gonggong'], effect: '灵蕴获取 +25%', need: 2 }, { name: '炎火同源', members: ['bifang', 'suanni', 'zhuque', 'nuwa'], effect: '火系伤害 +10%', need: 2 }, { name: '水泽同流', members: ['fuzhu', 'chiwen', 'xuanwu', 'gonggong'], effect: '敌群移速 -9%', need: 2 }];
 
 function distance(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 function routeLength(points) { return points.slice(1).reduce((sum, point, index) => sum + distance(points[index], point), 0); }
-function pointAt(points, amount) {
-  let remaining = amount;
-  for (let index = 1; index < points.length; index += 1) {
-    const length = distance(points[index - 1], points[index]);
-    if (remaining <= length) {
-      const ratio = length ? remaining / length : 0;
-      return [points[index - 1][0] + (points[index][0] - points[index - 1][0]) * ratio, points[index - 1][1] + (points[index][1] - points[index - 1][1]) * ratio];
-    }
-    remaining -= length;
-  }
-  return points[points.length - 1];
-}
-function segmentDistance(x, y, a, b) {
-  const vx = b[0] - a[0]; const vy = b[1] - a[1];
-  const ratio = Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / Math.max(1, vx * vx + vy * vy)));
-  return Math.hypot(x - (a[0] + vx * ratio), y - (a[1] + vy * ratio));
-}
+function pointAt(points, amount) { let remaining = amount; for (let index = 1; index < points.length; index += 1) { const length = distance(points[index - 1], points[index]); if (remaining <= length) { const ratio = length ? remaining / length : 0; return [points[index - 1][0] + (points[index][0] - points[index - 1][0]) * ratio, points[index - 1][1] + (points[index][1] - points[index - 1][1]) * ratio]; } remaining -= length; } return points[points.length - 1]; }
+function segmentDistance(x, y, a, b) { const vx = b[0] - a[0]; const vy = b[1] - a[1]; const ratio = Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / Math.max(1, vx * vx + vy * vy))); return Math.hypot(x - (a[0] + vx * ratio), y - (a[1] + vy * ratio)); }
+function portrait(item) { return { ...item, bgPos: `${(item.portraitIndex % 6) * 20}% ${Math.floor(item.portraitIndex / 6) * 25}%`, rarityLabel: RARITY_LABEL[item.rarity], rarityColor: RARITY_COLOR[item.rarity] }; }
 
 Page({
-  data: {
-    screen: 'select', levels: [], roster: [], selectedStage: 0, currentLevel: LEVELS[0], selectedBeast: 'bifang', selectedBeastName: '毕方',
-    hp: 10, energy: 56, kills: 0, wave: 1, totalWaves: 8, waveDots: Array(8).fill(0), logs: ['选择一只妖灵，然后点击场地上的任意合法位置。'], paused: false, speed: 1, skillReady: false,
-    result: { won: false, kills: 0, combo: 0, xp: 0, copy: '' },
-  },
-
-  onLoad() {
-    const save = wx.getStorageSync('shan-hai-mini-save') || {};
-    this.tier = Number(save.tier) || 1;
-    this.prepareSelection();
-  },
-
+  data: { screen: 'select', levels: [], roster: [], atlas: [], selectedStage: 0, currentLevel: LEVELS[0], collection: [], selectedOwnedId: '', fieldCount: 0, totalWaves: 8, hp: 10, energy: 80, kills: 0, wave: 1, logs: ['先召灵，再从背包选择妖灵点击战场部署。'], paused: false, speed: 1, skillReady: false, modal: '', modalTitle: '', summonMode: '', summonOffers: [], fortuneResult: '', fortuneRefund: 0, bondRows: [], result: { won: false, kills: 0, combo: 0, xp: 0, copy: '' } },
+  onLoad() { const save = wx.getStorageSync('shan-hai-mini-save') || {}; this.tier = Number(save.tier) || 1; const savedIds = Array.isArray(save.discovered) ? save.discovered : Array.isArray(save.collection) ? save.collection : []; this.discovered = new Set(savedIds.filter((id) => ROSTER.some((item) => item.id === id))); this.collection = []; this.prepareSelection(); },
+  onUnload() { this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); },
   onReady() { this.ensureCanvas(); },
-
-  ensureCanvas() {
-    if (this.canvas) return;
-    wx.createSelectorQuery().select('#arena').fields({ node: true, size: true, rect: true }).exec((result) => {
-      if (!result[0]) return;
-      const info = result[0]; const dpr = wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : wx.getSystemInfoSync().pixelRatio;
-      this.canvas = info.node; this.ctx = this.canvas.getContext('2d'); this.canvasWidth = info.width; this.canvasHeight = info.height; this.canvasRect = { left: Number(info.left) || 0, top: Number(info.top) || 0, width: info.width, height: info.height }; this.dpr = dpr;
-      this.canvas.width = Math.round(info.width * dpr); this.canvas.height = Math.round(info.height * dpr);
-      this.ctx.setTransform(dpr * info.width / 960, 0, 0, dpr * info.height / 540, 0, 0);
-      this.atlas = this.canvas.createImage(); this.atlas.onload = () => { this.atlasReady = true; }; this.atlas.src = '../../assets/biome-atlas.webp';
-      this.stageBackgrounds = ['cave', 'grass', 'sea', 'volcano', 'heaven'].map((name) => { const image = this.canvas.createImage(); image.onload = () => { image.ready = true; }; image.src = `../../assets/background-${name}.webp`; return image; });
-      this.caveBackdrop = this.canvas.createImage(); this.caveBackdrop.onload = () => { this.caveBackdropReady = true; }; this.caveBackdrop.src = '../../assets/cave-battlefield.webp';
-      this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.webp';
-      this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.webp';
-      this.frameActive = true; this.lastFrame = Date.now(); this.frame();
-    });
-  },
-
-  onHide() { this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); this.frameTimer = null; },
-  onShow() { if (this.data.screen === 'game' && !this.frameActive) { this.frameActive = true; this.lastFrame = Date.now(); this.frame(); } },
-
-  prepareSelection(selectedStage = this.data.selectedStage, selectedBeast = this.data.selectedBeast) {
-    const levels = LEVELS.map((level, index) => ({ ...level, selected: index === selectedStage }));
-    const roster = ROSTER.map((beast, portraitIndex) => ({ ...beast, portraitIndex, bgPos: `${(portraitIndex % 6) * 20}% ${Math.floor(portraitIndex / 6) * 25}%`, selected: beast.id === selectedBeast }));
-    this.setData({ levels, roster, currentLevel: LEVELS[selectedStage], selectedBeastName: ROSTER.find((item) => item.id === selectedBeast).name });
-  },
-
-  selectStage(event) {
-    const selectedStage = Number(event.currentTarget.dataset.index); this.setData({ selectedStage }); this.prepareSelection(selectedStage);
-  },
-
-  selectBeast(event) {
-    const selectedBeast = event.currentTarget.dataset.id; this.setData({ selectedBeast }); this.prepareSelection(this.data.selectedStage, selectedBeast);
-  },
-
-  selectBeastInGame(event) {
-    const selectedBeast = event.currentTarget.dataset.id; this.setData({ selectedBeast, selectedBeastName: ROSTER.find((item) => item.id === selectedBeast).name, roster: ROSTER.map((item, portraitIndex) => ({ ...item, portraitIndex, bgPos: `${(portraitIndex % 6) * 20}% ${Math.floor(portraitIndex / 6) * 25}%`, selected: item.id === selectedBeast })) });
-  },
-
-  startGame() {
-    if (this.frameTimer) clearTimeout(this.frameTimer); this.frameTimer = null; this.frameActive = false;
-    this.selectedStage = this.data.selectedStage; this.totalWaves = 8 + this.selectedStage * 3; this.waveIndex = 0; this.waveCooldown = 0; this.groups = null; this.towers = []; this.enemies = []; this.projectiles = []; this.energy = 56 + this.selectedStage * 6; this.hp = 10; this.kills = 0; this.combo = 0; this.bestCombo = 0; this.skillReady = false; this.finished = false;
-    this.setData({ screen: 'game', currentLevel: LEVELS[this.selectedStage], totalWaves: this.totalWaves, waveDots: Array(this.totalWaves).fill(0), wave: 1, energy: this.energy, hp: this.hp, kills: 0, paused: false, speed: 1, skillReady: false, logs: ['第 1 波：敌群进入道路，点击道路两侧安置妖灵。'] }, () => { this.ensureCanvas(); if (this.canvas && !this.frameActive) { this.frameActive = true; this.lastFrame = Date.now(); this.frame(); } this.startWave(); this.syncGame(); });
-  },
-
-  startWave() {
-    if (this.waveIndex >= this.totalWaves || this.finished) return;
-    const template = WAVES[this.waveIndex % WAVES.length];
-    this.groups = template.map((group, index) => ({ type: group[0], count: group[1] + Math.floor(this.selectedStage * index), gap: group[2], timer: group[3], hpMul: group[4] + this.selectedStage * .08, spawned: 0, route: index % this.routeList().length }));
-    this.addLog(`第 ${this.waveIndex + 1} 波：${this.groups.length > 1 ? '多组敌人交错出现' : '敌群进入道路'}`);
-  },
-
-  routeList() {
-    const route = ROUTES[LEVELS[this.selectedStage].path]; return Array.isArray(route[0][0]) ? route : [route];
-  },
-
-  spawnGroups(dt) {
-    if (!this.groups) { if (this.waveCooldown > 0) { this.waveCooldown -= dt; if (this.waveCooldown <= 0) this.startWave(); } return; }
-    let allDone = true;
-    this.groups.forEach((group) => {
-      group.timer -= dt;
-      if (group.spawned < group.count) { allDone = false; if (group.timer <= 0) { this.spawnEnemy(group.type, group.hpMul, group.route); group.spawned += 1; group.timer = group.gap; } }
-    });
-    if (allDone && this.enemies.length === 0) { this.groups = null; this.waveIndex += 1; if (this.waveIndex >= this.totalWaves) this.finishGame(true); else this.waveCooldown = 2.2; }
-  },
-
-  spawnEnemy(type, hpMul, routeIndex) {
-    const def = ENEMIES[type]; const route = this.routeList()[routeIndex] || this.routeList()[0];
-    this.enemies.push({ type, def, route, routeLength: routeLength(route), d: 0, x: route[0][0], y: route[0][1], hp: def.hp * (1 + this.selectedStage * .3) * hpMul, maxHp: def.hp * (1 + this.selectedStage * .3) * hpMul, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, revived: false, split: false, stunned: 0 });
-  },
-
-  update(dt) {
-    this.spawnGroups(dt); this.updateTowers(dt); this.updateProjectiles(dt); this.updateEnemies(dt); if (this.hp <= 0) this.finishGame(false);
-  },
-
-  formationBonus() { return this.towers.length >= 3 ? 1.15 : this.towers.length === 2 ? 1.06 : 1; },
-
-  updateTowers(dt) {
-    this.towers.forEach((tower) => {
-      const def = ROSTER.find((item) => item.id === tower.id); tower.cooldown -= dt * this.data.speed;
-      if (tower.cooldown > 0) return;
-      const target = this.enemies.filter((enemy) => enemy.hp > 0 && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= def.range).sort((a, b) => b.d - a.d)[0];
-      if (!target) return;
-      this.projectiles.push({ x: tower.x, y: tower.y, target, speed: 360, amount: def.dmg * this.formationBonus() * (1 + (this.tier - 1) * .04), def }); tower.cooldown = def.interval;
-    });
-  },
-
-  updateProjectiles(dt) {
-    this.projectiles = this.projectiles.filter((projectile) => {
-      if (!projectile.target || projectile.target.hp <= 0) return false;
-      const dx = projectile.target.x - projectile.x; const dy = projectile.target.y - projectile.y; const distance = Math.hypot(dx, dy); const step = projectile.speed * dt * this.data.speed;
-      projectile.x += dx / Math.max(1, distance) * step; projectile.y += dy / Math.max(1, distance) * step;
-      if (distance <= step + projectile.target.def.radius) { this.damageEnemy(projectile.target, projectile.amount, projectile.def); return false; }
-      return true;
-    });
-  },
-
-  damageEnemy(enemy, amount, source) {
-    if (enemy.def.immuneMag && source.type === 'mag') { this.addLog(`${enemy.def.name}免疫术法伤害。`); return; }
-    if (enemy.shield > 0 && !source.breakShield) { this.addLog(`${enemy.def.name}的护盾挡住了攻击。`); return; }
-    if (enemy.shield > 0 && source.breakShield) { enemy.shield = Math.max(0, enemy.shield - amount); return; }
-    enemy.hp -= amount * Math.max(.35, 1 - enemy.armor / 100);
-    if (source.slow) { enemy.slow = source.slow; enemy.slowTimer = 2.5; }
-    if (source.splash) this.enemies.filter((item) => item !== enemy && item.hp > 0 && Math.hypot(item.x - enemy.x, item.y - enemy.y) < 42).forEach((item) => { item.hp -= amount * .45; if (item.hp <= 0) this.killEnemy(item); });
-    if (enemy.hp <= 0) this.killEnemy(enemy);
-  },
-
-  updateEnemies(dt) {
-    this.enemies.forEach((enemy) => {
-      if (enemy.hp <= 0 || enemy.stunned > 0) { enemy.stunned = Math.max(0, enemy.stunned - dt); return; }
-      if (enemy.slowTimer > 0) enemy.slowTimer -= dt; else enemy.slow = 0;
-      const point = pointAt(enemy.route, enemy.d); enemy.x = point[0]; enemy.y = point[1]; enemy.d += enemy.def.speed * (1 - enemy.slow) * dt * this.data.speed;
-      if (enemy.d >= enemy.routeLength) { enemy.hp = 0; this.hp -= enemy.def.boss ? 2 : 1; this.combo = 0; this.addLog(`${enemy.def.name}冲过了封印，完整度下降。`); }
-    });
-    this.enemies = this.enemies.filter((enemy) => enemy.hp > 0);
-  },
-
-  killEnemy(enemy) {
-    if (enemy.def.revive && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * .35; enemy.shield = 120; this.addLog(`${enemy.def.name}触发复活，获得临时护盾。`); return; }
-    if (enemy.def.split && !enemy.split) { enemy.split = true; this.spawnEnemy('xingxing', .55, this.routeList().indexOf(enemy.route)); this.spawnEnemy('xingxing', .55, this.routeList().indexOf(enemy.route)); }
-    this.kills += enemy.def.reward; this.energy = Math.min(140, this.energy + enemy.def.reward * 2); this.combo += 1; this.bestCombo = Math.max(this.bestCombo, this.combo);
-  },
-
-  validPlace(x, y) {
-    if (x < 50 || x > 910 || y < 45 || y > 505) return false;
-    if (this.routeList().some((route) => route.some((point, index) => index && segmentDistance(x, y, route[index - 1], point) < 48))) return false;
-    if (Math.hypot(x - 74, y - 108) < 55 || Math.hypot(x - 884, y - 430) < 45) return false;
-    return !this.towers.some((tower) => Math.hypot(tower.x - x, tower.y - y) < 78);
-  },
-
-  placeTower(x, y) {
-    if (!this.validPlace(x, y)) { this.addLog('此处不能安置：避开道路、封印与已有妖灵。'); return; }
-    const def = ROSTER.find((item) => item.id === this.data.selectedBeast);
-    if (this.energy < def.cost) { this.addLog('灵蕴不足，先等敌人被击破。'); return; }
-    this.energy -= def.cost; this.towers.push({ id: def.id, x, y, cooldown: .1 }); this.skillReady = this.towers.length >= 3; this.addLog(`${def.name}已安置，阵型强度提升。`); this.syncGame();
-  },
-
-  onTouchStart(event) {
-    if (this.data.screen !== 'game' || this.data.paused || !this.canvasWidth) return;
-    const touch = event.touches[0]; const rect = this.canvasRect || { left: 0, top: 0, width: this.canvasWidth, height: this.canvasHeight }; const clientX = touch.clientX === undefined ? touch.pageX === undefined ? touch.x : touch.pageX : touch.clientX; const clientY = touch.clientY === undefined ? touch.pageY === undefined ? touch.y : touch.pageY : touch.clientY; this.placeTower((clientX - rect.left) / rect.width * 960, (clientY - rect.top) / rect.height * 540);
-  },
-
-  useSkill() {
-    if (!this.skillReady) return;
-    this.enemies.slice().forEach((enemy) => this.damageEnemy(enemy, 160 * this.formationBonus(), { type: 'true', breakShield: true, splash: false })); this.skillReady = false; this.addLog('羁绊技发动：全场真伤，封印获得喘息。'); this.setData({ skillReady: false });
-  },
-
-  finishGame(won) {
-    if (this.finished) return; this.finished = true; this.frameActive = false; if (this.frameTimer) { clearTimeout(this.frameTimer); this.frameTimer = null; } const reward = won ? 30 + this.selectedStage * 12 : 0; if (won) { this.tier = Math.max(this.tier, 1 + Math.floor((this.kills + reward) / 30)); wx.setStorageSync('shan-hai-mini-save', { tier: this.tier }); }
-    this.setData({ screen: 'result', result: { won, kills: this.kills, combo: this.bestCombo, xp: reward, copy: won ? `你在${LEVELS[this.selectedStage].name}完成了 ${this.totalWaves} 波防守。` : '优先补上交叉火力，再处理护盾与高速敌人。' } });
-  },
-
-  replayGame() { this.startGame(); },
-  backToSelect() { this.finished = true; this.frameActive = false; if (this.frameTimer) { clearTimeout(this.frameTimer); this.frameTimer = null; } this.canvas = null; this.ctx = null; this.canvasRect = null; this.setData({ screen: 'select' }); this.prepareSelection(); },
-  togglePause() { this.setData({ paused: !this.data.paused }); },
-  toggleSpeed() { this.setData({ speed: this.data.speed === 1 ? 2 : 1 }); },
-
-  addLog(message) { this.logs = [message, ...(this.logs || this.data.logs || [])].slice(0, 3); this.setData({ logs: this.logs }); },
-
-  syncGame() {
-    this.setData({ hp: Math.max(0, this.hp), energy: Math.floor(this.energy), kills: this.kills, wave: Math.min(this.waveIndex + 1, this.totalWaves), skillReady: this.skillReady, selectedBeastName: ROSTER.find((item) => item.id === this.data.selectedBeast).name });
-  },
-
-  frame() {
-    if (!this.frameActive) return;
-    const now = Date.now(); const dt = Math.min(.05, (now - this.lastFrame) / 1000 || 0); this.lastFrame = now;
-    if (this.data.screen === 'game' && !this.data.paused && !this.finished) { this.update(dt); if ((this.frameCount = (this.frameCount || 0) + 1) % 2 === 0) this.syncGame(); }
-    this.draw(); this.frameTimer = setTimeout(() => this.frame(), 33);
-  },
-
-  draw() {
-    if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0, 0, 960, 540); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, 960, 540);
-    if (this.atlasReady) { const panelWidth = this.atlas.width / 5; ctx.globalAlpha = .2; ctx.drawImage(this.atlas, panelWidth * this.selectedStage, 0, panelWidth, this.atlas.height, 0, 0, 960, 540); ctx.globalAlpha = 1; }
-    ctx.strokeStyle = 'rgba(241,236,223,.05)'; ctx.lineWidth = 1; for (let x = 20; x < 960; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 540); ctx.stroke(); } for (let y = 20; y < 540; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y); ctx.stroke(); }
-    this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#0d1617'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#394d49'; ctx.lineWidth = 62; ctx.stroke(); ctx.lineCap = 'butt'; });
-    ctx.fillStyle = 'rgba(228,180,93,.18)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(74, 108, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 74, 112);
-    this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
-    this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 17, 21, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tower.x, tower.y, 19, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = def.color; ctx.font = 'bold 18px Arial'; ctx.fillText(def.short, tower.x, tower.y + 6); });
-    this.enemies.forEach((enemy) => { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, enemy.def.radius, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Arial'; ctx.fillText(enemy.def.short, enemy.x, enemy.y + 3); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - enemy.def.radius, enemy.y - enemy.def.radius - 9, enemy.def.radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
-    this.projectiles.forEach((projectile) => { ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2); ctx.fill(); });
-  },
-
-  draw() {
-    if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0, 0, 960, 540); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, 960, 540);
-    const stageBackground = this.stageBackgrounds?.[this.selectedStage];
-    if (stageBackground?.ready) { ctx.globalAlpha = .96; ctx.drawImage(stageBackground, 0, 0, stageBackground.width, stageBackground.height, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111,87,48,.10)'; ctx.fillRect(0, 0, 960, 540); } else if (this.selectedStage === 0 && this.caveBackdropReady) { ctx.globalAlpha = .96; ctx.drawImage(this.caveBackdrop, 0, 0, this.caveBackdrop.width, this.caveBackdrop.height, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111,87,48,.12)'; ctx.fillRect(0, 0, 960, 540); } else if (this.atlasReady) { const panelWidth = this.atlas.width / 5; ctx.globalAlpha = .72; ctx.drawImage(this.atlas, panelWidth * this.selectedStage, 0, panelWidth, this.atlas.height, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8,17,20,.12)'; ctx.fillRect(0, 0, 960, 540); }
-    ctx.strokeStyle = 'rgba(241,236,223,.05)'; ctx.lineWidth = 1; for (let x = 20; x < 960; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 540); ctx.stroke(); } for (let y = 20; y < 540; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(960, y); ctx.stroke(); }
-    this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#0d1617'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#b99b67'; ctx.lineWidth = 62; ctx.stroke(); ctx.strokeStyle = 'rgba(245,224,170,.28)'; ctx.lineWidth = 3; ctx.setLineDash([8, 11]); ctx.stroke(); ctx.setLineDash([]); ctx.lineCap = 'butt'; });
-    ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(74, 108, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e4b45d'; ctx.font = '12px Arial'; ctx.textAlign = 'center'; ctx.fillText('封印', 74, 112);
-    this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 21, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); });
-    this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); const portraitIndex = ROSTER.findIndex((item) => item.id === tower.id); ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 20, 27, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = def.color; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(tower.x, tower.y, 25, 0, Math.PI * 2); ctx.stroke(); if (this.beastAtlasReady) { const cellW = this.beastAtlas.width / 6; const cellH = this.beastAtlas.height / 5; ctx.save(); ctx.beginPath(); ctx.arc(tower.x, tower.y, 23, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.beastAtlas, (portraitIndex % 6) * cellW, Math.floor(portraitIndex / 6) * cellH, cellW, cellH, tower.x - 25, tower.y - 25, 50, 50); ctx.restore(); } });
-    this.enemies.forEach((enemy) => { const radius = enemy.def.radius * 1.35; const sprite = Object.keys(ENEMIES).indexOf(enemy.type); if (this.enemyAtlasReady) { const cellW = this.enemyAtlas.width / 5; const cellH = this.enemyAtlas.height / 2; ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.enemyAtlas, (sprite % 5) * cellW, Math.floor(sprite / 5) * cellH, cellW, cellH, enemy.x - radius, enemy.y - radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); });
-    this.projectiles.forEach((projectile) => { ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2); ctx.fill(); });
-  },
+  ensureCanvas() { if (this.canvas) return; wx.createSelectorQuery().select('#arena').fields({ node: true, size: true, rect: true }).exec((result) => { if (!result[0]) return; const info = result[0]; const system = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync(); this.canvas = info.node; this.ctx = this.canvas.getContext('2d'); this.canvasWidth = info.width; this.canvasHeight = info.height; this.canvasRect = { left: Number(info.left) || 0, top: Number(info.top) || 0, width: info.width, height: info.height }; this.dpr = system.pixelRatio || 1; this.canvas.width = Math.round(info.width * this.dpr); this.canvas.height = Math.round(info.height * this.dpr); this.ctx.setTransform(this.dpr * info.width / 960, 0, 0, this.dpr * info.height / 540, 0, 0); this.stageBackgrounds = LEVELS.map((level) => { const image = this.canvas.createImage(); image.onload = () => { image.ready = true; }; image.src = `../../assets/background-${level.background}.webp`; return image; }); this.beastAtlas = this.canvas.createImage(); this.beastAtlas.onload = () => { this.beastAtlasReady = true; }; this.beastAtlas.src = '../../assets/beast-atlas.webp'; this.enemyAtlas = this.canvas.createImage(); this.enemyAtlas.onload = () => { this.enemyAtlasReady = true; }; this.enemyAtlas.src = '../../assets/enemy-atlas.webp'; this.frameActive = true; this.lastFrame = Date.now(); this.frame(); }); },
+  prepareSelection(selectedStage = this.data.selectedStage) { const levels = LEVELS.map((level, index) => ({ ...level, selected: index === selectedStage })); const atlas = ROSTER.map(portrait); this.setData({ levels, atlas, roster: atlas.slice(0, 10), currentLevel: LEVELS[selectedStage], selectedStage, waveDots: Array(LEVELS[selectedStage].waves).fill(0) }); },
+  selectStage(event) { const selectedStage = Number(event.currentTarget.dataset.index); this.setData({ selectedStage }); this.prepareSelection(selectedStage); },
+  selectAtlas() { this.setData({ modal: 'atlas', modalTitle: '山海经图谱' }); }, stopEvent() {},
+  startGame() { if (this.frameTimer) clearTimeout(this.frameTimer); this.selectedStage = this.data.selectedStage; this.totalWaves = LEVELS[this.selectedStage].waves; this.waveIndex = 0; this.waveCooldown = 0; this.groups = null; this.towers = []; this.enemies = []; this.projectiles = []; this.collection = []; this.summonOffers = []; this.summonMode = ''; this.energy = LEVELS[this.selectedStage].essence; this.hp = 10; this.kills = 0; this.combo = 0; this.bestCombo = 0; this.skillReady = false; this.finished = false; this.enemyModifier = { hp: 1, speed: 1 }; this.friendModifier = { damage: 1, speed: 1 }; this.setData({ screen: 'game', currentLevel: LEVELS[this.selectedStage], totalWaves: this.totalWaves, waveDots: Array(this.totalWaves).fill(0), wave: 1, energy: this.energy, hp: this.hp, kills: 0, paused: false, speed: 1, skillReady: false, selectedOwnedId: '', collection: [], summonOffers: [], summonMode: '', modal: '', fieldCount: 0, logs: ['第1波：裂口异动，先从背包选择妖灵。'] }, () => { this.ensureCanvas(); this.startWave(); this.syncGame(); }); },
+  startWave() { if (this.waveIndex >= this.totalWaves || this.finished) return; const level = LEVELS[this.selectedStage]; const template = WAVE_DEFS[level.from + this.waveIndex]; this.groups = template.map((group, index) => ({ type: group[0], count: group[1], gap: group[2], timer: group[3], hpMul: group[4] + this.selectedStage * .08, spawned: 0, route: index % this.routeList().length })); this.addLog(`第${this.waveIndex + 1}波：${this.groups.length > 1 ? '多组敌人交错出现' : '敌群进入裂隙'}`); },
+  routeList() { const route = ROUTES[LEVELS[this.selectedStage].path]; return Array.isArray(route[0][0]) ? route : [route]; },
+  spawnGroups(dt) { if (!this.groups) { if (this.waveCooldown > 0) { this.waveCooldown -= dt; if (this.waveCooldown <= 0) this.startWave(); } return; } let allDone = true; const routeCount = this.routeList().length; this.groups.forEach((group) => { group.timer -= dt; if (group.spawned < group.count) { allDone = false; if (group.timer <= 0) { this.spawnEnemy(group.type, group.hpMul, (group.route + group.spawned) % routeCount); group.spawned += 1; group.timer = group.gap; } } }); if (allDone && this.enemies.length === 0) { this.groups = null; this.waveIndex += 1; if (this.waveIndex >= this.totalWaves) this.finishGame(true); else this.waveCooldown = 2.2; } },
+  spawnEnemy(type, hpMul, routeIndex, distanceOverride) { const def = ENEMIES[type]; const route = this.routeList()[routeIndex] || this.routeList()[0]; const maxHp = def.hp * (1 + this.selectedStage * .3) * hpMul * this.enemyModifier.hp; this.enemies.push({ type, def, route, routeIndex, routeLength: routeLength(route), d: distanceOverride || 0, x: route[0][0], y: route[0][1], hp: maxHp, maxHp, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, revived: false, split: false, stunned: 0 }); },
+  update(dt) { this.spawnGroups(dt); this.updateTowers(dt); this.updateProjectiles(dt); this.updateEnemies(dt); if (this.hp <= 0) this.finishGame(false); },
+  activeBonds() { const ids = new Set(this.towers.map((tower) => tower.id)); return BONDS.filter((bond) => bond.members.filter((id) => ids.has(id)).length >= bond.need); },
+  formationBonus() { return 1 + this.activeBonds().length * .08; },
+  updateTowers(dt) { this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); tower.cooldown -= dt * this.data.speed * this.friendModifier.speed; if (tower.cooldown > 0) return; const target = this.enemies.filter((enemy) => enemy.hp > 0 && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= def.range).sort((a, b) => b.d - a.d)[0]; if (!target) return; this.projectiles.push({ x: tower.x, y: tower.y, target, speed: 360, amount: def.dmg * this.formationBonus() * this.friendModifier.damage * (1 + (this.tier - 1) * .04), def }); tower.cooldown = def.interval; }); },
+  updateProjectiles(dt) { this.projectiles = this.projectiles.filter((projectile) => { if (!projectile.target || projectile.target.hp <= 0) return false; const dx = projectile.target.x - projectile.x; const dy = projectile.target.y - projectile.y; const distanceNow = Math.hypot(dx, dy); const step = projectile.speed * dt * this.data.speed; projectile.x += dx / Math.max(1, distanceNow) * step; projectile.y += dy / Math.max(1, distanceNow) * step; if (distanceNow <= step + projectile.target.def.radius) { this.damageEnemy(projectile.target, projectile.amount, projectile.def); return false; } return true; }); },
+  damageEnemy(enemy, amount, source) { if (enemy.hp <= 0 || (enemy.def.immuneMag && source.dmgType === 'mag')) return; let damage = amount; if (enemy.shield > 0) { const shieldRate = source.breakShield ? 1.6 : .65; const absorbed = Math.min(enemy.shield, damage * shieldRate); enemy.shield -= absorbed; damage = Math.max(0, damage - absorbed / shieldRate); if (enemy.shield > 0 || damage <= 0) return; } enemy.hp -= damage * Math.max(.35, 1 - enemy.armor / 100); if (source.slow) { enemy.slow = source.slow; enemy.slowTimer = 2.5; } if (source.splash) this.enemies.filter((item) => item !== enemy && item.hp > 0 && Math.hypot(item.x - enemy.x, item.y - enemy.y) < 42).forEach((item) => { item.hp -= damage * .45; if (item.hp <= 0) this.killEnemy(item); }); if (enemy.hp <= 0) this.killEnemy(enemy); },
+  updateEnemies(dt) { this.enemies.forEach((enemy) => { if (enemy.hp <= 0) return; if (enemy.stunned > 0) { enemy.stunned -= dt; return; } if (enemy.slowTimer > 0) enemy.slowTimer -= dt; else enemy.slow = 0; const point = pointAt(enemy.route, enemy.d); enemy.x = point[0]; enemy.y = point[1]; enemy.d += enemy.def.speed * (this.enemyModifier.speed || 1) * (1 - enemy.slow) * dt * this.data.speed; if (enemy.d >= enemy.routeLength) { enemy.hp = 0; this.hp -= enemy.def.boss ? 2 : 1; this.combo = 0; this.addLog(`${enemy.def.name}冲过了封印，完整度下降。`); } }); this.enemies = this.enemies.filter((enemy) => enemy.hp > 0); },
+  killEnemy(enemy) { if (enemy.def.revive && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * .35; enemy.shield = 120; return; } if (enemy.def.split && !enemy.split) { enemy.split = true; this.spawnEnemy('xingxing', .55, enemy.routeIndex, Math.max(0, enemy.d - 24)); this.spawnEnemy('xingxing', .55, enemy.routeIndex, Math.max(0, enemy.d - 48)); } this.kills += enemy.def.reward; this.energy = Math.min(300, this.energy + enemy.def.reward * 2); this.combo += 1; this.bestCombo = Math.max(this.bestCombo, this.combo); },
+  validPlace(x, y) { if (x < 52 || x > 908 || y < 48 || y > 504) return false; if (this.routeList().some((route) => route.some((point, index) => index && segmentDistance(x, y, route[index - 1], point) < 48))) return false; if (this.routeList().some((route) => Math.hypot(x - route[0][0], y - route[0][1]) < 62 || Math.hypot(x - route[route.length - 1][0], y - route[route.length - 1][1]) < 58)) return false; return !this.towers.some((tower) => Math.hypot(tower.x - x, tower.y - y) < 78); },
+  onTouchStart(event) { if (this.data.screen !== 'game' || this.data.paused || !this.canvasWidth) return; const touch = event.touches[0]; const rect = this.canvasRect; if (touch.x !== undefined && touch.y !== undefined) { this.placeSelected(touch.x / rect.width * 960, touch.y / rect.height * 540); return; } const clientX = touch.clientX === undefined ? touch.pageX : touch.clientX; const clientY = touch.clientY === undefined ? touch.pageY : touch.clientY; this.placeSelected((clientX - rect.left) / rect.width * 960, (clientY - rect.top) / rect.height * 540); },
+  placeSelected(x, y) { const index = this.collection.findIndex((item) => item.uid === this.data.selectedOwnedId); if (index < 0) { this.addLog('请先在下方背包选择一只已召唤妖灵。'); return; } if (this.towers.length >= 20) { this.addLog('场上人口已满，最多部署 20 只妖灵。'); return; } if (!this.validPlace(x, y)) { this.addLog('此处不能安置：请避开道路、裂口和其他妖灵。'); return; } const unit = this.collection[index]; this.collection.splice(index, 1); this.towers.push({ id: unit.id, uid: unit.uid, x, y, cooldown: .1 }); this.skillReady = this.activeBonds().length > 0; this.setData({ collection: this.collection, selectedOwnedId: '', fieldCount: this.towers.length, skillReady: this.skillReady }); this.addLog(`${unit.name}已入阵，本次部署不再消耗灵蕴。`); this.syncGame(); },
+  openSummon(event) { const mode = event.currentTarget.dataset.mode || 'normal'; if (this.summonOffers.length) { this.setData({ modal: 'summon', modalTitle: '继续选择召灵结果' }); return; } const needed = mode === 'advanced' ? 5 : 1; if (this.collection.length + needed > 12) { this.addLog(`背包空间不足，${mode === 'advanced' ? '高级五连需要 5 个空位' : '请先部署一只妖灵'}。`); return; } const cost = mode === 'advanced' ? 80 : 20; if (this.energy < cost) { this.addLog(`灵蕴不足，需要 ${cost} 点。`); return; } this.energy -= cost; this.summonMode = mode; this.summonOffers = mode === 'advanced' ? Array.from({ length: 5 }, () => this.drawBeast(false)) : Array.from({ length: 2 }, () => this.drawBeast(false)); if (mode === 'advanced' && !this.summonOffers.some((item) => RARITY_ORDER.indexOf(item.rarity) >= 2)) this.summonOffers[Math.floor(Math.random() * 5)] = this.drawBeast(true); this.setData({ energy: this.energy, modal: 'summon', modalTitle: mode === 'advanced' ? '高级召灵 · 五连结果' : '普通召灵 · 请选择一只', summonMode: mode, summonOffers: this.summonOffers }); this.syncGame(); },
+  openSummonOffers() { if (this.data.summonOffers.length) this.setData({ modal: 'summon', modalTitle: '继续选择召灵结果' }); },
+  drawBeast(guaranteed) { const weights = guaranteed ? { SR: 70, SSR: 22, UR: 8 } : { N: 56, R: 32, SR: 10, SSR: 1.5, UR: .5 }; const rarities = RARITY_ORDER.filter((key) => weights[key]); const total = rarities.reduce((sum, key) => sum + weights[key], 0); let roll = Math.random() * total; let rarity = rarities[0]; for (let i = 0; i < rarities.length; i += 1) { rarity = rarities[i]; roll -= weights[rarity]; if (roll < 0) break; } const candidates = ROSTER.filter((item) => item.rarity === rarity); return portrait(candidates[Math.floor(Math.random() * candidates.length)]); },
+  claimSummon(event) { const index = Number(event.currentTarget.dataset.index); const offers = this.summonMode === 'advanced' ? this.summonOffers.slice() : [this.summonOffers[index]].filter(Boolean); if (!offers.length) return; if (this.collection.length + offers.length > 12) { this.addLog('背包空间不足，无法收入本次召灵结果。'); return; } offers.forEach((offer, offerIndex) => { const def = ROSTER.find((item) => item.id === offer.id); this.collection.push({ ...portrait(def), uid: `${offer.id}-${Date.now()}-${offerIndex}-${Math.random()}` }); this.discovered.add(offer.id); }); const label = this.summonMode === 'advanced' ? `高级五连的 ${offers.length} 只妖灵已全部入卷` : `${offers[0].name}已收入背包`; this.summonOffers = []; this.summonMode = ''; this.setData({ collection: this.collection, summonOffers: [], summonMode: '', modal: '', selectedOwnedId: '' }); this.saveProgress(); this.addLog(`${label}，选择妖灵后点击战场即可部署。`); },
+  openBackpack() { this.setData({ modal: 'backpack', modalTitle: '背包 · 选择出战妖灵' }); },
+  selectOwned(event) { const uid = event.currentTarget.dataset.uid; this.setData({ selectedOwnedId: uid, modal: '' }); this.addLog('已选择背包妖灵，请点击战场道路两侧的空位。'); },
+  openBonds() { const ids = new Set(this.towers.map((tower) => tower.id)); const bondRows = BONDS.map((bond) => { const count = bond.members.filter((id) => ids.has(id)).length; return { ...bond, count, ready: count >= bond.need }; }); this.setData({ modal: 'bonds', modalTitle: '羁绊谱', bondRows }); },
+  useFortune() { if (this.energy < 30) { this.addLog('灵蕴不足，需要 30 点转运签。'); return; } this.energy -= 30; const results = [{ weight: 13, label: '友军增益 · 攻击提升 25%', refund: 0, apply: () => { this.friendModifier.damage *= 1.25; } }, { weight: 12, label: '友军增益 · 攻速提升 20%', refund: 0, apply: () => { this.friendModifier.speed *= 1.2; } }, { weight: 8, label: '敌军增益 · 敌人生命提升 35%', refund: 0, apply: () => { this.enemyModifier.hp *= 1.35; } }, { weight: 12, label: '敌军减益 · 敌人速度降低 25%', refund: 0, apply: () => { this.enemyModifier.speed *= .75; } }, { weight: 10, label: '灵蕴返还 · 半额', refund: 15, apply: () => {} }, { weight: 10, label: '灵蕴返还 · 全额', refund: 30, apply: () => {} }, { weight: 6, label: '灵蕴返还 · 双倍', refund: 60, apply: () => {} }, { weight: 1, label: '灵蕴返还 · 十倍', refund: 300, apply: () => {} }, { weight: 28, label: '谢谢惠顾', refund: 0, apply: () => {} }]; let roll = Math.random() * results.reduce((sum, item) => sum + item.weight, 0); const result = results.find((item) => { roll -= item.weight; return roll < 0; }) || results[results.length - 1]; result.apply(); this.energy = Math.min(300, this.energy + result.refund); this.setData({ energy: this.energy, modal: 'fortune', modalTitle: '转运签', fortuneResult: result.label, fortuneRefund: result.refund }); this.addLog(`转运签：${result.label}`); this.syncGame(); },
+  useSkill() { if (!this.skillReady) return; this.enemies.slice().forEach((enemy) => this.damageEnemy(enemy, 160 * this.formationBonus() * 1.3, { dmgType: 'true', breakShield: true, splash: true })); this.skillReady = false; this.setData({ skillReady: false }); this.addLog('羁绊技发动：全场真伤，封印暂获喘息。'); },
+  closeModal() { this.setData({ modal: '' }); }, togglePause() { this.setData({ paused: !this.data.paused }); }, toggleSpeed() { this.setData({ speed: this.data.speed === 1 ? 2 : 1 }); },
+  backToSelect() { this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); this.canvas = null; this.ctx = null; this.setData({ screen: 'select', modal: '' }); this.prepareSelection(); }, replayGame() { this.startGame(); }, addLog(message) { this.logs = [message, ...(this.logs || this.data.logs || [])].slice(0, 3); this.setData({ logs: this.logs }); }, saveProgress() { wx.setStorageSync('shan-hai-mini-save', { tier: this.tier, discovered: Array.from(this.discovered) }); }, syncGame() { this.setData({ hp: Math.max(0, this.hp), energy: Math.floor(this.energy), kills: this.kills, wave: Math.min(this.waveIndex + 1, this.totalWaves), fieldCount: this.towers.length, waveDots: Array(this.totalWaves).fill(0) }); },
+  finishGame(won) { if (this.finished) return; this.finished = true; this.frameActive = false; if (this.frameTimer) clearTimeout(this.frameTimer); const reward = won ? 30 + this.selectedStage * 12 : 0; if (won) { this.tier = Math.max(this.tier, 1 + Math.floor((this.kills + reward) / 30)); this.saveProgress(); } this.setData({ screen: 'result', result: { won, kills: this.kills, combo: this.bestCombo, xp: reward, copy: won ? `你守住了${LEVELS[this.selectedStage].name}的封印。` : '裂隙仍在扩大，重新召灵并调整阵型。' } }); },
+  frame() { if (!this.frameActive) return; const now = Date.now(); const dt = Math.min(.05, (now - this.lastFrame) / 1000 || 0); this.lastFrame = now; if (this.data.screen === 'game' && !this.data.paused && !this.finished) { this.update(dt); if ((this.frameCount = (this.frameCount || 0) + 1) % 2 === 0) this.syncGame(); } this.draw(); this.frameTimer = setTimeout(() => this.frame(), 33); },
+  draw() { if (!this.ctx) return; const ctx = this.ctx; ctx.clearRect(0, 0, 960, 540); ctx.fillStyle = '#182426'; ctx.fillRect(0, 0, 960, 540); const background = this.stageBackgrounds && this.stageBackgrounds[this.selectedStage]; if (background && background.ready) { ctx.globalAlpha = .96; ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, 960, 540); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(20,30,28,.12)'; ctx.fillRect(0, 0, 960, 540); } this.routeList().forEach((route) => { ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#152020'; ctx.lineWidth = 76; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(); ctx.beginPath(); route.forEach((point, index) => index ? ctx.lineTo(point[0], point[1]) : ctx.moveTo(point[0], point[1])); ctx.strokeStyle = '#b99b67'; ctx.lineWidth = 62; ctx.stroke(); ctx.strokeStyle = 'rgba(245,224,170,.45)'; ctx.lineWidth = 3; ctx.setLineDash([8, 11]); ctx.stroke(); ctx.setLineDash([]); }); ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = '#e4b45d'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(74, 108, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#f4d891'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('封印', 74, 112); this.routeList().forEach((route) => { ctx.strokeStyle = '#d86c4e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(route[0][0], route[0][1], 22, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#d86c4e'; ctx.fillText('裂口', route[0][0], route[0][1] + 4); }); this.towers.forEach((tower) => { const def = ROSTER.find((item) => item.id === tower.id); const index = def.portraitIndex; ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.beginPath(); ctx.ellipse(tower.x, tower.y + 22, 28, 8, 0, 0, Math.PI * 2); ctx.fill(); if (this.beastAtlasReady) { const cellW = this.beastAtlas.width / 6; const cellH = this.beastAtlas.height / 5; ctx.save(); ctx.beginPath(); ctx.arc(tower.x, tower.y, 27, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.beastAtlas, (index % 6) * cellW, Math.floor(index / 6) * cellH, cellW, cellH, tower.x - 28, tower.y - 28, 56, 56); ctx.restore(); } ctx.strokeStyle = RARITY_COLOR[def.rarity]; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(tower.x, tower.y, 28, 0, Math.PI * 2); ctx.stroke(); }); this.enemies.forEach((enemy) => { const radius = enemy.def.radius * 1.35; const index = Object.keys(ENEMIES).indexOf(enemy.type); if (this.enemyAtlasReady) { const cellW = this.enemyAtlas.width / 5; const cellH = this.enemyAtlas.height / 2; ctx.save(); ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(this.enemyAtlas, (index % 5) * cellW, Math.floor(index / 5) * cellH, cellW, cellH, enemy.x - radius, enemy.y - radius, radius * 2, radius * 2); ctx.restore(); } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(enemy.x, enemy.y, radius, 0, Math.PI * 2); ctx.fill(); } ctx.strokeStyle = enemy.shield > 0 ? '#b5e8e6' : '#1c2829'; ctx.lineWidth = enemy.shield > 0 ? 3 : 1; ctx.stroke(); ctx.fillStyle = '#293535'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2, 4); ctx.fillStyle = '#76c1a5'; ctx.fillRect(enemy.x - radius, enemy.y - radius - 10, radius * 2 * Math.max(0, enemy.hp / enemy.maxHp), 4); }); this.projectiles.forEach((projectile) => { ctx.fillStyle = projectile.def.color; ctx.beginPath(); ctx.arc(projectile.x, projectile.y, 4, 0, Math.PI * 2); ctx.fill(); }); },
 });

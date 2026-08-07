@@ -13,6 +13,13 @@ const stageBackgrounds = [
   './assets/background-volcano.png',
   './assets/background-heaven.png',
 ].map((src) => { const image = document.createElement('img'); image.src = src; return image; });
+const ROAD_PALETTES = [
+  ['#5b4630', '#bea06a', '#f1dca6'],
+  ['#493b2b', '#b58e55', '#e5c98b'],
+  ['#3d5554', '#91aaa4', '#d3e0d8'],
+  ['#2c211d', '#594139', '#e08a4d'],
+  ['#596364', '#b9c9c3', '#edf0da'],
+];
 const beastAtlas = document.createElement('img');
 beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
@@ -23,6 +30,28 @@ const combatSpriteSources = {
   jiuwei: './assets/sprites/jiuwei.png',
   tiangou: './assets/sprites/tiangou.png',
   xuangui: './assets/sprites/xuangui.png',
+  shengsheng: './assets/sprites/shengsheng.png',
+  kaiming: './assets/sprites/kaiming.png',
+  bo: './assets/sprites/bo.png',
+  zheng: './assets/sprites/zheng.png',
+  qiuniu: './assets/sprites/qiuniu.png',
+  yazi: './assets/sprites/yazi.png',
+  chaofeng: './assets/sprites/chaofeng.png',
+  pulao: './assets/sprites/pulao.png',
+  suanni: './assets/sprites/suanni.png',
+  bixi: './assets/sprites/bixi.png',
+  bian: './assets/sprites/bian.png',
+  fuxi_long: './assets/sprites/fuxi_long.png',
+  chiwen: './assets/sprites/chiwen.png',
+  dayu: './assets/sprites/dayu.png',
+  gonggong: './assets/sprites/gonggong.png',
+  qinglong: './assets/sprites/qinglong.png',
+  baihu: './assets/sprites/baihu.png',
+  zhuque: './assets/sprites/zhuque.png',
+  xuanwu: './assets/sprites/xuanwu.png',
+  huangdi: './assets/sprites/huangdi.png',
+  fuxi: './assets/sprites/fuxi.png',
+  nuwa: './assets/sprites/nuwa.png',
   xingxing: './assets/sprites/xingxing.png',
   fei: './assets/sprites/fei.png',
   bashe: './assets/sprites/bashe.png',
@@ -36,6 +65,11 @@ const combatSpriteSources = {
 const combatSprites = Object.fromEntries(Object.entries(combatSpriteSources).map(([id, src]) => {
   const image = document.createElement('img');
   image.src = src;
+  return [id, image];
+}));
+const fxSprites = Object.fromEntries(['summon-ritual', 'hit-spark', 'spawn-fissure', 'seal-monument'].map((id) => {
+  const image = document.createElement('img');
+  image.src = `./assets/fx/${id}.png`;
   return [id, image];
 }));
 
@@ -93,9 +127,7 @@ const BEASTS = {
 const BOND_DEFS = [
   { id: 'wild', name: '山野同气', members: ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'], need: 3, stat: 'power', bonus: .14, stepBonus: .07, shape: 'triangle', color: '#d98a67', ult: '焚野', ultMul: 2.2 },
   { id: 'fierce', name: '山海猛兽', members: ['zheng', 'kaiming', 'bo', 'shengsheng'], need: 2, stat: 'haste', bonus: .12, stepBonus: .06, shape: 'line', color: '#e1ac65', ult: '猎潮', ultMul: 2 },
-  { id: 'dragon-tide', name: '龙子·镇涛', members: ['pulao', 'chiwen', 'bixi'], need: 3, stat: 'enemySlow', bonus: .15, stepBonus: 0, shape: 'line', color: '#5bacc4', ult: '镇涛龙吟', skill: 'tide', cooldown: 7 },
-  { id: 'dragon-roar', name: '龙子·震吼', members: ['bian', 'yazi', 'chaofeng'], need: 3, stat: 'sunder', bonus: .18, stepBonus: 0, shape: 'triangle', color: '#ca8b67', ult: '震吼破甲', skill: 'roar', cooldown: 7 },
-  { id: 'dragon-fire', name: '龙子·焚天', members: ['suanni', 'qiuniu', 'fuxi_long'], need: 3, stat: 'power', bonus: .16, stepBonus: 0, shape: 'triangle', color: '#df7152', ult: '焚天龙焰', skill: 'fire', cooldown: 7 },
+  { id: 'dragon', name: '龙生九子', members: ['qiuniu', 'yazi', 'chaofeng', 'pulao', 'suanni', 'bixi', 'bian', 'fuxi_long', 'chiwen'], need: 3, stat: 'haste', bonus: .12, stepBonus: .045, shape: 'square', color: '#9f7dbb', ult: '九子降龙阵', ultMul: 2.6 },
   { id: 'sishou', name: '四象归位', members: ['qinglong', 'baihu', 'zhuque', 'xuanwu'], need: 2, stat: 'range', bonus: .1, stepBonus: .06, shape: 'square', color: '#65b7af', ult: '四象天门', ultMul: 3.4 },
   { id: 'renzu', name: '人祖开天', members: ['huangdi', 'fuxi', 'nuwa'], need: 2, stat: 'cdr', bonus: .16, stepBonus: .1, shape: 'triangle', color: '#d4a355', ult: '开天', ultMul: 3 },
   { id: 'zhishui', name: '治水之争', members: ['dayu', 'gonggong'], need: 2, stat: 'sunder', bonus: .16, stepBonus: 0, shape: 'line', color: '#66a9c3', ult: '怒海分流', ultMul: 2.8 },
@@ -116,11 +148,11 @@ const ENEMIES = {
 };
 
 const LEVELS = [
-  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', accent: '#75c9c0', path: 'cave', spawnCount: 1, seals: [[74, 108]], spawnPoints: [[884, 430]] },
-  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', hpMul: 1.25, spdMul: 1.05, essence: 62, tint: '#7d9d81', accent: '#d8bc74', path: 'grass', spawnCount: 1, seals: [[74, 402]], spawnPoints: [[884, 402]] },
-  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', hpMul: 1.55, spdMul: 1.1, essence: 70, tint: '#5b8e9c', accent: '#9ed6d0', path: 'sea', spawnCount: 1, seals: [[74, 152]], spawnPoints: [[884, 270]] },
-  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', hpMul: 1.9, spdMul: 1.15, essence: 78, tint: '#b56454', accent: '#f2b35e', path: 'volcano', spawnCount: 2, seals: [[74, 104], [74, 436]], spawnPoints: [[884, 118], [884, 422]] },
-  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', hpMul: 2.3, spdMul: 1.2, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 88], [74, 452]], spawnPoints: [[884, 118], [884, 422]] },
+  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', from: 0, to: 8, hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', accent: '#75c9c0', path: 'cave', spawnCount: 1, seals: [[74, 108]], spawnPoints: [[884, 430]] },
+  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', from: 4, to: 13, hpMul: 1.25, spdMul: 1.05, essence: 62, tint: '#7d9d81', accent: '#d8bc74', path: 'grass', spawnCount: 1, seals: [[74, 402]], spawnPoints: [[884, 402]] },
+  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', from: 8, to: 17, hpMul: 1.55, spdMul: 1.1, essence: 70, tint: '#5b8e9c', accent: '#9ed6d0', path: 'sea', spawnCount: 1, seals: [[74, 152]], spawnPoints: [[884, 270]] },
+  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', from: 12, to: 21, hpMul: 1.9, spdMul: 1.15, essence: 78, tint: '#b56454', accent: '#f2b35e', path: 'volcano', spawnCount: 2, seals: [[74, 104], [74, 436]], spawnPoints: [[884, 118], [884, 422]] },
+  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', from: 9, to: 21, hpMul: 2.3, spdMul: 1.2, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 88], [74, 452]], spawnPoints: [[884, 118], [884, 422]] },
 ];
 
 const WAVES = [
@@ -131,15 +163,25 @@ const WAVES = [
   [['shanxiao', 6, .85, 0, 1], ['bashe', 4, 1.1, 2, 1.1]], [['huali', 10, .72, 0, 1.1], ['zhuyan', 2, 0, 5, 1]], [['fei', 15, .5, 0, 1.2], ['wangliang', 4, 1, 2, 1]],
   [['bashe', 7, .9, 0, 1.2], ['shanxiao', 7, .7, 1, 1.2]], [['zhuyan', 3, 0, 0, 1.2], ['huali', 10, .72, 2, 1.2]], [['taotie', 1, 0, 0, 1.15], ['xingxing', 16, .44, 1, 1.25]],
   [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]], [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]],
+  [['wangliang', 6, .7, 0, 1.3], ['huali', 5, .8, 4, 1.3], ['shanxiao', 6, .65, 8, 1.4], ['zhuyan', 3, 2, 12, 1.3]],
 ];
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'essenceLabel', 'killLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const WAVE_META = [
+  [10, 20, '狌狌自裂口显形'], [9, 15, '飞廉高速突进'], [9, 10, '巴蛇披甲：准备破盾'], [9, 10, '魍魉隐匿：进入射程后显形'],
+  [9, 10, '多组敌军交错来袭'], [9, 12, '化蛇免疫法术：调配物理火力'], [16, 0, '朱厌临卷：护盾需要破盾克制'], [10, 0, '山魈倒下后会分裂'],
+  [9, 0, '巴蛇与飞廉混编'], [9, 0, '化蛇与魍魉同至'], [12, 0, '双朱厌压境'], [9, 0, '山魈与巴蛇夹攻'],
+  [12, 0, '高阶化蛇护住朱厌'], [9, 0, '飞廉群高速冲阵'], [10, 0, '重甲与分裂敌群混编'], [12, 0, '朱厌率化蛇来袭'],
+  [16, 0, '饕餮临卷：会周期自愈'], [16, 0, '白泽临卷：倒下后复活一次'], [12, 0, '朱厌与山魈大军'], [18, 0, '双首领与化蛇终阵'],
+  [15, 0, '七技齐至：全场混编'],
+].map(([rest, bonus, hint]) => ({ rest, bonus, hint }));
+
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 const state = {
-  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 0,
-  paused: false, resumeAfterDialog: false, draggingUnitId: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
-  energy: 0, maxHp: 10, hp: 10, kills: 0, combo: 0, bestCombo: 0, waveStarted: false,
-  towers: [], enemies: [], projectiles: [], particles: [], damageTexts: [], logs: [], mouse: { x: 480, y: 270, inside: false },
+  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 0, soundEnabled: true,
+  paused: false, resumeAfterDialog: false, draggingUnitId: null, draggingTowerIndex: -1, selectedTowerUid: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
+  energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScore: 0, combo: 0, bestCombo: 0, waveStarted: false,
+  towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], logs: [], mouse: { x: 480, y: 270, inside: false },
   skillCooldowns: {}, skillBond: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], advancedBatch: [], lastSign: null,
 };
 
@@ -147,12 +189,42 @@ const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, s
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const currentLevel = () => LEVELS[state.stage];
+const totalWaves = (level = currentLevel()) => level.to - level.from;
+const globalWaveIndex = () => currentLevel().from + state.wave;
 const levelSeals = (level = currentLevel()) => level.seals || [[arena.sealX, arena.sealY]];
 const levelSpawns = (level = currentLevel()) => level.spawnPoints || [[884, 270]];
 const beastDef = (id) => ({ ...ROSTER.find((item) => item.id === id), ...BEASTS[id] });
 const cultivation = () => CULTIVATION_STAGES[state.tier] || CULTIVATION_STAGES[0];
 const cultivationTierFor = (kills) => CULTIVATION_STAGES.reduce((tier, stage, index) => (kills >= stage.kills ? index : tier), 0);
 const hasCombatSprite = (id) => Boolean(combatSpriteSources[id]);
+let audioContext = null;
+
+function playSound(kind) {
+  if (!state.soundEnabled) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  audioContext ||= new AudioContext();
+  if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+  const patterns = {
+    summon: [[320, 520, .16], [470, 760, .2]], deploy: [[180, 330, .12]],
+    skill: [[240, 820, .28], [360, 1100, .24]], breach: [[130, 54, .24]],
+    fortune: [[260, 390, .15], [390, 590, .18]], victory: [[330, 520, .18], [520, 780, .24]],
+  };
+  const start = audioContext.currentTime;
+  (patterns[kind] || []).forEach(([from, to, duration], index) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const at = start + index * .055;
+    oscillator.type = kind === 'breach' ? 'sawtooth' : 'sine';
+    oscillator.frequency.setValueAtTime(from, at);
+    oscillator.frequency.exponentialRampToValueAtTime(to, at + duration);
+    gain.gain.setValueAtTime(.0001, at);
+    gain.gain.exponentialRampToValueAtTime(kind === 'breach' ? .07 : .045, at + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
+    oscillator.connect(gain).connect(audioContext.destination);
+    oscillator.start(at); oscillator.stop(at + duration + .02);
+  });
+}
 
 function portraitMarkup(beast) {
   const portraitX = beast.portraitIndex % 6;
@@ -219,6 +291,7 @@ function loadSave() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
     state.xp = Number(saved.xp) || 0;
+    state.bestScore = Number(saved.bestScore) || 0;
     state.tier = cultivationTierFor(state.xp);
     state.unlocked = new Set([...(saved.unlocked || STARTER_IDS), ...STARTER_IDS]);
   } catch {
@@ -227,12 +300,13 @@ function loadSave() {
 }
 
 function saveProgress() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify({ xp: state.xp, tier: state.tier, unlocked: [...state.unlocked] }));
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ xp: state.xp, tier: state.tier, bestScore: state.bestScore, unlocked: [...state.unlocked] }));
   document.querySelector('#save-status').textContent = '本地存档已更新';
 }
 
 function showScreen(name) {
   state.screen = name;
+  document.body.dataset.screen = name;
   refs.selectScreen.classList.toggle('is-hidden', name !== 'select');
   refs.gameScreen.classList.toggle('is-hidden', name !== 'game');
   refs.resultScreen.classList.toggle('is-hidden', name !== 'result');
@@ -250,7 +324,7 @@ function renderSelect() {
   refs.bondPreviewList.innerHTML = BOND_DEFS.map((bond) => `<div class="bond-row"><i class="bond-pill ${bond.members.includes(state.selectedBeast) ? 'active' : ''}" style="--bond:${bond.color}"></i><span>${bond.name}</span><strong>${bond.need}人 · ${bond.stat === 'power' ? '攻击' : bond.stat === 'haste' ? '攻速' : '范围'}</strong></div>`).join('');
   refs.codexCount.textContent = `${state.unlocked.size} / ${ROSTER.length}`;
   refs.cultivationSummary.textContent = `${cultivation().name} · 全局战力 ×${(1 + cultivation().power).toFixed(2)}`;
-  refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · 0${state.stage + 1} · ${chosen.name}待命`;
+  refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · 第 ${state.stage + 1} 关 · ${totalWaves(LEVELS[state.stage])} 波`;
 }
 
 function addLog(message) {
@@ -372,6 +446,7 @@ function claimSummonOffer(index) {
   state.selectedUnitId = state.backpack.some((unit) => unit.uid === result.unit.uid) ? result.unit.uid : null;
   state.summonOffers = [];
   closeGameDialog(refs.summonDialog);
+  playSound('summon');
   if (state.tutorialStep === 0 && !result.promotions) { state.tutorialStep = 1; refs.arenaHint.textContent = '妖灵已入阵：点击下方妖灵卡，再点击道路两侧的空地布阵。'; }
   addLog(result.promotions ? `${beast.name}同种同阶合成，升至 Lv.${result.unit.level}。` : `${beast.name}已入阵，拖动卡牌到路边，或直接点击战场布阵。`);
   renderGameRoster();
@@ -384,11 +459,16 @@ function renderAdvancedResults() {
 
 function advancedSummon() {
   if (state.screen !== 'game' || state.paused) return;
+  if (state.advancedBatch.length) { renderAdvancedResults(); showGameDialog(refs.advancedDialog); return; }
   if (state.energy < ADVANCED_SUMMON_COST) { addLog(`灵蕴不足，需要 ${ADVANCED_SUMMON_COST} 点进行高级五连。`); return; }
   if (state.backpack.length + 5 > MAX_BACKPACK) { addLog('背包至少需要留出 5 个位置，才能进行高级五连。'); return; }
   const advancedWeights = [[0, 22], [1, 28], [2, 33], [3, 13], [4, 4]];
   state.energy -= ADVANCED_SUMMON_COST;
-  state.advancedBatch = Array.from({ length: 5 }, () => createUnit(randomSummon(advancedWeights)));
+  const guaranteedWeights = [[2, 76], [3, 19], [4, 5]];
+  state.advancedBatch = [
+    ...Array.from({ length: 4 }, () => createUnit(randomSummon(advancedWeights))),
+    createUnit(randomSummon(guaranteedWeights)),
+  ].sort(() => Math.random() - .5);
   renderAdvancedResults();
   refs.advancedClaim.textContent = '入卷 · 自动合成';
   showGameDialog(refs.advancedDialog);
@@ -422,6 +502,7 @@ function claimAdvancedBatch() {
   });
   state.selectedUnitId = state.backpack[0]?.uid || null;
   closeGameDialog(refs.advancedDialog);
+  playSound('summon');
   addLog(`高级五连入卷：${promotions ? `同种同阶升级 ${promotions} 次，` : ''}其余妖灵已入背包。`);
   state.advancedBatch = [];
   renderGameRoster();
@@ -430,19 +511,20 @@ function claimAdvancedBatch() {
 
 function initGame() {
   state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
-  state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.combo = 0; state.bestCombo = 0;
-  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.damageTexts = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.resumeAfterDialog = false; state.draggingUnitId = null;
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `第 ${state.stage + 1} 关`; refs.arenaHint.textContent = `点下方「召灵」请出 1 只异兽布阵，15s 后${currentLevel().spawnCount > 1 ? '两道裂口' : '右侧裂口'}将同时涌出敌军`; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
+  state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.score = 0; state.combo = 0; state.bestCombo = 0;
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.advancedBatch = []; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.selectedTowerUid = null;
+  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.arenaHint.textContent = `点下方「召灵」请出异兽，15 秒后${currentLevel().spawnCount > 1 ? '两道裂口' : '右侧裂口'}涌出敌军`; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function startWave() {
-  if (state.wave >= 21 || state.wave >= 8 + state.stage * 3) return;
-  const groups = WAVES[state.wave];
+  if (state.wave >= totalWaves()) return;
+  const groups = WAVES[globalWaveIndex()];
+  const meta = WAVE_META[globalWaveIndex()];
   state.spawning = groups.map(([type, count, gap, delay, hpMul], index) => ({ type, count, gap, delay, hpMul, spawned: 0, timer: delay, route: index % pathInfo().length }));
   state.phase = 'combat'; state.waveStarted = true; state.waveTimer = 0;
-  refs.waveLabel.textContent = `${state.wave + 1} / ${8 + state.stage * 3}`;
-  refs.arenaHint.textContent = `第 ${state.wave + 1} 波敌群来袭，避开道路在两侧布置妖灵。`;
-  addLog(`第 ${state.wave + 1} 波：${groups.length > 1 ? '多组敌人交错出现' : '敌群进入道路'}`);
+  refs.waveLabel.textContent = `${state.wave + 1} / ${totalWaves()}`;
+  refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint}`;
+  addLog(`第 ${state.wave + 1} 波：${meta.hint}`);
 }
 
 function spawnFromGroups(dt) {
@@ -467,10 +549,12 @@ function spawnFromGroups(dt) {
     }
   });
   if (allDone && state.enemies.length === 0) {
+    const completedMeta = WAVE_META[globalWaveIndex()];
+    state.energy += completedMeta.bonus;
     state.spawning = null; state.wave += 1;
-    if (state.wave >= 8 + state.stage * 3) { finishGame(true); return; }
-    state.phase = 'rest'; state.waveCooldown = 7;
-    addLog(`第 ${state.wave + 1} 波前喘息 ${state.waveCooldown} 秒，可调整背包和阵型。`);
+    if (state.wave >= totalWaves()) { finishGame(true); return; }
+    state.phase = 'rest'; state.waveCooldown = completedMeta.rest;
+    addLog(`第 ${state.wave + 1} 波前喘息 ${state.waveCooldown} 秒${completedMeta.bonus ? `，奖励 ${completedMeta.bonus} 灵蕴` : ''}。`);
   }
 }
 
@@ -478,13 +562,22 @@ function activeSignEffect(type) {
   return state.signEffects.find((effect) => effect.type === type);
 }
 
-function spawnEnemy(type, hpMul, routeIndex = 0) {
-  const def = ENEMIES[type]; const route = pathInfo()[routeIndex] || pathInfo()[0];
+function refreshEnemyModifiers(enemy) {
   const enemyBlessing = activeSignEffect('enemyBuff');
   const enemyDebuff = activeSignEffect('enemyDebuff');
+  enemy.speed = enemy.def.speed * currentLevel().spdMul * (enemyBlessing ? 1.16 : 1) * (enemyDebuff ? .72 : 1);
+  enemy.armor = Math.max(0, (enemy.def.armor || 0) + (enemyBlessing ? 5 : 0) - (enemyDebuff ? 8 : 0));
+}
+
+function spawnEnemy(type, hpMul, routeIndex = 0, distanceAlong = 0) {
+  const def = ENEMIES[type]; const route = pathInfo()[routeIndex] || pathInfo()[0];
+  const enemyBlessing = activeSignEffect('enemyBuff');
   const hp = def.hp * currentLevel().hpMul * hpMul * (enemyBlessing ? 1.18 : 1);
-  const enemy = { type, def, x: route.sx, y: route.sy, d: 0, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp, maxHp: hp, speed: def.speed * currentLevel().spdMul * (enemyBlessing ? 1.16 : 1) * (enemyDebuff ? .72 : 1), radius: def.radius, shield: def.shield || 0, armor: Math.max(0, (def.armor || 0) + (enemyBlessing ? 5 : 0) - (enemyDebuff ? 8 : 0)), slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
+  const point = interpolatePath(route.points, distanceAlong);
+  const enemy = { type, def, x: point.x, y: point.y, d: distanceAlong, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp, maxHp: hp, speed: def.speed, radius: def.radius, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
+  refreshEnemyModifiers(enemy);
   state.enemies.push(enemy);
+  return enemy;
 }
 
 function incomingDamage(enemy) { return state.projectiles.reduce((sum, projectile) => projectile.target === enemy ? sum + projectile.amount : sum, 0); }
@@ -493,17 +586,19 @@ function bondsForTowers() {
   const totals = { power: 0, haste: 0, range: 0, cdr: 0, sunder: 0, enemySlow: 0 };
   const active = [];
   for (const bond of BOND_DEFS) {
-    const members = state.towers.filter((tower) => bond.members.includes(tower.id));
+    const members = bond.members.map((id) => state.towers.find((tower) => tower.id === id)).filter(Boolean);
     if (members.length < bond.need) continue;
-    const formation = formationScore(bond.shape, members);
+    const formationCount = bond.shape === 'triangle' ? 3 : bond.shape === 'square' ? 4 : 2;
+    const formation = members.length < formationCount ? 1 : formationScore(bond.shape, members);
     const formed = formation >= .5;
+    const full = members.length >= bond.members.length;
     const contribution = bond.bonus + Math.max(0, members.length - bond.need) * bond.stepBonus;
     const adjusted = formed ? contribution : contribution * .5;
     totals[bond.stat] += adjusted;
-    active.push({ ...bond, members, formation, formed, adjusted });
+    active.push({ ...bond, members, formation, formed, full, ultReady: Boolean(bond.ult && full && formed), adjusted });
   }
   totals.power = Math.min(1.2, totals.power); totals.haste = Math.min(.7, totals.haste); totals.range = Math.min(.45, totals.range); totals.cdr = Math.min(.6, totals.cdr); totals.sunder = Math.min(.45, totals.sunder); totals.enemySlow = Math.min(.45, totals.enemySlow);
-  const skillBonds = active.filter((bond) => bond.ult && bond.formed && bond.members.length >= bond.need);
+  const skillBonds = active.filter((bond) => bond.ultReady);
   state.skillBond = skillBonds.find((bond) => bond.id === state.skillBond?.id) || skillBonds[0] || null;
   return { totals, active };
 }
@@ -511,29 +606,25 @@ function bondsForTowers() {
 function formationScore(shape, members) {
   if (members.length < 2) return 0;
   const points = members.map((member) => ({ x: member.x, y: member.y }));
-  const center = points.reduce((out, point) => ({ x: out.x + point.x / points.length, y: out.y + point.y / points.length }), { x: 0, y: 0 });
-  const radii = points.map((point) => Math.hypot(point.x - center.x, point.y - center.y));
-  const radius = radii.reduce((sum, value) => sum + value, 0) / radii.length;
   const spread = Math.max(...points.map((a) => Math.max(...points.map((b) => dist(a, b)))));
-  if (shape === 'cluster') return spread < 50 ? 1 : spread > 210 ? 0 : clamp(1 - (spread - 50) / 160, 0, 1);
+  if (shape === 'cluster') return spread < 50 ? 0 : clamp(1 - Math.max(0, spread - 210) / 210, 0, 1);
   if (shape === 'line') {
     const horizontal = Math.max(...points.map((p) => p.x)) - Math.min(...points.map((p) => p.x));
     const vertical = Math.max(...points.map((p) => p.y)) - Math.min(...points.map((p) => p.y));
-    return Math.max(horizontal, vertical) < 60 ? 0 : clamp(1 - Math.min(horizontal, vertical) / 64, 0, 1);
+    return horizontal < 60 ? 0 : clamp(1 - vertical / 64, 0, 1);
   }
-  if (shape === 'triangle') {
-    if (members.length < 3 || radius < 45) return 0;
-    const angular = points.map((point) => Math.atan2(point.y - center.y, point.x - center.x)).sort((a, b) => a - b);
-    const gaps = angular.map((angle, index) => (angular[(index + 1) % angular.length] - angle + Math.PI * 2) % (Math.PI * 2));
-    return clamp(Math.min(1 - (Math.max(...radii) - Math.min(...radii)) / 42, 1 - Math.abs(Math.max(...gaps) - Math.PI * 2 / 3) / 1.8), 0, 1);
-  }
-  if (shape === 'square') {
-    if (members.length < 4 || radius < 45) return 0;
-    const angular = points.map((point) => Math.atan2(point.y - center.y, point.x - center.x)).sort((a, b) => a - b);
-    const gaps = angular.map((angle, index) => (angular[(index + 1) % angular.length] - angle + Math.PI * 2) % (Math.PI * 2));
-    return clamp(Math.min(1 - (Math.max(...radii) - Math.min(...radii)) / 42, 1 - Math.abs(Math.max(...gaps) - Math.PI / 2) / 1.5), 0, 1);
-  }
-  return 1;
+  const count = shape === 'triangle' ? 3 : 4;
+  const use = points.slice(0, count);
+  if (use.length < count) return 1;
+  const center = use.reduce((out, point) => ({ x: out.x + point.x / count, y: out.y + point.y / count }), { x: 0, y: 0 });
+  const radii = use.map((point) => Math.hypot(point.x - center.x, point.y - center.y));
+  const radius = radii.reduce((sum, value) => sum + value, 0) / count;
+  if (radius < 45) return 0;
+  const radiusDeviation = Math.max(...radii.map((value) => Math.abs(value - radius) / radius));
+  const angles = use.map((point) => Math.atan2(point.y - center.y, point.x - center.x)).sort((a, b) => a - b);
+  const targetGap = Math.PI * 2 / count;
+  const angularDeviation = Math.max(...angles.map((angle, index) => Math.abs(((angles[(index + 1) % count] - angle + Math.PI * 2) % (Math.PI * 2)) - targetGap) / targetGap));
+  return clamp(Math.min(1 - radiusDeviation / .8, 1 - angularDeviation / .8), 0, 1);
 }
 
 function updateTowers(dt) {
@@ -541,7 +632,7 @@ function updateTowers(dt) {
   const allyBlessing = activeSignEffect('allyBuff');
   state.towers.forEach((tower) => {
     const def = beastDef(tower.id);
-    tower.cd -= dt * state.speed * (1 + bondState.totals.haste + (allyBlessing ? .2 : 0));
+    tower.cd -= dt * (1 + bondState.totals.haste + (allyBlessing ? .2 : 0));
     if (tower.cd > 0) return;
     const range = def.range * (1 + bondState.totals.range);
     let target = state.enemies.filter((enemy) => enemy.hp > 0 && enemy.stealthTimer <= 0 && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range && enemy.hp - incomingDamage(enemy) > 0).sort((a, b) => b.d - a.d)[0];
@@ -603,7 +694,7 @@ function applyProjectile(projectile) {
 function updateProjectiles(dt) {
   state.projectiles = state.projectiles.filter((projectile) => {
     if (!projectile.target || projectile.target.hp <= 0) return false;
-    const dx = projectile.target.x - projectile.x; const dy = projectile.target.y - projectile.y; const distance = Math.hypot(dx, dy); const step = projectile.speed * dt * state.speed;
+    const dx = projectile.target.x - projectile.x; const dy = projectile.target.y - projectile.y; const distance = Math.hypot(dx, dy); const step = projectile.speed * dt;
     projectile.x += dx / Math.max(distance, 1) * step; projectile.y += dy / Math.max(distance, 1) * step;
     projectile.trail.push({ x: projectile.x, y: projectile.y }); if (projectile.trail.length > 5) projectile.trail.shift();
     if (distance < step + projectile.target.radius) { applyProjectile(projectile); return false; }
@@ -618,11 +709,12 @@ function updateEnemies(dt) {
     enemy.slowTimer -= dt; if (enemy.slowTimer <= 0) enemy.slow = 0;
     enemy.stealthTimer -= dt; enemy.stunned = Math.max(0, (enemy.stunned || 0) - dt);
     if (enemy.burnTimer > 0) { enemy.burnTimer -= dt; damageEnemy(enemy, enemy.burnDps * dt, { dmgType: 'true', counters: [], color: '#eb8d4f', burn: false }); }
+    if (enemy.hp <= 0) continue;
     if (enemy.def.skill === 'heal') { enemy.skillTimer -= dt; if (enemy.skillTimer <= 0) { enemy.skillTimer = 7; const heal = enemy.maxHp * .08; enemy.hp = Math.min(enemy.maxHp, enemy.hp + heal); addDamageText(enemy.x, enemy.y - 20, `+${Math.round(heal)}`, '#83c8a7'); } }
     if (enemy.stunned > 0) continue;
     const route = enemy.routePoints; const next = interpolatePath(route, enemy.d); enemy.x = next.x; enemy.y = next.y;
-    enemy.d += enemy.speed * (1 - enemy.slow) * (1 - totals.enemySlow) * dt * state.speed;
-    if (enemy.d >= enemy.routeLength) { enemy.hp = 0; state.hp -= enemy.def.boss ? 2 : 1; state.combo = 0; addLog(`${enemy.def.name}冲过了封印，完整度下降。`); }
+    enemy.d += enemy.speed * (1 - enemy.slow) * (1 - totals.enemySlow) * dt;
+    if (enemy.d >= enemy.routeLength) { enemy.hp = 0; state.hp -= enemy.def.boss ? 2 : 1; state.combo = 0; playSound('breach'); addLog(`${enemy.def.name}冲过了封印，完整度下降。`); }
   }
   state.enemies = state.enemies.filter((enemy) => enemy.hp > 0);
   if (state.hp <= 0) finishGame(false);
@@ -632,23 +724,25 @@ function killEnemy(enemy) {
   if (enemy.def.skill === 'revive' && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * .35; enemy.shield = 120; addLog(`${enemy.def.name}触发复活，获得临时护盾。`); return; }
   if (enemy.def.skill === 'split' && !enemy.split) {
     enemy.split = true;
-    for (let i = 0; i < 2; i += 1) spawnEnemy('xingxing', .55, enemy.route);
+    for (let i = 0; i < 2; i += 1) spawnEnemy('xingxing', .55, enemy.route, enemy.d);
   }
-  state.kills += enemy.def.reward; state.combo += 1; state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(9999, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.def.boss ? 18 : 8);
+  state.kills += enemy.def.reward; state.combo += 1; state.score += enemy.def.reward * 100 + Math.min(100, state.combo * 5); state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(9999, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.def.boss ? 18 : 8);
 }
 
 function finishGame(won) {
   if (state.screen !== 'game') return;
   state.screen = 'finishing'; state.finishTimer = 0;
+  if (won) playSound('victory');
   if (won) { const unlock = ROSTER.find((beast) => !state.unlocked.has(beast.id) && beast.rarity <= Math.min(4, state.stage + 1)); if (unlock) state.unlocked.add(unlock.id); }
+  state.bestScore = Math.max(state.bestScore, state.score);
   state.tier = cultivationTierFor(state.xp);
   saveProgress();
-  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破'; refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`; refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.kills}`; refs.resultCombo.textContent = state.bestCombo; refs.resultCopy.textContent = won ? `你在${currentLevel().name}完成了 ${8 + state.stage * 3} 波防守。阵型、伤害类型和出怪口之间的取舍已经生效。` : '本局击杀已计入修为。优先补上交叉火力，再处理护盾与隐匿敌人。'; showScreen('result');
+  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破'; refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`; refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.kills}`; refs.resultCombo.textContent = state.bestCombo; refs.resultCopy.textContent = won ? `你在${currentLevel().name}完成了 ${totalWaves()} 波防守。阵型、伤害类型和出怪口之间的取舍已经生效。` : '本局击杀已计入修为。优先补上交叉火力，再处理护盾与隐匿敌人。'; showScreen('result');
 }
 
 function addDamageText(x, y, text, color) { state.damageTexts.push({ x, y, text, color, life: 1 }); }
-function burst(x, y, color, count = 6) { for (let i = 0; i < count; i += 1) state.particles.push({ x, y, dx: (Math.random() - .5) * 80, dy: (Math.random() - .5) * 80, color, life: .55 + Math.random() * .35 }); }
-function updateEffects(dt) { state.particles = state.particles.filter((item) => { item.life -= dt; item.x += item.dx * dt; item.y += item.dy * dt; return item.life > 0; }); state.damageTexts = state.damageTexts.filter((item) => { item.life -= dt; item.y -= dt * 18; return item.life > 0; }); }
+function burst(x, y, color, count = 6) { state.hitBursts.push({ x, y, life: .24, size: 34 + Math.min(34, count * 2) }); for (let i = 0; i < count; i += 1) state.particles.push({ x, y, dx: (Math.random() - .5) * 80, dy: (Math.random() - .5) * 80, color, life: .55 + Math.random() * .35 }); }
+function updateEffects(dt) { state.particles = state.particles.filter((item) => { item.life -= dt; item.x += item.dx * dt; item.y += item.dy * dt; return item.life > 0; }); state.hitBursts = state.hitBursts.filter((item) => { item.life -= dt; return item.life > 0; }); state.damageTexts = state.damageTexts.filter((item) => { item.life -= dt; item.y -= dt * 18; return item.life > 0; }); }
 
 function placeTower(x, y) {
   const unit = selectedUnit();
@@ -657,15 +751,17 @@ function placeTower(x, y) {
   if (!canPlaceAt(x, y)) { addLog(distToPath(x, y) < arena.roadW * .5 + arena.plate * .5 ? '不能放在怪物行进的道路上。' : '此处不能安置。'); return; }
   const def = beastDef(unit.id);
   state.towers.push({ ...unit, x, y, cd: .15, hitTarget: null, hitCount: 0 });
+  state.selectedTowerUid = unit.uid;
   state.backpack = state.backpack.filter((item) => item.uid !== unit.uid);
   state.selectedUnitId = null;
   if (state.tutorialStep === 1) { state.tutorialStep = 2; refs.arenaHint.textContent = '布阵完成：妖灵会自动攻击。注意让攻击范围覆盖道路。'; }
-  addLog(`${def.name}已安置，注意与队友保持阵型间距。`); renderGameRoster(); renderGameBonds(); updateHUD();
+  playSound('deploy'); addLog(`${def.name}已安置，注意与队友保持阵型间距。`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function renderGameRoster() {
-  const unit = selectedUnit();
-  refs.gameRoster.innerHTML = unit ? unitCard(unit, 'is-selected') : '<div class="summon-empty">从背包选择妖灵，或点击“召灵 20”请出一只异兽。</div>';
+  refs.gameRoster.innerHTML = state.backpack.length
+    ? state.backpack.map((unit) => unitCard(unit, state.selectedUnitId === unit.uid ? 'is-selected' : '')).join('')
+    : '<div class="summon-empty">点击“召灵 20”请出异兽</div>';
   refs.gameRoster.querySelectorAll('[data-unit-id]').forEach((button) => {
     button.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
@@ -680,8 +776,8 @@ function renderGameBonds() {
   const { active } = bondsForTowers();
   refs.gameBonds.innerHTML = BOND_DEFS.map((bond) => {
     const current = active.find((item) => item.id === bond.id);
-    const count = state.towers.filter((tower) => bond.members.includes(tower.id)).length;
-    const selectable = current?.ult && current.formed;
+    const count = new Set(state.towers.filter((tower) => bond.members.includes(tower.id)).map((tower) => tower.id)).size;
+    const selectable = current?.ultReady;
     const tag = selectable ? 'button' : 'div';
     const attrs = selectable ? ` data-skill-bond="${bond.id}" type="button"` : '';
     return `<${tag} class="bond-row ${selectable ? 'bond-skill-choice' : ''} ${state.skillBond?.id === bond.id ? 'is-selected' : ''}"${attrs}><i class="bond-pill ${current ? 'active' : ''}" style="background:${bond.color}"></i><span>${bond.name}</span><strong>${count}/${bond.need}${current ? ` · ${Math.round(current.adjusted * 100)}%` : ''}</strong></${tag}>`;
@@ -699,10 +795,17 @@ function renderBondDialog() {
   const { active } = bondsForTowers();
   refs.bondDialogList.innerHTML = BOND_DEFS.map((bond) => {
     const current = active.find((item) => item.id === bond.id);
-    const count = state.towers.filter((tower) => bond.members.includes(tower.id)).length;
-    const status = current ? `${current.formed ? '成阵' : '散阵'} · ${Math.round(current.adjusted * 100)}%` : '未触发';
-    return `<article class="bond-detail"><i style="background:${bond.color}"></i><div><strong>${bond.name}</strong><small>${count}/${bond.members.length} · ${bond.need}只触发 · ${bond.shape === 'line' ? '横列' : bond.shape === 'triangle' ? '三才' : bond.shape === 'square' ? '四镇' : '聚拢'}阵</small></div><b>${status}</b></article>`;
+    const count = new Set(state.towers.filter((tower) => bond.members.includes(tower.id)).map((tower) => tower.id)).size;
+    const status = current ? `${current.formed ? '成阵' : '散阵'} · ${Math.round(current.adjusted * 100)}%${current.ultReady ? ' · 技能就绪' : ''}` : '未触发';
+    const tag = current?.ultReady ? 'button' : 'article';
+    const attrs = current?.ultReady ? ` type="button" data-dialog-skill-bond="${bond.id}"` : '';
+    return `<${tag} class="bond-detail"${attrs}><i style="background:${bond.color}"></i><div><strong>${bond.name}</strong><small>${count}/${bond.members.length} · ${bond.need}只触发 · ${bond.shape === 'line' ? '横列' : bond.shape === 'triangle' ? '三才' : bond.shape === 'square' ? '四镇' : '聚拢'}阵</small></div><b>${status}</b></${tag}>`;
   }).join('');
+  refs.bondDialogList.querySelectorAll('[data-dialog-skill-bond]').forEach((button) => button.addEventListener('click', () => {
+    state.skillBond = bondsForTowers().active.find((bond) => bond.id === button.dataset.dialogSkillBond) || state.skillBond;
+    closeGameDialog(refs.bondsDialog);
+    updateHUD();
+  }));
 }
 
 function upgradeCost() {
@@ -744,6 +847,7 @@ function autoDeploy() {
   }
   state.selectedUnitId = null;
   if (placed && state.tutorialStep === 1) { state.tutorialStep = 2; refs.arenaHint.textContent = '布阵完成：妖灵会自动攻击。注意让攻击范围覆盖道路。'; }
+  if (placed) playSound('deploy');
   addLog(placed ? `一键部署：${placed} 只妖灵已在路边成阵。` : '没有可部署的妖灵或合法位置。');
   renderGameRoster();
   renderBackpack();
@@ -771,10 +875,11 @@ function renderBackpack() {
 }
 
 function openFusion() {
-  if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return; }
+  if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return false; }
   state.fusionSelection = [];
   renderFusion();
   showGameDialog(refs.fusionDialog);
+  return true;
 }
 
 function toggleFusionUnit(uid) {
@@ -832,12 +937,12 @@ function drawFortune() {
   } else if (outcome === 'enemy') {
     const existed = Boolean(activeSignEffect('enemyBuff'));
     addSignEffect('enemyBuff', '凶煞：敌军受益');
-    if (!existed) state.enemies.forEach((enemy) => { enemy.maxHp *= 1.18; enemy.hp *= 1.18; enemy.speed *= 1.16; enemy.armor += 5; });
+    if (!existed) state.enemies.forEach((enemy) => { enemy.maxHp *= 1.18; enemy.hp *= 1.18; });
+    state.enemies.forEach(refreshEnemyModifiers);
     result = { name: '凶煞', text: '本局敌军生命、移速与护甲提升。', tone: 'bad' };
   } else if (outcome === 'debuff') {
-    const existed = Boolean(activeSignEffect('enemyDebuff'));
     addSignEffect('enemyDebuff', '破甲迟滞：敌军受制');
-    if (!existed) state.enemies.forEach((enemy) => { enemy.speed *= .72; enemy.armor = Math.max(0, enemy.armor - 8); });
+    state.enemies.forEach(refreshEnemyModifiers);
     result = { name: '破甲迟滞', text: '本局敌军减速并降低护甲。', tone: 'good' };
   } else {
     const refunds = { half: 15, full: 30, double: 60, tenfold: 300, empty: 0 };
@@ -848,28 +953,33 @@ function drawFortune() {
   }
   state.lastSign = result;
   refs.fortuneResult.innerHTML = `<strong class="fortune-${result.tone}">${result.name}</strong><span>${result.text}</span>`;
+  playSound('fortune');
   refs.fortuneDraw.disabled = true;
   addLog(`转运签：${result.name}。${result.text}`);
   updateHUD();
 }
 
 function updateHUD() {
-  const totalWaves = 8 + state.stage * 3;
+  const waveCount = totalWaves();
   const phaseText = state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `喘息 ${Math.ceil(state.waveCooldown)}s` : `余敌 ${state.enemies.length}`;
   const selected = selectedUnit();
-  refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.kills; refs.waveLabel.textContent = `波次 ${Math.min(state.wave + 1, totalWaves)} / ${phaseText}`;
-  refs.waveTrack.innerHTML = Array.from({ length: totalWaves }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.textContent = state.paused ? '继续' : '暂停'; refs.speedGame.textContent = `${state.speed}×`; refs.populationLabel.textContent = `${state.towers.length} / ${state.maxPopulation}`;
-  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} Lv.${selected.level} · 点击战场布阵` : '未选择妖灵';
-  refs.summonBeast.disabled = state.paused || state.energy < SUMMON_COST || state.backpack.length >= MAX_BACKPACK; refs.summonBeast.textContent = `召灵 ${SUMMON_COST}`;
-  refs.advancedSummon.disabled = state.paused || state.energy < ADVANCED_SUMMON_COST || state.backpack.length + 5 > MAX_BACKPACK; refs.advancedSummon.textContent = `高级五连 ${ADVANCED_SUMMON_COST}`;
-  refs.upgradeAll.disabled = !state.towers.length && !state.backpack.length || state.energy < upgradeCost(); refs.upgradeAll.textContent = `一键升级 ${upgradeCost()}`;
+  refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.score; refs.bestScoreLabel.textContent = Math.max(state.bestScore, state.score); refs.waveLabel.textContent = `波次 ${Math.min(state.wave + 1, waveCount)} / ${phaseText}`;
+  refs.gameLevel.textContent = `波次 ${Math.min(state.wave + 1, waveCount)} / ${phaseText}`;
+  const hpBlocks = document.querySelector('#hp-blocks');
+  if (hpBlocks) hpBlocks.innerHTML = Array.from({ length: state.maxHp }, (_, index) => `<i class="${index >= state.hp ? 'is-empty' : ''}"></i>`).join('');
+  refs.waveTrack.innerHTML = Array.from({ length: waveCount }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.querySelector('strong').textContent = state.paused ? '继续' : '暂停'; refs.speedGame.querySelector('strong').textContent = `${state.speed}倍速`; refs.populationLabel.textContent = `${state.towers.length} / ${state.maxPopulation}`;
+  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} Lv.${selected.level} · ${beastDef(selected.id).kindText}` : state.selectedTowerUid ? `${beastDef(state.towers.find((tower) => tower.uid === state.selectedTowerUid)?.id || 'bifang').name} · 按住立绘可移动` : '点击召灵，随机请出 N 至 UR 妖灵';
+  refs.summonBeast.disabled = state.paused || (!state.summonOffers.length && state.energy < SUMMON_COST) || state.backpack.length >= MAX_BACKPACK; refs.summonBeast.querySelector('span').textContent = state.summonOffers.length ? '继续二选一' : `召灵 ${SUMMON_COST}`;
+  refs.advancedSummon.disabled = state.paused || (!state.advancedBatch.length && state.energy < ADVANCED_SUMMON_COST) || state.backpack.length + state.advancedBatch.length > MAX_BACKPACK; refs.advancedSummon.querySelector('span').textContent = state.advancedBatch.length ? '领取五连结果' : `高级五连 ${ADVANCED_SUMMON_COST}`;
+  refs.upgradeAll.disabled = !state.towers.length && !state.backpack.length || state.energy < upgradeCost(); refs.upgradeAll.querySelector('span').textContent = `一键升级 ${upgradeCost()}`;
   refs.autoDeploy.disabled = !state.backpack.length || state.towers.length >= state.maxPopulation; refs.recallAll.disabled = !state.towers.length || state.backpack.length >= MAX_BACKPACK;
-  refs.fortuneSign.disabled = state.paused || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.textContent = state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
+  refs.fortuneSign.disabled = state.paused || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.querySelector('strong').textContent = state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
   renderGameBonds();
 }
 
 function useSkill() {
   if (!state.skillBond || state.skillCooldowns[state.skillBond.id] > 0) return;
+  playSound('skill');
   const bond = state.skillBond; const source = bond.members[0] || state.towers[0] || { id: 'bond' };
   const nearby = (radius) => state.enemies.filter((enemy) => enemy.hp > 0 && bond.members.some((member) => Math.hypot(member.x - enemy.x, member.y - enemy.y) <= radius));
   if (bond.skill === 'tide') {
@@ -892,7 +1002,15 @@ function useSkill() {
 }
 
 function drawPath(route, level) {
-  const roadTint = state.stage === 0 ? '#c7a56e' : level.tint; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(61, 45, 28, .82)'; ctx.lineWidth = arena.roadW + 12; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = roadTint; ctx.lineWidth = arena.roadW; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.strokeStyle = 'rgba(255, 237, 190, .42)'; ctx.lineWidth = 2; ctx.setLineDash([7, 10]); ctx.lineDashOffset = -state.battleTime * 36; ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+  const [edge, road, light] = ROAD_PALETTES[state.stage];
+  const trace = () => { ctx.beginPath(); route.points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); };
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(18, 14, 10, .36)'; ctx.lineWidth = arena.roadW + 20; trace();
+  ctx.strokeStyle = edge; ctx.lineWidth = arena.roadW + 12; trace();
+  ctx.strokeStyle = road; ctx.lineWidth = arena.roadW; trace();
+  ctx.strokeStyle = light; ctx.globalAlpha = .34; ctx.lineWidth = arena.roadW - 13; trace();
+  ctx.globalAlpha = .36; ctx.strokeStyle = '#fff2c5'; ctx.lineWidth = 2; ctx.setLineDash([9, 12]); ctx.lineDashOffset = -state.battleTime * 26; trace();
+  ctx.restore();
 }
 
 function drawStageAtmosphere(level) {
@@ -921,15 +1039,24 @@ function drawStageAtmosphere(level) {
 function drawSeal(x, y, level, index) {
   const pulse = 1 + Math.sin(state.battleTime * 2.2 + index) * .035;
   ctx.save(); ctx.translate(x, y); ctx.scale(pulse, pulse);
-  ctx.fillStyle = 'rgba(216,108,78,.28)'; ctx.strokeStyle = level.accent; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(0, 0, arena.wardR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = 'rgba(240, 211, 154, .42)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, arena.wardR - 7, 0, Math.PI * 2); ctx.stroke();
-  ctx.fillStyle = level.accent; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('封印', 0, 4); ctx.restore();
+  ctx.fillStyle = 'rgba(213, 167, 70, .15)'; ctx.strokeStyle = '#d9b151'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, arena.wardR + 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(236, 199, 103, .48)'; ctx.beginPath(); ctx.arc(0, 0, arena.wardR + 2, 0, Math.PI * 2); ctx.stroke();
+  const monument = fxSprites['seal-monument'];
+  if (monument?.complete && monument.naturalWidth) ctx.drawImage(monument, -35, -48, 70, 78);
+  else { ctx.fillStyle = '#776553'; ctx.fillRect(-15, -29, 30, 47); ctx.fillStyle = '#bb392c'; ctx.fillRect(-10, -24, 20, 36); }
+  ctx.restore();
 }
 
 function drawSpawnFissure(x, y, level, index) {
-  ctx.save(); ctx.translate(x, y); ctx.strokeStyle = level.path === 'volcano' ? '#f06e4e' : level.accent; ctx.globalAlpha = .8; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(0, 0, 22 + Math.sin(state.battleTime * 2 + index) * 2, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-9, -5); ctx.lineTo(-3, 3); ctx.lineTo(-8, 12); ctx.moveTo(7, -11); ctx.lineTo(2, -2); ctx.lineTo(9, 7); ctx.stroke(); ctx.fillStyle = level.path === 'volcano' ? '#f3a355' : level.accent; ctx.font = '11px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText('裂口', 0, 4); ctx.restore();
+  const pulse = Math.sin(state.battleTime * 2.4 + index) * 3;
+  ctx.save(); ctx.translate(x, y);
+  const fissure = fxSprites['spawn-fissure'];
+  if (fissure?.complete && fissure.naturalWidth) { const size = 76 + pulse * 1.5; ctx.globalAlpha = .88; ctx.drawImage(fissure, -size * .5, -size * .5, size, size); }
+  ctx.strokeStyle = state.stage === 3 ? '#ff714b' : '#c54b3d'; ctx.lineWidth = 2;
+  ctx.globalAlpha = .32; ctx.beginPath(); ctx.arc(0, 0, 31 + pulse, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = .58; ctx.beginPath(); ctx.arc(0, 0, 22 - pulse * .25, 0, Math.PI * 2); ctx.stroke();
+  ctx.globalAlpha = .9; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-5, -19); ctx.lineTo(2, -8); ctx.lineTo(-4, 1); ctx.lineTo(5, 15); ctx.stroke();
+  ctx.fillStyle = 'rgba(129, 25, 21, .28)'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill(); ctx.restore();
 }
 
 function drawProjectile(projectile) {
@@ -953,32 +1080,48 @@ function drawProjectile(projectile) {
 function drawCanvas() {
   const level = currentLevel(); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#152124'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   const stageBackground = stageBackgrounds[state.stage];
-  if (stageBackground?.complete && stageBackground.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(stageBackground, 0, 0, stageBackground.naturalWidth, stageBackground.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .10)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.globalAlpha = .96; ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(111, 87, 48, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelW = biomeAtlas.naturalWidth / 5; ctx.globalAlpha = .72; ctx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(8, 17, 20, .12)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+  if (stageBackground?.complete && stageBackground.naturalWidth) { ctx.drawImage(stageBackground, 0, 0, stageBackground.naturalWidth, stageBackground.naturalHeight, 0, 0, canvas.width, canvas.height); ctx.fillStyle = state.stage === 3 ? 'rgba(36, 10, 8, .08)' : 'rgba(23, 36, 33, .08)'; ctx.fillRect(0, 0, canvas.width, canvas.height); } else if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) { ctx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height); } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) { const panelW = biomeAtlas.naturalWidth / 5; ctx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height); }
   drawStageAtmosphere(level);
-  ctx.strokeStyle = 'rgba(241,236,223,.045)'; ctx.lineWidth = 1; for (let x = 20; x < canvas.width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); } for (let y = 20; y < canvas.height; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
   pathInfo(level).forEach((route) => drawPath(route, level));
   levelSeals(level).forEach(([x, y], index) => drawSeal(x, y, level, index));
   levelSpawns(level).forEach(([x, y], index) => drawSpawnFissure(x, y, level, index));
-  if (state.mouse.inside && selectedUnit()) { const legal = canPlaceAt(state.mouse.x, state.mouse.y); ctx.strokeStyle = legal ? 'rgba(118,205,183,.65)' : 'rgba(216,108,78,.7)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, 39, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy)) { ctx.fillStyle = 'rgba(118,205,183,.38)'; ctx.beginPath(); ctx.arc(hx, hy, 3, 0, Math.PI * 2); ctx.fill(); } } }
-  state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }); state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
+  const movingTower = state.draggingTowerIndex >= 0 ? state.towers[state.draggingTowerIndex] : null;
+  const placingUnit = selectedUnit();
+  if (state.mouse.inside && (placingUnit || movingTower)) {
+    const ignore = movingTower ? state.draggingTowerIndex : -1;
+    const legal = canPlaceAt(state.mouse.x, state.mouse.y, ignore);
+    const previewDef = beastDef((placingUnit || movingTower).id);
+    const ritual = fxSprites['summon-ritual'];
+    if (ritual?.complete && ritual.naturalWidth) { const size = 86 + Math.sin(state.battleTime * 4) * 3; ctx.save(); ctx.globalAlpha = legal ? .72 : .24; ctx.drawImage(ritual, state.mouse.x - size * .5, state.mouse.y - size * .5, size, size); ctx.restore(); }
+    ctx.save(); ctx.strokeStyle = legal ? 'rgba(93, 213, 180, .78)' : 'rgba(226, 74, 56, .86)'; ctx.lineWidth = 2; ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.arc(state.mouse.x, state.mouse.y, previewDef.range, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    for (let gy = -1; gy <= 1; gy += 1) for (let gx = -1; gx <= 1; gx += 1) { const hx = state.mouse.x + gx * arena.plate * 3.25; const hy = state.mouse.y + gy * arena.plate * 3.25; if (canPlaceAt(hx, hy, ignore)) { ctx.fillStyle = 'rgba(102, 221, 188, .22)'; ctx.strokeStyle = 'rgba(151, 239, 210, .64)'; ctx.beginPath(); ctx.arc(hx, hy, 17, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
+    ctx.restore();
+  }
+  const selectedTower = state.towers.find((tower) => tower.uid === state.selectedTowerUid);
+  if (selectedTower && !movingTower) { const def = beastDef(selectedTower.id); ctx.save(); ctx.strokeStyle = `${def.color}9a`; ctx.lineWidth = 1.5; ctx.setLineDash([7, 6]); ctx.beginPath(); ctx.arc(selectedTower.x, selectedTower.y, def.range, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+  state.towers.forEach((tower) => drawTower(tower)); state.enemies.forEach((enemy) => drawEnemy(enemy)); state.projectiles.forEach((projectile) => drawProjectile(projectile)); state.particles.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.beginPath(); ctx.arc(item.x, item.y, 2 + item.life * 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; });
+  const hitSpark = fxSprites['hit-spark'];
+  if (hitSpark?.complete && hitSpark.naturalWidth) state.hitBursts.forEach((item) => { const progress = 1 - item.life / .24; const size = item.size * (.65 + progress * .65); ctx.globalAlpha = clamp(item.life / .2, 0, 1); ctx.drawImage(hitSpark, item.x - size * .5, item.y - size * .5, size, size); ctx.globalAlpha = 1; });
+  state.damageTexts.forEach((item) => { ctx.globalAlpha = clamp(item.life, 0, 1); ctx.fillStyle = item.color; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(item.text, item.x, item.y); ctx.globalAlpha = 1; });
 }
 
 function drawTower(tower) {
-  const def = beastDef(tower.id); const sprite = combatSprites[tower.id]; const size = 78 + Math.min(18, (tower.level - 1) * 3);
+  const def = beastDef(tower.id); const sprite = combatSprites[tower.id]; const size = 82 + Math.min(18, (tower.level - 1) * 3);
   ctx.save(); ctx.translate(tower.x, tower.y);
-  ctx.fillStyle = 'rgba(48, 35, 22, .28)'; ctx.beginPath(); ctx.ellipse(0, 18, size * .33, 7, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = def.color; ctx.globalAlpha = .72; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, 15, size * .28, 8, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
+  const bob = Math.sin(state.battleTime * 2.2 + tower.x * .01) * 1.3;
+  ctx.fillStyle = 'rgba(36, 25, 17, .35)'; ctx.beginPath(); ctx.ellipse(0, 18, size * .34, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = def.color; ctx.globalAlpha = state.selectedTowerUid === tower.uid ? 1 : .7; ctx.lineWidth = state.selectedTowerUid === tower.uid ? 3 : 1.5; ctx.beginPath(); ctx.ellipse(0, 15, size * .29, 9, 0, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = 1;
   if (sprite?.complete && sprite.naturalWidth) {
-    ctx.drawImage(sprite, -size * .5, 15 - size, size, size);
+    ctx.drawImage(sprite, -size * .5, 15 - size + bob, size, size);
   } else if (beastAtlas.complete && beastAtlas.naturalWidth) {
     const cellW = beastAtlas.naturalWidth / 6; const cellH = beastAtlas.naturalHeight / 5; const sx = (def.portraitIndex % 6) * cellW; const sy = Math.floor(def.portraitIndex / 6) * cellH;
-    ctx.save(); ctx.beginPath(); ctx.arc(0, -8, 24, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(beastAtlas, sx, sy, cellW, cellH, -24, -32, 48, 48); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(-34, -62 + bob, 68, 68, 9); ctx.clip(); ctx.drawImage(beastAtlas, sx, sy, cellW, cellH, -34, -62 + bob, 68, 68); ctx.restore(); ctx.strokeStyle = def.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(-34, -62 + bob, 68, 68, 9); ctx.stroke();
   } else { ctx.fillStyle = def.color; ctx.font = 'bold 18px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(def.name.slice(0, 1), 0, 2); }
-  ctx.fillStyle = 'rgba(48, 35, 22, .82)'; ctx.fillRect(-15, 23, 30, 12); ctx.fillStyle = '#fff0bd'; ctx.font = 'bold 9px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(`L${tower.level}`, 0, 32); ctx.restore();
+  ctx.fillStyle = 'rgba(37, 29, 21, .86)'; ctx.fillRect(-18, 22, 36, 12); ctx.fillStyle = '#fff0bd'; ctx.font = 'bold 9px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(`Lv.${tower.level}`, 0, 31); ctx.restore();
 }
 
 function drawEnemy(enemy) {
-  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * (enemy.def.boss ? 5.2 : 4.3);
+  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * (enemy.def.boss ? 5.4 : 4.6);
   ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1;
   ctx.fillStyle = 'rgba(43, 31, 21, .24)'; ctx.beginPath(); ctx.ellipse(0, 11, size * .29, 5, 0, 0, Math.PI * 2); ctx.fill();
   if (enemy.def.boss) { ctx.strokeStyle = enemy.def.color; ctx.globalAlpha *= .38; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -size * .22, size * .34, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; }
@@ -988,7 +1131,7 @@ function drawEnemy(enemy) {
     const cellW = enemyAtlas.naturalWidth / 5; const cellH = enemyAtlas.naturalHeight / 2; const sx = (enemy.def.sprite % 5) * cellW; const sy = Math.floor(enemy.def.sprite / 5) * cellH;
     ctx.save(); ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(enemyAtlas, sx, sy, cellW, cellH, -radius, -radius, radius * 2, radius * 2); ctx.restore();
   } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); }
-  ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(45, 35, 24, .74)'; ctx.fillRect(-radius, -size * .5 - 5, radius * 2, 5); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#e2a842' : '#63a98e'; ctx.fillRect(-radius, -size * .5 - 5, radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 5);
+  ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(34, 27, 20, .82)'; ctx.fillRect(-radius * 1.2, -size * .52 - 6, radius * 2.4, 6); ctx.fillStyle = enemy.hp / enemy.maxHp < .25 ? '#d64b36' : '#58b093'; ctx.fillRect(-radius * 1.2, -size * .52 - 6, radius * 2.4 * clamp(enemy.hp / enemy.maxHp, 0, 1), 6);
   if (enemy.shield > 0) { ctx.strokeStyle = '#b5e8e6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, -size * .24, radius * 1.05, size * .42, 0, 0, Math.PI * 2); ctx.stroke(); }
   ctx.restore();
 }
@@ -1008,16 +1151,55 @@ function tick(timestamp) {
     const simDt = rawDt * state.speed;
     state.battleTime += simDt;
     Object.keys(state.skillCooldowns).forEach((id) => { state.skillCooldowns[id] = Math.max(0, state.skillCooldowns[id] - simDt); });
-    spawnFromGroups(simDt); updateTowers(rawDt); updateProjectiles(rawDt); updateEnemies(rawDt); updateEffects(simDt); updateHUD();
+    spawnFromGroups(simDt); updateTowers(simDt); updateProjectiles(simDt); updateEnemies(simDt); updateEffects(simDt); updateHUD();
   }
   if (state.screen === 'game' || state.screen === 'finishing') drawCanvas(); requestAnimationFrame(tick);
 }
 
-function canvasPoint(event) { const rect = canvas.getBoundingClientRect(); return { x: (event.clientX - rect.left) * canvas.width / rect.width, y: (event.clientY - rect.top) * canvas.height / rect.height }; }
+function canvasPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  if (window.innerHeight > window.innerWidth) return { x: (event.clientY - rect.top) * canvas.width / rect.height, y: (rect.right - event.clientX) * canvas.height / rect.width };
+  return { x: (event.clientX - rect.left) * canvas.width / rect.width, y: (event.clientY - rect.top) * canvas.height / rect.height };
+}
 canvas.addEventListener('pointermove', (event) => { Object.assign(state.mouse, canvasPoint(event), { inside: true }); });
-canvas.addEventListener('pointerleave', () => { state.mouse.inside = false; });
-canvas.addEventListener('pointerdown', (event) => { if (state.screen !== 'game' || state.paused) return; const point = canvasPoint(event); placeTower(point.x, point.y); });
+canvas.addEventListener('pointerleave', () => { if (state.draggingTowerIndex < 0) state.mouse.inside = false; });
+canvas.addEventListener('pointerdown', (event) => {
+  if (state.screen !== 'game' || state.paused) return;
+  const point = canvasPoint(event);
+  Object.assign(state.mouse, point, { inside: true });
+  if (selectedUnit()) { placeTower(point.x, point.y); return; }
+  const index = state.towers.findLastIndex((tower) => Math.hypot(tower.x - point.x, tower.y - point.y) <= 38);
+  if (index >= 0) {
+    state.draggingTowerIndex = index;
+    state.selectedTowerUid = state.towers[index].uid;
+    canvas.setPointerCapture?.(event.pointerId);
+    refs.arenaHint.textContent = `移动 ${beastDef(state.towers[index].id).name}：拖到光环标记的合法位置`;
+    updateHUD();
+  }
+});
+document.addEventListener('pointermove', (event) => {
+  if (!state.draggingUnitId) return;
+  const rect = canvas.getBoundingClientRect();
+  const inside = event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  if (!inside) { state.mouse.inside = false; return; }
+  Object.assign(state.mouse, canvasPoint(event), { inside: true });
+});
 document.addEventListener('pointerup', (event) => {
+  if (state.draggingTowerIndex >= 0) {
+    const index = state.draggingTowerIndex;
+    state.draggingTowerIndex = -1;
+    const rect = canvas.getBoundingClientRect();
+    if (event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) {
+      const point = canvasPoint(event);
+      if (canPlaceAt(point.x, point.y, index)) {
+        state.towers[index].x = point.x; state.towers[index].y = point.y;
+        addLog(`${beastDef(state.towers[index].id).name}已移阵。`);
+      } else addLog('落点不合法，妖灵返回原位。');
+    }
+    refs.arenaHint.textContent = '按住场上妖灵可移动，射程与九宫落点实时显示';
+    renderGameBonds(); updateHUD();
+    return;
+  }
   const unitId = state.draggingUnitId;
   state.draggingUnitId = null;
   if (!unitId || state.screen !== 'game' || state.paused) return;
@@ -1027,6 +1209,7 @@ document.addEventListener('pointerup', (event) => {
   const point = canvasPoint(event);
   placeTower(point.x, point.y);
 });
+document.addEventListener('pointercancel', () => { state.draggingUnitId = null; state.draggingTowerIndex = -1; state.mouse.inside = false; });
 refs.startGame.addEventListener('click', initGame);
 refs.summonBeast.addEventListener('click', summonBeast);
 refs.advancedSummon.addEventListener('click', advancedSummon);
@@ -1037,7 +1220,7 @@ refs.openBonds.addEventListener('click', () => { renderBondDialog(); showGameDia
 refs.autoDeploy.addEventListener('click', autoDeploy);
 refs.recallAll.addEventListener('click', recallAll);
 refs.fortuneSign.addEventListener('click', openFortuneSign);
-refs.openFusion.addEventListener('click', () => { refs.backpackDialog.close(); openFusion(); });
+refs.openFusion.addEventListener('click', () => { if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return; } refs.backpackDialog.close(); openFusion(); });
 refs.fuseBeasts.addEventListener('click', fuseSelected);
 refs.fortuneDraw.addEventListener('click', drawFortune);
 refs.summonClose.addEventListener('click', () => closeGameDialog(refs.summonDialog));
@@ -1061,8 +1244,23 @@ refs.pauseResume.addEventListener('click', resumePauseMenu);
 refs.pauseRetry.addEventListener('click', () => { refs.pauseDialog.close(); initGame(); });
 refs.pauseExit.addEventListener('click', () => { refs.pauseDialog.close(); state.paused = false; showScreen('select'); renderSelect(); });
 refs.speedGame.addEventListener('click', () => { state.speed = state.speed === 1 ? 3 : 1; updateHUD(); });
+refs.soundToggle.addEventListener('click', () => { state.soundEnabled = !state.soundEnabled; refs.soundToggle.textContent = state.soundEnabled ? '♪' : '×'; if (state.soundEnabled) playSound('deploy'); });
 refs.teamSkill.addEventListener('click', useSkill);
 document.querySelector('#reset-save').addEventListener('click', () => { localStorage.removeItem(SAVE_KEY); loadSave(); renderSelect(); document.querySelector('#save-status').textContent = '存档已重置'; });
+document.querySelector('[data-start-tutorial]').addEventListener('click', () => { state.stage = 0; initGame(); });
+
+function fitAppToViewport() {
+  const shell = document.querySelector('#app-shell');
+  const portrait = window.innerHeight > window.innerWidth;
+  const scale = portrait ? Math.min(window.innerWidth / 720, window.innerHeight / 1280) : Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+  shell.style.transform = portrait
+    ? `translate(-50%, -50%) rotate(90deg) scale(${scale})`
+    : `translate(-50%, -50%) scale(${scale})`;
+  document.documentElement.style.setProperty('--ui-scale', scale);
+}
+
+window.addEventListener('resize', fitAppToViewport);
+fitAppToViewport();
 
 loadSave(); renderSelect(); showScreen('select'); requestAnimationFrame(tick);
 

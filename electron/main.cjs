@@ -8,15 +8,21 @@ function createWindow() {
     minWidth: 960,
     minHeight: 640,
     backgroundColor: '#101719',
+    icon: path.join(__dirname, '..', 'assets', 'fx', 'summon-ritual.png'),
     show: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
   window.loadFile(path.join(__dirname, '..', 'index.html'));
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  window.webContents.on('will-navigate', (event, url) => {
+    if (url !== window.webContents.getURL()) event.preventDefault();
+  });
   window.once('ready-to-show', () => window.show());
 }
 

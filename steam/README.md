@@ -7,15 +7,15 @@ npm install
 npm run dist:steam
 ```
 
-如果 Electron Builder 下载 Windows 安装器工具受限，可以先生成无需安装的便携版：
+生成无需安装的单文件便携版：
 
 ```bash
 npm run dist:portable
 ```
 
-输出目录是 `release/ShanHaiDefense-win-unpacked/`，其中的 `ShanHaiDefense.exe` 可以直接启动并用于本地验收或 SteamPipe 测试。
+输出文件位于 `dist/山海异兽志-Portable-<version>-x64.exe`。如需解包目录做本地调试，执行 `npm run dist:unpacked`，输出到 `release/ShanHaiDefense-win-unpacked/`。
 
-安装包会输出到 `dist/`。当前工程已经具备 Steam 可上传的桌面包结构，但正式上架前仍需要：
+安装包输出为 `dist/山海异兽志-Setup-<version>-x64.exe`。当前工程已经具备 Steam 可上传的桌面包结构，但正式上架前仍需要：
 
 1. 在 Steamworks 后台创建 App ID。
 2. 配置商店页、年龄分级、截图、胶囊图和发行地区。

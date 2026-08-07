@@ -1,8 +1,9 @@
 appId: com.sutongwuyanzu.shanhaidefense
 productName: 山海异兽志
-artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+artifactName: ${productName}-Portable-${version}-${arch}.${ext}
 directories:
   output: dist
+electronDist: node_modules/electron/dist
 files:
   - index.html
   - styles.css
@@ -11,13 +12,17 @@ files:
   - assets/**/*
   - '!assets/sprites/*-source.png'
   - '!assets/sprites/*.prompt.txt'
+  - '!assets/fx/*-source.png'
+  - '!assets/fx/*.prompt.txt'
   - electron/**/*
 asar: true
 win:
+  icon: assets/fx/summon-ritual.png
   target:
     - nsis
-  signAndEditExecutable: false
+  signExecutable: false
 nsis:
+  artifactName: ${productName}-Setup-${version}-${arch}.${ext}
   oneClick: false
   allowToChangeInstallationDirectory: true
 mac:

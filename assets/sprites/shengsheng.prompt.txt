@@ -1,0 +1,8 @@
+Use case: game sprite asset.
+Asset type: static summon creature for a Chinese myth tower-defense game.
+Primary request: a single full-body 3/4-view standing combat sprite of Shengsheng (狌狌), an agile mountain ape-beast from Shan Hai Jing, with long forearms, russet fur, expressive amber eyes, and a bronze talisman collar.
+Style/medium: premium hand-painted Chinese shan shui scroll with mineral-pigment rock-color painting, crisp readable silhouette, intricate fur and bronze details, no pixel art.
+Composition/framing: one creature only, centered, feet resting on one consistent invisible baseline, camera distance matching a battlefield unit, generous padding on all sides.
+Lighting/mood: warm side light with cool ink shadows, dignified and otherworldly.
+Color palette: cinnabar, muted jade, ink black, ochre, aged paper highlights.
+Constraints: perfectly flat solid #00ff00 chroma-key background for removal; uniform green with no shadow, gradient, texture, reflection, floor plane, text, frame, card, watermark, extra creature or cropping; full body inside the central 70%; keep #00ff00 out of the subject.
