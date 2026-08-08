@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#17120d" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-9" />
+    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-12" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -53,6 +53,7 @@
             </div>
             <div class="battle-title">
               <strong id="game-terrain">幽都洞窟</strong><span>·</span><b id="game-level">波次 1 / 整备</b>
+              <div class="required-beast">必选 <strong id="required-beast-label">毕方</strong></div>
               <div class="wave-track" id="wave-track"></div>
               <span id="wave-label" class="sr-only">1 / 8</span>
             </div>
@@ -60,7 +61,7 @@
               <div class="resource-line"><span>灵蕴</span><strong id="essence-label">56</strong></div>
               <div class="resource-line"><span>分数</span><strong id="kill-label">0</strong></div>
               <div class="resource-line best-score"><span>最高</span><strong id="best-score-label">0</strong></div>
-              <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 20</strong></div>
+              <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 18</strong></div>
               <button class="sound-toggle" id="sound-toggle" type="button" title="开关音效" aria-label="开关音效">♪</button>
             </div>
           </header>
@@ -95,9 +96,10 @@
           </section>
 
           <section class="summon-dock">
-            <button class="dock-command" id="upgrade-all" type="button"><span>一键升级</span><small>全卷共修</small></button>
-            <button class="dock-command dock-primary" id="summon-beast" type="button"><span>召灵 20</span><small>二选一 · N 至 UR</small></button>
-            <button class="dock-command dock-advanced" id="advanced-summon" type="button"><span>高级五连 80</span><small>至少一只 SR+</small></button>
+            <button class="dock-command dock-primary" id="summon-beast" type="button"><span>普通单抽 20</span><small>N / R 为主</small></button>
+            <button class="dock-command dock-primary dock-multi" id="summon-beast-five" type="button"><span>普通五连 80</span><small>八折五连</small></button>
+            <button class="dock-command dock-advanced" id="advanced-summon" type="button"><span>高级单抽 50</span><small>高概率 SR</small></button>
+            <button class="dock-command dock-advanced dock-multi" id="advanced-summon-five" type="button"><span>高级五连 200</span><small>八折五连</small></button>
           </section>
 
           <section class="bond-panel" hidden>
@@ -111,11 +113,15 @@
             <p>山海录 · 守关结算</p>
             <h2 id="result-title">封印守住了</h2>
             <strong id="result-stage">幽都洞窟 · 01</strong>
-            <div class="result-grid">
-              <div><span>击破</span><b id="result-kills">0</b></div>
-              <div><span>修为</span><b id="result-xp">+0</b></div>
-              <div><span>连击</span><b id="result-combo">0</b></div>
+            <div class="result-total"><span>本局总评分</span><b id="result-score-total">0</b></div>
+            <div class="result-breakdown">
+              <div><span>羁绊数量</span><b id="result-bonds">0 · +0</b></div>
+              <div><span>剩余封印</span><b id="result-hp">0 / 10 · +0</b></div>
+              <div><span>剩余灵蕴</span><b id="result-energy">0 · +0</b></div>
+              <div><span>UR 数量</span><b id="result-ur">0 · +0</b></div>
+              <div><span>随机必选</span><b id="result-required">未完成 · +0</b></div>
             </div>
+            <div class="result-combat"><span>击破 <b id="result-kills">0</b></span><span>修为 <b id="result-xp">+0</b></span><span>最高连击 <b id="result-combo">0</b></span></div>
             <p class="result-copy" id="result-copy"></p>
             <div class="result-actions"><button id="replay-game" type="button">再守一次</button><button id="return-select" type="button">返回关卡</button></div>
           </div>
@@ -128,12 +134,12 @@
       </dialog>
 
       <dialog id="summon-dialog" class="game-dialog summon-dialog">
-        <div class="dialog-head"><div><span>SPIRIT CALLING</span><h2>召灵 · 二选一</h2><p>请出一只异兽，随后拖至道路两侧布阵。</p></div><button id="summon-close" type="button" aria-label="关闭">×</button></div>
+        <div class="dialog-head"><div><span>SPIRIT CALLING</span><h2 id="summon-title">普通召灵 · 单抽</h2><p id="summon-subtitle">N、R 为主，小概率出现高阶妖灵。</p></div><button id="summon-close" type="button" aria-label="关闭">×</button></div>
         <div id="summon-offers" class="summon-offers"></div>
       </dialog>
 
       <dialog id="advanced-dialog" class="game-dialog advanced-dialog">
-        <div class="dialog-head"><div><span>HIGH INVOCATION</span><h2>高级召灵 · 五连</h2><p>同种同级妖灵入卷后自动合成。</p></div><button id="advanced-close" type="button" aria-label="关闭">×</button></div>
+        <div class="dialog-head"><div><span>FIVE INVOCATIONS</span><h2 id="advanced-title">普通召灵 · 五连</h2><p id="advanced-subtitle">五次结果全部入卷，同种同级自动合成。</p></div><button id="advanced-close" type="button" aria-label="关闭">×</button></div>
         <div id="advanced-results" class="advanced-results"></div>
         <button id="advanced-claim" class="dialog-primary" type="button">入卷 · 自动合成</button>
       </dialog>
@@ -151,9 +157,8 @@
       </dialog>
 
       <dialog id="fortune-dialog" class="game-dialog fortune-dialog">
-        <div class="dialog-head"><div><span>FORTUNE LOT</span><h2>转运签</h2><p>福祸随机，签文立即作用于本局。</p></div><button id="fortune-close" type="button" aria-label="关闭">×</button></div>
-        <div id="fortune-result" class="fortune-result">每签消耗 30 灵蕴。友军增益、敌军福祸与灵蕴返还皆有可能。</div>
-        <button id="fortune-draw" class="dialog-primary" type="button">摇签 30</button>
+        <div class="dialog-head"><div><span>FORTUNE REELS</span><h2>转运签</h2><p>点击即生效，签轮会在战场上即时揭晓福祸。</p></div><button id="fortune-close" type="button" aria-label="关闭">×</button></div>
+        <div id="fortune-result" class="fortune-result slot-result">签轮正在归位……</div>
       </dialog>
 
       <dialog id="bonds-dialog" class="game-dialog bonds-dialog">
@@ -166,6 +171,6 @@
         <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">返回关卡</button></div>
       </dialog>
     </div>
-    <script src="./src/main.js?v=sol-rebuild-9"></script>
+    <script src="./src/main.js?v=sol-rebuild-12"></script>
   </body>
 </html>

@@ -25,42 +25,42 @@ beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
 enemyAtlas.src = './assets/enemy-atlas.png';
 const combatSpriteSources = {
-  bifang: './assets/sprites/bifang.png',
-  fuzhu: './assets/sprites/fuzhu.png',
-  jiuwei: './assets/sprites/jiuwei.png',
-  tiangou: './assets/sprites/tiangou.png',
-  xuangui: './assets/sprites/xuangui.png',
-  shengsheng: './assets/sprites/shengsheng.png',
-  kaiming: './assets/sprites/kaiming.png',
-  bo: './assets/sprites/bo.png',
-  zheng: './assets/sprites/zheng.png',
-  qiuniu: './assets/sprites/qiuniu.png',
-  yazi: './assets/sprites/yazi.png',
-  chaofeng: './assets/sprites/chaofeng.png',
-  pulao: './assets/sprites/pulao.png',
-  suanni: './assets/sprites/suanni.png',
-  bixi: './assets/sprites/bixi.png',
-  bian: './assets/sprites/bian.png',
-  fuxi_long: './assets/sprites/fuxi_long.png',
-  chiwen: './assets/sprites/chiwen.png',
-  dayu: './assets/sprites/dayu.png',
-  gonggong: './assets/sprites/gonggong.png',
-  qinglong: './assets/sprites/qinglong.png',
-  baihu: './assets/sprites/baihu.png',
-  zhuque: './assets/sprites/zhuque.png',
-  xuanwu: './assets/sprites/xuanwu.png',
-  huangdi: './assets/sprites/huangdi.png',
-  fuxi: './assets/sprites/fuxi.png',
-  nuwa: './assets/sprites/nuwa.png',
-  xingxing: './assets/sprites/xingxing.png',
-  fei: './assets/sprites/fei.png',
-  bashe: './assets/sprites/bashe.png',
-  huali: './assets/sprites/huali.png',
-  wangliang: './assets/sprites/wangliang.png',
-  zhuyan: './assets/sprites/zhuyan.png',
-  shanxiao: './assets/sprites/shanxiao.png',
-  taotie: './assets/sprites/taotie.png',
-  baize: './assets/sprites/baize.png',
+  bifang: './assets/sprites/bifang-3d.png',
+  fuzhu: './assets/sprites/fuzhu-3d.png',
+  jiuwei: './assets/sprites/jiuwei-3d.png',
+  tiangou: './assets/sprites/tiangou-3d.png',
+  xuangui: './assets/sprites/xuangui-3d.png',
+  shengsheng: './assets/sprites/shengsheng-3d.png',
+  kaiming: './assets/sprites/kaiming-3d.png',
+  bo: './assets/sprites/bo-3d.png',
+  zheng: './assets/sprites/zheng-3d.png',
+  qiuniu: './assets/sprites/qiuniu-3d.png',
+  yazi: './assets/sprites/yazi-3d.png',
+  chaofeng: './assets/sprites/chaofeng-3d.png',
+  pulao: './assets/sprites/pulao-3d.png',
+  suanni: './assets/sprites/suanni-3d.png',
+  bixi: './assets/sprites/bixi-3d.png',
+  bian: './assets/sprites/bian-3d.png',
+  fuxi_long: './assets/sprites/fuxi_long-3d.png',
+  chiwen: './assets/sprites/chiwen-3d.png',
+  dayu: './assets/sprites/dayu-3d.png',
+  gonggong: './assets/sprites/gonggong-3d.png',
+  qinglong: './assets/sprites/qinglong-3d.png',
+  baihu: './assets/sprites/baihu-3d.png',
+  zhuque: './assets/sprites/zhuque-3d.png',
+  xuanwu: './assets/sprites/xuanwu-3d.png',
+  huangdi: './assets/sprites/huangdi-3d.png',
+  fuxi: './assets/sprites/fuxi-3d.png',
+  nuwa: './assets/sprites/nuwa-3d.png',
+  xingxing: './assets/sprites/xingxing-3d.png',
+  fei: './assets/sprites/fei-3d.png',
+  bashe: './assets/sprites/bashe-3d.png',
+  huali: './assets/sprites/huali-3d.png',
+  wangliang: './assets/sprites/wangliang-3d.png',
+  zhuyan: './assets/sprites/zhuyan-3d.png',
+  shanxiao: './assets/sprites/shanxiao-3d.png',
+  taotie: './assets/sprites/taotie-3d.png',
+  baize: './assets/sprites/baize-3d.png',
 };
 const combatSprites = Object.fromEntries(Object.entries(combatSpriteSources).map(([id, src]) => {
   const image = document.createElement('img');
@@ -70,6 +70,11 @@ const combatSprites = Object.fromEntries(Object.entries(combatSpriteSources).map
 const fxSprites = Object.fromEntries(['summon-ritual', 'hit-spark', 'spawn-fissure', 'seal-monument'].map((id) => {
   const image = document.createElement('img');
   image.src = `./assets/fx/${id}.png`;
+  return [id, image];
+}));
+const attackSprites = Object.fromEntries(['ember', 'wisp', 'claw', 'quake'].map((id) => {
+  const image = document.createElement('img');
+  image.src = `./assets/animations/attacks/${id}.png`;
   return [id, image];
 }));
 
@@ -83,10 +88,14 @@ const ROSTER = [
 
 const STARTER_IDS = ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'];
 const SUMMON_COST = 20;
-const ADVANCED_SUMMON_COST = 80;
+const SUMMON_FIVE_COST = SUMMON_COST * 5 * .8;
+const ADVANCED_SUMMON_COST = 50;
+const ADVANCED_FIVE_COST = ADVANCED_SUMMON_COST * 5 * .8;
 const FORTUNE_COST = 30;
 const MAX_BACKPACK = 12;
-const SUMMON_WEIGHTS = [[0, 56], [1, 28], [2, 12], [3, 3], [4, 1]];
+const SUMMON_WEIGHTS = [[0, 58], [1, 34], [2, 7], [3, 1]];
+const ADVANCED_SUMMON_WEIGHTS = [[2, 65], [3, 28], [4, 7]];
+const POPULATION_BY_RARITY = [1, 1, 2, 2, 3];
 const CULTIVATION_STAGES = [
   { kills: 0, name: '初窥门径', power: 0, summonLevel: 1 },
   { kills: 30, name: '灵脉初开', power: .1, summonLevel: 1 },
@@ -127,7 +136,9 @@ const BEASTS = {
 const BOND_DEFS = [
   { id: 'wild', name: '山野同气', members: ['bifang', 'fuzhu', 'jiuwei', 'tiangou', 'xuangui'], need: 3, stat: 'power', bonus: .14, stepBonus: .07, shape: 'triangle', color: '#d98a67', ult: '焚野', ultMul: 2.2 },
   { id: 'fierce', name: '山海猛兽', members: ['zheng', 'kaiming', 'bo', 'shengsheng'], need: 2, stat: 'haste', bonus: .12, stepBonus: .06, shape: 'line', color: '#e1ac65', ult: '猎潮', ultMul: 2 },
-  { id: 'dragon', name: '龙生九子', members: ['qiuniu', 'yazi', 'chaofeng', 'pulao', 'suanni', 'bixi', 'bian', 'fuxi_long', 'chiwen'], need: 3, stat: 'haste', bonus: .12, stepBonus: .045, shape: 'square', color: '#9f7dbb', ult: '九子降龙阵', ultMul: 2.6 },
+  { id: 'dragon_sky', name: '龙子·凌霄', members: ['qiuniu', 'yazi', 'chaofeng'], need: 3, stat: 'haste', bonus: .16, stepBonus: 0, shape: 'triangle', color: '#a984c5', ult: '凌霄龙吟', ultMul: 2.5 },
+  { id: 'dragon_earth', name: '龙子·镇岳', members: ['pulao', 'suanni', 'bixi'], need: 3, stat: 'sunder', bonus: .2, stepBonus: 0, shape: 'line', color: '#cb9860', ult: '镇岳雷火', ultMul: 2.8 },
+  { id: 'dragon_tide', name: '龙子·碑潮', members: ['bian', 'fuxi_long', 'chiwen'], need: 3, stat: 'range', bonus: .14, stepBonus: 0, shape: 'cluster', color: '#708fb2', ult: '碑潮裁决', ultMul: 2.6 },
   { id: 'sishou', name: '四象归位', members: ['qinglong', 'baihu', 'zhuque', 'xuanwu'], need: 2, stat: 'range', bonus: .1, stepBonus: .06, shape: 'square', color: '#65b7af', ult: '四象天门', ultMul: 3.4 },
   { id: 'renzu', name: '人祖开天', members: ['huangdi', 'fuxi', 'nuwa'], need: 2, stat: 'cdr', bonus: .16, stepBonus: .1, shape: 'triangle', color: '#d4a355', ult: '开天', ultMul: 3 },
   { id: 'zhishui', name: '治水之争', members: ['dayu', 'gonggong'], need: 2, stat: 'sunder', bonus: .16, stepBonus: 0, shape: 'line', color: '#66a9c3', ult: '怒海分流', ultMul: 2.8 },
@@ -148,52 +159,59 @@ const ENEMIES = {
 };
 
 const LEVELS = [
-  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', from: 0, to: 8, hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', accent: '#75c9c0', path: 'cave', spawnCount: 1, seals: [[74, 108]], spawnPoints: [[884, 430]] },
-  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', from: 4, to: 13, hpMul: 1.25, spdMul: 1.05, essence: 62, tint: '#7d9d81', accent: '#d8bc74', path: 'grass', spawnCount: 1, seals: [[74, 402]], spawnPoints: [[884, 402]] },
-  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', from: 8, to: 17, hpMul: 1.55, spdMul: 1.1, essence: 70, tint: '#5b8e9c', accent: '#9ed6d0', path: 'sea', spawnCount: 1, seals: [[74, 152]], spawnPoints: [[884, 270]] },
-  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', from: 12, to: 21, hpMul: 1.9, spdMul: 1.15, essence: 78, tint: '#b56454', accent: '#f2b35e', path: 'volcano', spawnCount: 2, seals: [[74, 104], [74, 436]], spawnPoints: [[884, 118], [884, 422]] },
-  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', from: 9, to: 21, hpMul: 2.3, spdMul: 1.2, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 88], [74, 452]], spawnPoints: [[884, 118], [884, 422]] },
+  { name: '幽都洞窟', intro: '窄路回旋，先学会把火力交叉覆盖。', hpMul: 1, spdMul: 1, essence: 56, tint: '#647f78', accent: '#75c9c0', path: 'cave', spawnCount: 1, seals: [[74, 108]], spawnPoints: [[884, 430]], boss: 'taotie' },
+  { name: '北野草原', intro: '开阔地带，远程单位的范围开始变得重要。', hpMul: 1.12, spdMul: 1.03, essence: 62, tint: '#7d9d81', accent: '#d8bc74', path: 'grass', spawnCount: 1, seals: [[74, 402]], spawnPoints: [[884, 402]], boss: 'baize' },
+  { name: '沧海之上', intro: '潮汐折返，减速和连锁能把敌群拖在射程内。', hpMul: 1.25, spdMul: 1.06, essence: 70, tint: '#5b8e9c', accent: '#9ed6d0', path: 'sea', spawnCount: 1, seals: [[74, 152]], spawnPoints: [[884, 270]], boss: 'taotie' },
+  { name: '赤焰火山', intro: '两道裂口同时喷涌，必须分散阵型。', hpMul: 1.4, spdMul: 1.09, essence: 78, tint: '#b56454', accent: '#f2b35e', path: 'volcano', spawnCount: 2, seals: [[74, 104], [74, 436]], spawnPoints: [[884, 118], [884, 422]], boss: 'baize' },
+  { name: '天庭云阶', intro: '双路交汇，强敌拥有护盾与复活机制。', hpMul: 1.58, spdMul: 1.12, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 88], [74, 452]], spawnPoints: [[884, 118], [884, 422]], boss: 'taotie' },
 ];
 
 const WAVES = [
-  [['xingxing', 7, 1.1, 0, 1]], [['xingxing', 8, 1, 0, 1], ['fei', 2, 1.4, 3, 1]], [['xingxing', 8, .9, 0, 1], ['bashe', 1, 0, 5, 1]],
-  [['fei', 6, 1, 0, 1], ['wangliang', 2, 1.5, 2, 1]], [['xingxing', 10, .72, 0, 1.1], ['bashe', 2, 1.3, 4, 1]], [['huali', 5, 1.1, 0, 1], ['fei', 5, .9, 1, 1]],
-  [['wangliang', 5, .9, 0, 1], ['zhuyan', 1, 0, 7, 1]], [['xingxing', 12, .65, 0, 1.1], ['shanxiao', 3, 1.2, 3, 1]],
-  [['bashe', 4, 1.2, 0, 1], ['fei', 8, .7, 1, 1]], [['huali', 7, .9, 0, 1], ['wangliang', 4, 1, 2, 1]], [['zhuyan', 2, 0, 0, 1], ['xingxing', 13, .55, 1, 1.1]],
-  [['shanxiao', 6, .85, 0, 1], ['bashe', 4, 1.1, 2, 1.1]], [['huali', 10, .72, 0, 1.1], ['zhuyan', 2, 0, 5, 1]], [['fei', 15, .5, 0, 1.2], ['wangliang', 4, 1, 2, 1]],
-  [['bashe', 7, .9, 0, 1.2], ['shanxiao', 7, .7, 1, 1.2]], [['zhuyan', 3, 0, 0, 1.2], ['huali', 10, .72, 2, 1.2]], [['taotie', 1, 0, 0, 1.15], ['xingxing', 16, .44, 1, 1.25]],
-  [['wangliang', 10, .65, 0, 1.25], ['baize', 1, 0, 4, 1.2]], [['zhuyan', 5, 0, 0, 1.3], ['shanxiao', 10, .55, 1, 1.25]], [['taotie', 1, 0, 0, 1.3], ['baize', 1, 0, 4, 1.25], ['huali', 14, .5, 2, 1.3]],
-  [['wangliang', 6, .7, 0, 1.3], ['huali', 5, .8, 4, 1.3], ['shanxiao', 6, .65, 8, 1.4], ['zhuyan', 3, 2, 12, 1.3]],
+  [['xingxing', 6, 1.15, 0, .82]],
+  [['xingxing', 7, 1.05, 0, .86], ['fei', 2, 1.4, 2.5, .82]],
+  [['xingxing', 7, 1, 0, .9], ['bashe', 1, 0, 4, .78]],
+  [['fei', 5, 1.05, 0, .9], ['wangliang', 2, 1.5, 2, .82]],
+  [['xingxing', 8, .86, 0, .92], ['zhuyan', 1, 0, 5, .72, 'miniBoss']],
+  [['huali', 3, 1.15, 0, .82], ['xingxing', 6, .9, 1, .95]],
+  [['fei', 6, .9, 0, .9], ['shanxiao', 2, 1.35, 2, .82]],
+  [['bashe', 2, 1.35, 0, .85], ['xingxing', 8, .8, 1, .96]],
+  [['huali', 4, 1, 0, .86], ['wangliang', 3, 1.15, 2, .88]],
+  [['shanxiao', 4, 1, 0, .88], ['baize', 1, 0, 5, .64, 'miniBoss']],
+  [['xingxing', 10, .68, 0, 1], ['fei', 5, .82, 1, .94]],
+  [['bashe', 3, 1.15, 0, .9], ['shanxiao', 4, .95, 2, .92]],
+  [['huali', 5, .88, 0, .9], ['wangliang', 4, .92, 2, .92]],
+  [['fei', 9, .62, 0, 1], ['zhuyan', 2, 1.6, 3, .8]],
+  [['xingxing', 10, .62, 0, 1], ['huali', 4, .9, 1.5, .9], ['shanxiao', 3, 1.05, 3, .9]],
 ];
 
 const WAVE_META = [
-  [10, 20, '狌狌自裂口显形'], [9, 15, '飞廉高速突进'], [9, 10, '巴蛇披甲：准备破盾'], [9, 10, '魍魉隐匿：进入射程后显形'],
-  [9, 10, '多组敌军交错来袭'], [9, 12, '化蛇免疫法术：调配物理火力'], [16, 0, '朱厌临卷：护盾需要破盾克制'], [10, 0, '山魈倒下后会分裂'],
-  [9, 0, '巴蛇与飞廉混编'], [9, 0, '化蛇与魍魉同至'], [12, 0, '双朱厌压境'], [9, 0, '山魈与巴蛇夹攻'],
-  [12, 0, '高阶化蛇护住朱厌'], [9, 0, '飞廉群高速冲阵'], [10, 0, '重甲与分裂敌群混编'], [12, 0, '朱厌率化蛇来袭'],
-  [16, 0, '饕餮临卷：会周期自愈'], [16, 0, '白泽临卷：倒下后复活一次'], [12, 0, '朱厌与山魈大军'], [18, 0, '双首领与化蛇终阵'],
-  [15, 0, '七技齐至：全场混编'],
+  [8, 18, '狌狌自裂口显形'], [8, 14, '飞廉开始高速突进'], [8, 12, '巴蛇披甲：准备破盾'], [8, 12, '魍魉隐匿：进入射程后显形'],
+  [11, 20, '小首领朱厌随军压境'], [8, 14, '化蛇免疫法术：调配物理火力'], [8, 12, '飞廉与山魈混编'], [8, 12, '重甲敌军进入长路'],
+  [8, 12, '化蛇与魍魉交错出现'], [12, 24, '小首领白泽会复活一次'], [8, 10, '快速敌群连续冲阵'], [8, 10, '重甲与分裂敌群夹攻'],
+  [8, 10, '隐匿与免疫敌群同至'], [9, 10, '朱厌护住飞廉大军'], [0, 0, '终阵小怪来袭，清场后首领降临'],
 ].map(([rest, bonus, hint]) => ({ rest, bonus, hint }));
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'gameTerrain', 'gameLevel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'advancedSummon', 'upgradeAll', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneDraw', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'gameTerrain', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 const state = {
-  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 20, unlocked: new Set(STARTER_IDS), xp: 0, tier: 0, soundEnabled: true,
+  screen: 'select', stage: 0, selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(STARTER_IDS), xp: 0, tier: 0, soundEnabled: true,
   paused: false, resumeAfterDialog: false, draggingUnitId: null, draggingTowerIndex: -1, selectedTowerUid: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScore: 0, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], logs: [], mouse: { x: 480, y: 270, inside: false },
-  skillCooldowns: {}, skillBond: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], advancedBatch: [], lastSign: null,
+  skillCooldowns: {}, skillBond: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], summonMode: 'normal', advancedBatch: [], advancedMode: 'normal', requiredBeastId: null, fortuneSpinning: false, finalScoreBreakdown: null, lastSign: null,
 };
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const currentLevel = () => LEVELS[state.stage];
-const totalWaves = (level = currentLevel()) => level.to - level.from;
-const globalWaveIndex = () => currentLevel().from + state.wave;
+const totalWaves = () => WAVES.length;
 const levelSeals = (level = currentLevel()) => level.seals || [[arena.sealX, arena.sealY]];
 const levelSpawns = (level = currentLevel()) => level.spawnPoints || [[884, 270]];
 const beastDef = (id) => ({ ...ROSTER.find((item) => item.id === id), ...BEASTS[id] });
+const populationCostFor = (unitOrId) => POPULATION_BY_RARITY[beastDef(typeof unitOrId === 'string' ? unitOrId : unitOrId.id).rarity];
+const usedPopulation = () => state.towers.reduce((sum, tower) => sum + populationCostFor(tower), 0);
+const allOwnedUnits = () => state.towers.concat(state.backpack);
 const cultivation = () => CULTIVATION_STAGES[state.tier] || CULTIVATION_STAGES[0];
 const cultivationTierFor = (kills) => CULTIVATION_STAGES.reduce((tier, stage, index) => (kills >= stage.kills ? index : tier), 0);
 const hasCombatSprite = (id) => Boolean(combatSpriteSources[id]);
@@ -229,7 +247,7 @@ function playSound(kind) {
 function portraitMarkup(beast) {
   const portraitX = beast.portraitIndex % 6;
   const portraitY = Math.floor(beast.portraitIndex / 6);
-  const spriteStyle = hasCombatSprite(beast.id) ? `--spirit-sprite:url('./assets/sprites/${beast.id}.png')` : '';
+  const spriteStyle = hasCombatSprite(beast.id) ? `--spirit-sprite:url('./assets/sprites/${beast.id}-3d.png')` : '';
   return `<span class="portrait portrait-image ${hasCombatSprite(beast.id) ? 'portrait-spirit' : ''}" style="--portrait-x:${portraitX};--portrait-y:${portraitY};${spriteStyle}"></span>`;
 }
 
@@ -350,6 +368,26 @@ function randomSummon(weights = SUMMON_WEIGHTS) {
   return randomBeastAtRarity(randomFromWeights(weights));
 }
 
+function randomSummonChoices(weights, count) {
+  const choices = [];
+  while (choices.length < count) {
+    const beast = randomSummon(weights);
+    if (!choices.some((choice) => choice.id === beast.id)) choices.push(beast);
+  }
+  return choices;
+}
+
+function bondEffectText(bond) {
+  const labels = { power: '攻击', haste: '攻速', range: '射程', cdr: '技能冷却', sunder: '破甲', enemySlow: '敌军减速' };
+  return `${labels[bond.stat] || '战力'} +${Math.round(bond.bonus * 100)}%`;
+}
+
+function bondOpportunity(beastId) {
+  const owned = new Set(allOwnedUnits().map((unit) => unit.id));
+  if (owned.has(beastId)) return null;
+  return BOND_DEFS.find((bond) => bond.members.includes(beastId) && bond.members.filter((id) => owned.has(id)).length === bond.need - 1) || null;
+}
+
 function createUnit(beast, level = cultivation().summonLevel) {
   return { uid: `spirit-${state.nextUnitId++}`, id: beast.id, level, cd: .15, hitTarget: null, hitCount: 0 };
 }
@@ -364,27 +402,11 @@ function selectUnit(uid) {
   updateHUD();
 }
 
-function removeUnit(unit) {
-  const backpackIndex = state.backpack.findIndex((item) => item.uid === unit.uid);
-  if (backpackIndex >= 0) { state.backpack.splice(backpackIndex, 1); return; }
-  const towerIndex = state.towers.findIndex((item) => item.uid === unit.uid);
-  if (towerIndex >= 0) state.towers.splice(towerIndex, 1);
-}
-
 function receiveSummonedUnit(unit) {
-  let target = state.towers.concat(state.backpack).find((item) => item.id === unit.id && item.level === unit.level);
+  const target = state.towers.concat(state.backpack).find((item) => item.id === unit.id);
   if (!target) { state.backpack.push(unit); return { unit, promotions: 0 }; }
-
-  let promotions = 1;
-  target.level += 1;
-  while (true) {
-    const peer = state.towers.concat(state.backpack).find((item) => item.uid !== target.uid && item.id === target.id && item.level === target.level);
-    if (!peer) break;
-    removeUnit(peer);
-    target.level += 1;
-    promotions += 1;
-  }
-  return { unit: target, promotions };
+  target.level = Math.min(9, target.level + 1);
+  return { unit: target, promotions: 1 };
 }
 
 function showGameDialog(dialog) {
@@ -414,29 +436,41 @@ function resumePauseMenu() {
 
 function unitCard(unit, attributes = '') {
   const beast = beastDef(unit.id);
-  return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${attributes}" data-unit-id="${unit.uid}" type="button">${portraitMarkup(beast)}<span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · Lv.${unit.level} · ${beast.kindText}</small></span><em>${RARITIES[beast.rarity]}</em></button>`;
+  return `<button class="game-card rarity-${RARITIES[beast.rarity]} ${attributes}" data-unit-id="${unit.uid}" type="button">${portraitMarkup(beast)}<span><strong>${beast.name}</strong><small>${RARITIES[beast.rarity]} · Lv.${unit.level} · 人口 ${populationCostFor(unit)} · ${beast.kindText}</small></span><em>${RARITIES[beast.rarity]}</em></button>`;
 }
 
 function renderSummonOffers() {
+  const advanced = state.summonMode === 'advanced';
+  refs.summonTitle.textContent = `${advanced ? '高级三选一' : '普通二选一'} · 选中即入卷`;
+  refs.summonSubtitle.textContent = advanced ? '高概率 SR，中概率 SSR，小概率 UR；未选卡牌不会获得。' : 'N、R 为主，小概率 SR，极小概率 SSR；未选卡牌不会获得。';
+  refs.summonOffers.classList.toggle('is-triple', advanced);
   refs.summonOffers.innerHTML = state.summonOffers.map((beast, index) => {
     const data = beastDef(beast.id);
-    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button">${portraitMarkup(beast)}<span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>${data.kindText}</small></span><b>请出布阵</b></button>`;
+    const opportunity = bondOpportunity(beast.id);
+    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button">${portraitMarkup(beast)}<span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>人口 ${populationCostFor(beast.id)} · ${data.kindText}</small>${opportunity ? `<small class="summon-bond-hint">可组成「${opportunity.name}」<br>${bondEffectText(opportunity)}</small>` : ''}</span><b>选择此卡</b></button>`;
   }).join('');
   refs.summonOffers.querySelectorAll('[data-offer-index]').forEach((button) => button.addEventListener('click', () => claimSummonOffer(Number(button.dataset.offerIndex))));
 }
 
-function summonBeast() {
+function summonSingle(mode) {
   if (state.screen !== 'game') return;
   if (state.paused) { addLog('暂停中，继续战斗后才能召灵。'); return; }
   if (!state.summonOffers.length) {
-    if (state.energy < SUMMON_COST) { addLog(`灵蕴不足，需要 ${SUMMON_COST} 点才能召唤。`); return; }
+    const cost = mode === 'advanced' ? ADVANCED_SUMMON_COST : SUMMON_COST;
+    if (state.energy < cost) { addLog(`灵蕴不足，需要 ${cost} 点进行${mode === 'advanced' ? '高级' : '普通'}召灵。`); return; }
     if (state.backpack.length >= MAX_BACKPACK) { addLog('背包已满，请先部署、合成或遣返妖灵。'); return; }
-    state.energy -= SUMMON_COST;
-    state.summonOffers = [randomSummon(), randomSummon()];
+    state.energy -= cost;
+    state.summonMode = mode;
+    const weights = mode === 'advanced' ? ADVANCED_SUMMON_WEIGHTS : SUMMON_WEIGHTS;
+    const choiceCount = mode === 'advanced' ? 3 : 2;
+    state.summonOffers = randomSummonChoices(weights, choiceCount);
   }
   renderSummonOffers();
   showGameDialog(refs.summonDialog);
 }
+
+function summonBeast() { summonSingle('normal'); }
+function advancedSummon() { summonSingle('advanced'); }
 
 function claimSummonOffer(index) {
   const beast = state.summonOffers[index];
@@ -454,25 +488,29 @@ function claimSummonOffer(index) {
 }
 
 function renderAdvancedResults() {
+  const advanced = state.advancedMode === 'advanced';
+  refs.advancedTitle.textContent = `${advanced ? '高级' : '普通'}召灵 · 五连`;
+  refs.advancedSubtitle.textContent = `五次结果全部入卷，消耗 ${advanced ? ADVANCED_FIVE_COST : SUMMON_FIVE_COST} 灵蕴；同种同级自动合成。`;
   refs.advancedResults.innerHTML = state.advancedBatch.map((unit) => unitCard(unit, 'is-result')).join('');
 }
 
-function advancedSummon() {
+function summonFive(mode) {
   if (state.screen !== 'game' || state.paused) return;
   if (state.advancedBatch.length) { renderAdvancedResults(); showGameDialog(refs.advancedDialog); return; }
-  if (state.energy < ADVANCED_SUMMON_COST) { addLog(`灵蕴不足，需要 ${ADVANCED_SUMMON_COST} 点进行高级五连。`); return; }
-  if (state.backpack.length + 5 > MAX_BACKPACK) { addLog('背包至少需要留出 5 个位置，才能进行高级五连。'); return; }
-  const advancedWeights = [[0, 22], [1, 28], [2, 33], [3, 13], [4, 4]];
-  state.energy -= ADVANCED_SUMMON_COST;
-  const guaranteedWeights = [[2, 76], [3, 19], [4, 5]];
-  state.advancedBatch = [
-    ...Array.from({ length: 4 }, () => createUnit(randomSummon(advancedWeights))),
-    createUnit(randomSummon(guaranteedWeights)),
-  ].sort(() => Math.random() - .5);
+  const cost = mode === 'advanced' ? ADVANCED_FIVE_COST : SUMMON_FIVE_COST;
+  if (state.energy < cost) { addLog(`灵蕴不足，需要 ${cost} 点进行${mode === 'advanced' ? '高级' : '普通'}五连。`); return; }
+  if (state.backpack.length + 5 > MAX_BACKPACK) { addLog('背包至少需要留出 5 个位置，才能进行五连召灵。'); return; }
+  state.energy -= cost;
+  state.advancedMode = mode;
+  const weights = mode === 'advanced' ? ADVANCED_SUMMON_WEIGHTS : SUMMON_WEIGHTS;
+  state.advancedBatch = Array.from({ length: 5 }, () => createUnit(randomSummon(weights)));
   renderAdvancedResults();
   refs.advancedClaim.textContent = '入卷 · 自动合成';
   showGameDialog(refs.advancedDialog);
 }
+
+function summonBeastFive() { summonFive('normal'); }
+function advancedSummonFive() { summonFive('advanced'); }
 
 function fusionOutcome(rarity) {
   const roll = Math.random();
@@ -486,9 +524,9 @@ function fuseUnits(first, second) {
   const outcome = fusionOutcome(firstBeast.rarity);
   const result = createUnit(randomBeastAtRarity(outcome.rarity), Math.max(first.level, second.level));
   state.backpack = state.backpack.filter((unit) => unit.uid !== first.uid && unit.uid !== second.uid);
-  state.backpack.push(result);
+  const received = receiveSummonedUnit(result);
   state.unlocked.add(result.id);
-  addLog(`随机融合${outcome.label}：获得 ${beastDef(result.id).name}（${RARITIES[outcome.rarity]}）。`);
+  addLog(`随机融合${outcome.label}：${received.promotions ? `${beastDef(result.id).name}同卡升级` : `获得 ${beastDef(result.id).name}`}（${RARITIES[outcome.rarity]}）。`);
   return outcome;
 }
 
@@ -503,7 +541,7 @@ function claimAdvancedBatch() {
   state.selectedUnitId = state.backpack[0]?.uid || null;
   closeGameDialog(refs.advancedDialog);
   playSound('summon');
-  addLog(`高级五连入卷：${promotions ? `同种同阶升级 ${promotions} 次，` : ''}其余妖灵已入背包。`);
+  addLog(`${state.advancedMode === 'advanced' ? '高级' : '普通'}五连入卷：${promotions ? `同种同阶升级 ${promotions} 次，` : ''}其余妖灵已入背包。`);
   state.advancedBatch = [];
   renderGameRoster();
   updateHUD();
@@ -512,15 +550,17 @@ function claimAdvancedBatch() {
 function initGame() {
   state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
   state.energy = currentLevel().essence; state.hp = state.maxHp; state.kills = 0; state.score = 0; state.combo = 0; state.bestCombo = 0;
-  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.advancedBatch = []; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.selectedTowerUid = null;
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.arenaHint.textContent = `点下方「召灵」请出异兽，15 秒后${currentLevel().spawnCount > 1 ? '两道裂口' : '右侧裂口'}涌出敌军`; addLog('整备 15 秒：召灵后拖动妖灵卡到道路两侧布阵。'); renderGameRoster(); renderGameBonds(); updateHUD();
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.tutorialStep = state.stage === 0 ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.summonMode = 'normal'; state.advancedBatch = []; state.advancedMode = 'normal'; state.requiredBeastId = ROSTER[Math.floor(Math.random() * ROSTER.length)].id; state.fortuneSpinning = false; state.finalScoreBreakdown = null; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.selectedTowerUid = null;
+  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.requiredBeastLabel.textContent = beastDef(state.requiredBeastId).name; refs.arenaHint.textContent = `本局必选「${beastDef(state.requiredBeastId).name}」；15 秒后${currentLevel().spawnCount > 1 ? '两道裂口' : '右侧裂口'}涌出敌军`; addLog(`整备 15 秒：本局随机必选妖灵为「${beastDef(state.requiredBeastId).name}」，结算时需在场。`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function startWave() {
   if (state.wave >= totalWaves()) return;
-  const groups = WAVES[globalWaveIndex()];
-  const meta = WAVE_META[globalWaveIndex()];
-  state.spawning = groups.map(([type, count, gap, delay, hpMul], index) => ({ type, count, gap, delay, hpMul, spawned: 0, timer: delay, route: index % pathInfo().length }));
+  const groups = WAVES[state.wave];
+  const meta = WAVE_META[state.wave];
+  state.spawning = groups.map(([type, count, gap, delay, hpMul, role = 'normal'], index) => ({ type, count, gap, delay, hpMul, role, spawned: 0, timer: delay, route: index % pathInfo().length }));
+  state.spawning.bossAfterClear = state.wave === totalWaves() - 1 ? currentLevel().boss : null;
+  state.spawning.bossSpawned = false;
   state.phase = 'combat'; state.waveStarted = true; state.waveTimer = 0;
   refs.waveLabel.textContent = `${state.wave + 1} / ${totalWaves()}`;
   refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint}`;
@@ -545,16 +585,23 @@ function spawnFromGroups(dt) {
     group.timer -= dt;
     if (group.spawned < group.count) {
       allDone = false;
-      if (group.timer <= 0) { spawnEnemy(group.type, group.hpMul, (group.route + group.spawned) % pathInfo().length); group.spawned += 1; group.timer = group.gap; }
+      if (group.timer <= 0) { spawnEnemy(group.type, group.hpMul, (group.route + group.spawned) % pathInfo().length, 0, group.role); group.spawned += 1; group.timer = group.gap; }
     }
   });
   if (allDone && state.enemies.length === 0) {
-    const completedMeta = WAVE_META[globalWaveIndex()];
+    if (state.spawning.bossAfterClear && !state.spawning.bossSpawned) {
+      const boss = spawnEnemy(state.spawning.bossAfterClear, .92 + state.stage * .04, 0, 0, 'stageBoss');
+      state.spawning.bossSpawned = true;
+      refs.arenaHint.textContent = `第 15 波 · 关卡首领「${boss.def.name}」降临`;
+      addLog(`终阵小怪已清除，关卡首领「${boss.def.name}」现身。若其破封，将造成 9 点伤害。`);
+      return;
+    }
+    const completedMeta = WAVE_META[state.wave];
     state.energy += completedMeta.bonus;
     state.spawning = null; state.wave += 1;
     if (state.wave >= totalWaves()) { finishGame(true); return; }
     state.phase = 'rest'; state.waveCooldown = completedMeta.rest;
-    addLog(`第 ${state.wave + 1} 波前喘息 ${state.waveCooldown} 秒${completedMeta.bonus ? `，奖励 ${completedMeta.bonus} 灵蕴` : ''}。`);
+    addLog(`下一波将在 ${state.waveCooldown} 秒后开始${completedMeta.bonus ? `，奖励 ${completedMeta.bonus} 灵蕴` : ''}。`);
   }
 }
 
@@ -569,12 +616,12 @@ function refreshEnemyModifiers(enemy) {
   enemy.armor = Math.max(0, (enemy.def.armor || 0) + (enemyBlessing ? 5 : 0) - (enemyDebuff ? 8 : 0));
 }
 
-function spawnEnemy(type, hpMul, routeIndex = 0, distanceAlong = 0) {
+function spawnEnemy(type, hpMul, routeIndex = 0, distanceAlong = 0, role = 'normal') {
   const def = ENEMIES[type]; const route = pathInfo()[routeIndex] || pathInfo()[0];
   const enemyBlessing = activeSignEffect('enemyBuff');
   const hp = def.hp * currentLevel().hpMul * hpMul * (enemyBlessing ? 1.18 : 1);
   const point = interpolatePath(route.points, distanceAlong);
-  const enemy = { type, def, x: point.x, y: point.y, d: distanceAlong, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp, maxHp: hp, speed: def.speed, radius: def.radius, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
+  const enemy = { type, role, sealDamage: role === 'stageBoss' ? 9 : role === 'miniBoss' ? 5 : 1, def, x: point.x, y: point.y, d: distanceAlong, route: routeIndex, routePoints: route.points, routeLength: pathLength(route.points), hp, maxHp: hp, speed: def.speed, radius: def.radius, shield: def.shield || 0, armor: def.armor || 0, slow: 0, slowTimer: 0, burnTimer: 0, burnDps: 0, stealthTimer: def.stealth ? 2 : 0, revived: false, split: false, lastHitBy: null, hitCount: 0, hitTarget: null, skillTimer: 4 + Math.random() * 3 };
   refreshEnemyModifiers(enemy);
   state.enemies.push(enemy);
   return enemy;
@@ -588,14 +635,14 @@ function bondsForTowers() {
   for (const bond of BOND_DEFS) {
     const members = bond.members.map((id) => state.towers.find((tower) => tower.id === id)).filter(Boolean);
     if (members.length < bond.need) continue;
-    const formationCount = bond.shape === 'triangle' ? 3 : bond.shape === 'square' ? 4 : 2;
-    const formation = members.length < formationCount ? 1 : formationScore(bond.shape, members);
+    const formationShape = members.length >= 4 ? 'polygon' : members.length === 3 ? 'triangle' : 'line';
+    const formation = formationScore(formationShape, members);
     const formed = formation >= .5;
     const full = members.length >= bond.members.length;
     const contribution = bond.bonus + Math.max(0, members.length - bond.need) * bond.stepBonus;
-    const adjusted = formed ? contribution : contribution * .5;
+    const adjusted = formed ? contribution : 0;
     totals[bond.stat] += adjusted;
-    active.push({ ...bond, members, formation, formed, full, ultReady: Boolean(bond.ult && full && formed), adjusted });
+    active.push({ ...bond, members, formation, formationShape, formed, full, ultReady: Boolean(bond.ult && full && formed), adjusted });
   }
   totals.power = Math.min(1.2, totals.power); totals.haste = Math.min(.7, totals.haste); totals.range = Math.min(.45, totals.range); totals.cdr = Math.min(.6, totals.cdr); totals.sunder = Math.min(.45, totals.sunder); totals.enemySlow = Math.min(.45, totals.enemySlow);
   const skillBonds = active.filter((bond) => bond.ultReady);
@@ -613,9 +660,8 @@ function formationScore(shape, members) {
     const vertical = Math.max(...points.map((p) => p.y)) - Math.min(...points.map((p) => p.y));
     return horizontal < 60 ? 0 : clamp(1 - vertical / 64, 0, 1);
   }
-  const count = shape === 'triangle' ? 3 : 4;
-  const use = points.slice(0, count);
-  if (use.length < count) return 1;
+  const count = points.length;
+  const use = points;
   const center = use.reduce((out, point) => ({ x: out.x + point.x / count, y: out.y + point.y / count }), { x: 0, y: 0 });
   const radii = use.map((point) => Math.hypot(point.x - center.x, point.y - center.y));
   const radius = radii.reduce((sum, value) => sum + value, 0) / count;
@@ -641,7 +687,8 @@ function updateTowers(dt) {
     if (tower.hitTarget === target) tower.hitCount += 1; else { tower.hitTarget = target; tower.hitCount = 1; }
     const special = def.stunEvery && tower.hitCount % def.stunEvery === 0 ? -1 : def.breakAt && tower.hitCount % def.breakAt === 0 ? -2 : 0;
     const power = def.dmg * (1 + bondState.totals.power + (allyBlessing ? .22 : 0)) * (1 + (tower.level - 1) * .26) * (1 + cultivation().power);
-    state.projectiles.push({ x: tower.x, y: tower.y, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, trail: [] });
+    const seed = [...tower.id].reduce((sum, character) => sum + character.charCodeAt(0), 0);
+    state.projectiles.push({ x: tower.x, y: tower.y, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, seed, age: 0, trail: [] });
     tower.cd = def.interval / Math.max(.35, def.rate || 1);
   });
 }
@@ -694,8 +741,14 @@ function applyProjectile(projectile) {
 function updateProjectiles(dt) {
   state.projectiles = state.projectiles.filter((projectile) => {
     if (!projectile.target || projectile.target.hp <= 0) return false;
+    projectile.age = (projectile.age || 0) + dt;
     const dx = projectile.target.x - projectile.x; const dy = projectile.target.y - projectile.y; const distance = Math.hypot(dx, dy); const step = projectile.speed * dt;
-    projectile.x += dx / Math.max(distance, 1) * step; projectile.y += dy / Math.max(distance, 1) * step;
+    const seed = projectile.seed || 0;
+    const amplitude = projectile.def.proj === 'wisp' ? 0.2 : projectile.def.proj === 'ember' ? 0.11 : projectile.def.proj === 'quake' ? 0.05 : 0.025;
+    const curve = Math.sin(state.battleTime * (5 + seed % 5) + seed * .17) * amplitude;
+    const safeDistance = Math.max(distance, 1);
+    projectile.x += (dx / safeDistance - dy / safeDistance * curve) * step;
+    projectile.y += (dy / safeDistance + dx / safeDistance * curve) * step;
     projectile.trail.push({ x: projectile.x, y: projectile.y }); if (projectile.trail.length > 5) projectile.trail.shift();
     if (distance < step + projectile.target.radius) { applyProjectile(projectile); return false; }
     return true;
@@ -714,7 +767,7 @@ function updateEnemies(dt) {
     if (enemy.stunned > 0) continue;
     const route = enemy.routePoints; const next = interpolatePath(route, enemy.d); enemy.x = next.x; enemy.y = next.y;
     enemy.d += enemy.speed * (1 - enemy.slow) * (1 - totals.enemySlow) * dt;
-    if (enemy.d >= enemy.routeLength) { enemy.hp = 0; state.hp -= enemy.def.boss ? 2 : 1; state.combo = 0; playSound('breach'); addLog(`${enemy.def.name}冲过了封印，完整度下降。`); }
+    if (enemy.d >= enemy.routeLength) { enemy.hp = 0; state.hp -= enemy.sealDamage; state.combo = 0; playSound('breach'); addLog(`${enemy.def.name}冲过封印，造成 ${enemy.sealDamage} 点破封伤害。`); }
   }
   state.enemies = state.enemies.filter((enemy) => enemy.hp > 0);
   if (state.hp <= 0) finishGame(false);
@@ -726,7 +779,7 @@ function killEnemy(enemy) {
     enemy.split = true;
     for (let i = 0; i < 2; i += 1) spawnEnemy('xingxing', .55, enemy.route, enemy.d);
   }
-  state.kills += enemy.def.reward; state.combo += 1; state.score += enemy.def.reward * 100 + Math.min(100, state.combo * 5); state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(9999, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.def.boss ? 18 : 8);
+  state.kills += enemy.def.reward; state.combo += 1; state.score += enemy.def.reward * 100 + Math.min(100, state.combo * 5); state.bestCombo = Math.max(state.bestCombo, state.combo); state.energy = Math.min(9999, state.energy + enemy.def.reward * 2); state.xp += enemy.def.reward; burst(enemy.x, enemy.y, enemy.def.color, enemy.role !== 'normal' || enemy.def.boss ? 18 : 8);
 }
 
 function finishGame(won) {
@@ -734,10 +787,38 @@ function finishGame(won) {
   state.screen = 'finishing'; state.finishTimer = 0;
   if (won) playSound('victory');
   if (won) { const unlock = ROSTER.find((beast) => !state.unlocked.has(beast.id) && beast.rarity <= Math.min(4, state.stage + 1)); if (unlock) state.unlocked.add(unlock.id); }
-  state.bestScore = Math.max(state.bestScore, state.score);
+  const activeBonds = bondsForTowers().active.filter((bond) => bond.formed).length;
+  const remainingHp = Math.max(0, state.hp);
+  const remainingEnergy = Math.max(0, Math.floor(state.energy));
+  const urCount = allOwnedUnits().filter((unit) => beastDef(unit.id).rarity === 4).length;
+  const requiredFielded = state.towers.some((tower) => tower.id === state.requiredBeastId);
+  const breakdown = {
+    combat: state.score,
+    victory: won ? 1200 : 0,
+    bonds: activeBonds * 600,
+    hp: remainingHp * 220,
+    energy: Math.min(2400, remainingEnergy * 8),
+    ur: urCount * 700,
+    required: requiredFielded ? 1200 : 0,
+  };
+  breakdown.total = breakdown.combat + breakdown.victory + breakdown.bonds + breakdown.hp + breakdown.energy + breakdown.ur + breakdown.required;
+  breakdown.grade = won ? (breakdown.total >= 9000 ? 'S' : breakdown.total >= 6500 ? 'A' : breakdown.total >= 4000 ? 'B' : 'C') : 'C';
+  state.finalScoreBreakdown = breakdown;
+  state.bestScore = Math.max(state.bestScore, breakdown.total);
   state.tier = cultivationTierFor(state.xp);
   saveProgress();
-  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破'; refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`; refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.kills}`; refs.resultCombo.textContent = state.bestCombo; refs.resultCopy.textContent = won ? `你在${currentLevel().name}完成了 ${totalWaves()} 波防守。阵型、伤害类型和出怪口之间的取舍已经生效。` : '本局击杀已计入修为。优先补上交叉火力，再处理护盾与隐匿敌人。'; showScreen('result');
+  refs.resultTitle.textContent = won ? '封印守住了' : '封印被突破';
+  refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1}`;
+  refs.resultScoreStamp.textContent = breakdown.grade;
+  refs.resultScoreTotal.textContent = breakdown.total.toLocaleString('zh-CN');
+  refs.resultBonds.textContent = `${activeBonds} · +${breakdown.bonds}`;
+  refs.resultHp.textContent = `${remainingHp}/${state.maxHp} · +${breakdown.hp}`;
+  refs.resultEnergy.textContent = `${remainingEnergy} · +${breakdown.energy}`;
+  refs.resultUr.textContent = `${urCount} · +${breakdown.ur}`;
+  refs.resultRequired.textContent = `${beastDef(state.requiredBeastId).name} · ${requiredFielded ? `+${breakdown.required}` : '+0'}`;
+  refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.kills}`; refs.resultCombo.textContent = state.bestCombo;
+  refs.resultCopy.textContent = `${won ? '守关成功' : '守关失败'}，基础战绩 ${breakdown.combat}，${won ? `胜利加成 ${breakdown.victory}` : '无胜利加成'}。必选妖灵需在结算时仍在场上。`;
+  showScreen('result');
 }
 
 function addDamageText(x, y, text, color) { state.damageTexts.push({ x, y, text, color, life: 1 }); }
@@ -747,7 +828,9 @@ function updateEffects(dt) { state.particles = state.particles.filter((item) => 
 function placeTower(x, y) {
   const unit = selectedUnit();
   if (!unit) { addLog('请先召灵，再从背包选择一只妖灵。'); return; }
-  if (state.towers.length >= state.maxPopulation) { addLog('人口已满，无法继续部署妖灵。'); return; }
+  if (state.towers.some((tower) => tower.id === unit.id)) { addLog(`${beastDef(unit.id).name}本局已经上场，每种妖灵只能部署一只。`); return; }
+  const population = populationCostFor(unit);
+  if (usedPopulation() + population > state.maxPopulation) { addLog(`${beastDef(unit.id).name}需要 ${population} 人口，当前人口不足。`); return; }
   if (!canPlaceAt(x, y)) { addLog(distToPath(x, y) < arena.roadW * .5 + arena.plate * .5 ? '不能放在怪物行进的道路上。' : '此处不能安置。'); return; }
   const def = beastDef(unit.id);
   state.towers.push({ ...unit, x, y, cd: .15, hitTarget: null, hitCount: 0 });
@@ -761,7 +844,7 @@ function placeTower(x, y) {
 function renderGameRoster() {
   refs.gameRoster.innerHTML = state.backpack.length
     ? state.backpack.map((unit) => unitCard(unit, state.selectedUnitId === unit.uid ? 'is-selected' : '')).join('')
-    : '<div class="summon-empty">点击“召灵 20”请出异兽</div>';
+    : '<div class="summon-empty">使用普通或高级召灵，请出 N 至 UR 妖灵</div>';
   refs.gameRoster.querySelectorAll('[data-unit-id]').forEach((button) => {
     button.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
@@ -780,7 +863,7 @@ function renderGameBonds() {
     const selectable = current?.ultReady;
     const tag = selectable ? 'button' : 'div';
     const attrs = selectable ? ` data-skill-bond="${bond.id}" type="button"` : '';
-    return `<${tag} class="bond-row ${selectable ? 'bond-skill-choice' : ''} ${state.skillBond?.id === bond.id ? 'is-selected' : ''}"${attrs}><i class="bond-pill ${current ? 'active' : ''}" style="background:${bond.color}"></i><span>${bond.name}</span><strong>${count}/${bond.need}${current ? ` · ${Math.round(current.adjusted * 100)}%` : ''}</strong></${tag}>`;
+    return `<${tag} class="bond-row ${selectable ? 'bond-skill-choice' : ''} ${state.skillBond?.id === bond.id ? 'is-selected' : ''}"${attrs}><i class="bond-pill ${current?.formed ? 'active' : ''}" style="background:${bond.color}"></i><span>${bond.name}</span><strong>${count}/${bond.need}${current ? current.formed ? ` · ${Math.round(current.adjusted * 100)}%` : ' · 阵型无效' : ''}</strong></${tag}>`;
   }).join('');
   refs.gameBonds.querySelectorAll('[data-skill-bond]').forEach((button) => button.addEventListener('click', () => {
     const { active: current } = bondsForTowers();
@@ -799,29 +882,14 @@ function renderBondDialog() {
     const status = current ? `${current.formed ? '成阵' : '散阵'} · ${Math.round(current.adjusted * 100)}%${current.ultReady ? ' · 技能就绪' : ''}` : '未触发';
     const tag = current?.ultReady ? 'button' : 'article';
     const attrs = current?.ultReady ? ` type="button" data-dialog-skill-bond="${bond.id}"` : '';
-    return `<${tag} class="bond-detail"${attrs}><i style="background:${bond.color}"></i><div><strong>${bond.name}</strong><small>${count}/${bond.members.length} · ${bond.need}只触发 · ${bond.shape === 'line' ? '横列' : bond.shape === 'triangle' ? '三才' : bond.shape === 'square' ? '四镇' : '聚拢'}阵</small></div><b>${status}</b></${tag}>`;
+    const shapeLabel = current?.formationShape === 'polygon' ? '多边形' : current?.formationShape === 'triangle' ? '三角形' : count >= 4 ? '多边形' : count >= 3 ? '三角形' : '连线';
+    return `<${tag} class="bond-detail"${attrs}><i style="background:${bond.color}"></i><div><strong>${bond.name}</strong><small>${count}/${bond.members.length} · ${bond.need}只触发 · ${shapeLabel}阵</small></div><b>${status}</b></${tag}>`;
   }).join('');
   refs.bondDialogList.querySelectorAll('[data-dialog-skill-bond]').forEach((button) => button.addEventListener('click', () => {
     state.skillBond = bondsForTowers().active.find((bond) => bond.id === button.dataset.dialogSkillBond) || state.skillBond;
     closeGameDialog(refs.bondsDialog);
     updateHUD();
   }));
-}
-
-function upgradeCost() {
-  return Math.max(12, state.towers.concat(state.backpack).reduce((sum, unit) => sum + unit.level * 4, 0));
-}
-
-function upgradeAll() {
-  const units = state.towers.concat(state.backpack);
-  const cost = upgradeCost();
-  if (!units.length || state.energy < cost) { addLog(`升级需要 ${cost} 灵蕴。`); return; }
-  state.energy -= cost;
-  units.forEach((unit) => { unit.level = Math.min(9, unit.level + 1); });
-  addLog(`一键升级完成：${units.length} 只妖灵修为提升。`);
-  renderGameRoster();
-  renderBackpack();
-  updateHUD();
 }
 
 function autoSpot() {
@@ -836,19 +904,74 @@ function autoSpot() {
   return best;
 }
 
+function formationOffsets(count, rotation = 0) {
+  if (count === 2) return [-1, 1].map((side) => ({ x: Math.cos(rotation) * side * 58, y: Math.sin(rotation) * side * 58 }));
+  const radius = count === 3 ? 76 : count === 4 ? 82 : 88;
+  return Array.from({ length: count }, (_, index) => {
+    const angle = rotation - Math.PI / 2 + index * Math.PI * 2 / count;
+    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+  });
+}
+
+function findFormationSpots(count) {
+  let best = null;
+  for (let cy = 140; cy <= 410; cy += 30) for (let cx = 150; cx <= 810; cx += 30) for (let turn = 0; turn < 4; turn += 1) {
+    const spots = formationOffsets(count, turn * Math.PI / 8).map((offset) => ({ x: cx + offset.x, y: cy + offset.y }));
+    if (!spots.every((spot) => canPlaceAt(spot.x, spot.y))) continue;
+    const separated = spots.every((spot, index) => spots.slice(index + 1).every((other) => Math.hypot(spot.x - other.x, spot.y - other.y) >= arena.plate * 3.25));
+    if (!separated) continue;
+    const score = -spots.reduce((sum, spot) => sum + Math.abs(distToPath(spot.x, spot.y) - 72), 0);
+    if (!best || score > best.score) best = { spots, score };
+  }
+  return best?.spots || null;
+}
+
+function deployBestBondFormation() {
+  const unitsById = new Map(allOwnedUnits().map((unit) => [unit.id, unit]));
+  const currentPopulation = usedPopulation();
+  const candidates = BOND_DEFS.map((bond) => {
+    const existing = bond.members.map((id) => state.towers.find((tower) => tower.id === id)).filter(Boolean);
+    const selected = [...existing];
+    let population = currentPopulation;
+    bond.members.forEach((id) => {
+      const unit = unitsById.get(id);
+      if (!unit || selected.some((item) => item.id === id) || !state.backpack.some((item) => item.uid === unit.uid)) return;
+      const cost = populationCostFor(unit);
+      if (population + cost <= state.maxPopulation) { selected.push(unit); population += cost; }
+    });
+    return { bond, selected, score: selected.length * 100 + existing.length * 12 };
+  }).filter((candidate) => candidate.selected.length >= candidate.bond.need).sort((a, b) => b.score - a.score)[0];
+  if (!candidates) return null;
+
+  const selectedUids = new Set(candidates.selected.map((unit) => unit.uid));
+  const originalTowers = state.towers;
+  const formationTowers = originalTowers.filter((tower) => selectedUids.has(tower.uid));
+  state.towers = originalTowers.filter((tower) => !selectedUids.has(tower.uid));
+  const spots = findFormationSpots(candidates.selected.length);
+  if (!spots) { state.towers = originalTowers; return null; }
+
+  const formationUnits = candidates.selected.map((unit) => formationTowers.find((tower) => tower.uid === unit.uid) || unit);
+  state.backpack = state.backpack.filter((unit) => !selectedUids.has(unit.uid));
+  formationUnits.forEach((unit, index) => state.towers.push({ ...unit, x: spots[index].x, y: spots[index].y, cd: unit.cd || .15, hitTarget: null, hitCount: 0 }));
+  return { name: candidates.bond.name, placed: formationUnits.length - formationTowers.length };
+}
+
 function autoDeploy() {
-  let placed = 0;
-  while (state.backpack.length && state.towers.length < state.maxPopulation) {
+  const formation = deployBestBondFormation();
+  let placed = formation?.placed || 0;
+  while (state.backpack.length && usedPopulation() < state.maxPopulation) {
+    const unitIndex = state.backpack.findIndex((unit) => !state.towers.some((tower) => tower.id === unit.id) && usedPopulation() + populationCostFor(unit) <= state.maxPopulation);
+    if (unitIndex < 0) break;
     const spot = autoSpot();
     if (!spot) break;
-    const unit = state.backpack.shift();
+    const [unit] = state.backpack.splice(unitIndex, 1);
     state.towers.push({ ...unit, x: spot.x, y: spot.y, cd: .15, hitTarget: null, hitCount: 0 });
     placed += 1;
   }
   state.selectedUnitId = null;
   if (placed && state.tutorialStep === 1) { state.tutorialStep = 2; refs.arenaHint.textContent = '布阵完成：妖灵会自动攻击。注意让攻击范围覆盖道路。'; }
-  if (placed) playSound('deploy');
-  addLog(placed ? `一键部署：${placed} 只妖灵已在路边成阵。` : '没有可部署的妖灵或合法位置。');
+  if (placed || formation) playSound('deploy');
+  addLog(formation ? `一键部署优先完成「${formation.name}」阵型，共新上场 ${placed} 只妖灵。` : placed ? `一键部署：${placed} 只不同名妖灵已在路边成阵。` : '没有可部署的妖灵、人口或合法位置。');
   renderGameRoster();
   renderBackpack();
   updateHUD();
@@ -867,7 +990,7 @@ function recallAll() {
 
 function renderBackpack() {
   if (!refs.backpackList) return;
-  refs.backpackList.innerHTML = state.backpack.length ? state.backpack.map((unit) => unitCard(unit, `${state.selectedUnitId === unit.uid ? 'is-selected' : ''} ${state.fusionSelection.includes(unit.uid) ? 'is-fusing' : ''}`)).join('') : '<p class="dialog-empty">背包为空。普通召灵为二选一，高级召灵一次请出五只。</p>';
+  refs.backpackList.innerHTML = state.backpack.length ? state.backpack.map((unit) => unitCard(unit, `${state.selectedUnitId === unit.uid ? 'is-selected' : ''} ${state.fusionSelection.includes(unit.uid) ? 'is-fusing' : ''}`)).join('') : '<p class="dialog-empty">背包为空。普通、高级召灵均可单抽或八折五连。</p>';
   refs.backpackList.querySelectorAll('[data-unit-id]').forEach((button) => button.addEventListener('click', () => {
     const uid = button.dataset.unitId;
     if (refs.fusionDialog.open) toggleFusionUnit(uid); else { selectUnit(uid); closeGameDialog(refs.backpackDialog); }
@@ -912,11 +1035,7 @@ function fuseSelected() {
 }
 
 function openFortuneSign() {
-  if (!state.towers.length) { addLog('至少上阵一只妖灵后才能摇签。'); return; }
-  refs.fortuneResult.textContent = '每签消耗 30 灵蕴。福祸皆有，签文会即时作用于本局战场。';
-  refs.fortuneDraw.disabled = state.energy < FORTUNE_COST;
-  refs.fortuneDraw.textContent = `摇签 ${FORTUNE_COST}`;
-  showGameDialog(refs.fortuneDialog);
+  drawFortune();
 }
 
 function addSignEffect(type, label) {
@@ -925,7 +1044,10 @@ function addSignEffect(type, label) {
 }
 
 function drawFortune() {
-  if (state.energy < FORTUNE_COST || !state.towers.length) return;
+  if (state.fortuneSpinning) return;
+  if (!state.towers.length) { addLog('至少上阵一只妖灵后才能摇签。'); return; }
+  if (state.energy < FORTUNE_COST) { addLog(`转运签需要 ${FORTUNE_COST} 灵蕴。`); return; }
+  state.fortuneSpinning = true;
   state.energy -= FORTUNE_COST;
   const outcome = randomFromWeights([
     ['ally', 25], ['enemy', 14], ['debuff', 22], ['half', 11], ['full', 11], ['double', 5], ['tenfold', 2], ['empty', 10],
@@ -952,28 +1074,46 @@ function drawFortune() {
     result = { name: labels[outcome], text: refund ? `返还 ${refund} 灵蕴。` : '灵蕴未返还，本签落空。', tone: refund ? 'good' : 'bad' };
   }
   state.lastSign = result;
-  refs.fortuneResult.innerHTML = `<strong class="fortune-${result.tone}">${result.name}</strong><span>${result.text}</span>`;
+  const finalSymbols = result.tone === 'good' ? ['福', '灵', '吉'] : ['凶', '煞', '空'];
+  const reel = (symbol) => `<div class="slot-reel"><div class="slot-track"><i>山</i><i>海</i><i>玄</i><i>运</i><i>${symbol}</i></div></div>`;
+  refs.fortuneResult.classList.remove('is-revealed');
+  refs.fortuneResult.innerHTML = `<div class="slot-machine">${finalSymbols.map(reel).join('')}</div><strong class="fortune-${result.tone}">${result.name}</strong><span>${result.text}</span>`;
+  if (!refs.fortuneDialog.open) refs.fortuneDialog.showModal();
   playSound('fortune');
-  refs.fortuneDraw.disabled = true;
   addLog(`转运签：${result.name}。${result.text}`);
   updateHUD();
+  window.setTimeout(() => refs.fortuneResult.classList.add('is-revealed'), 1580);
+  window.setTimeout(() => {
+    state.fortuneSpinning = false;
+    if (refs.fortuneDialog.open) refs.fortuneDialog.close();
+    updateHUD();
+  }, 3000);
 }
 
 function updateHUD() {
   const waveCount = totalWaves();
-  const phaseText = state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `喘息 ${Math.ceil(state.waveCooldown)}s` : `余敌 ${state.enemies.length}`;
+  const phaseText = state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `下一波 ${Math.ceil(state.waveCooldown)}s` : `余敌 ${state.enemies.length}`;
   const selected = selectedUnit();
   refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.score; refs.bestScoreLabel.textContent = Math.max(state.bestScore, state.score); refs.waveLabel.textContent = `波次 ${Math.min(state.wave + 1, waveCount)} / ${phaseText}`;
   refs.gameLevel.textContent = `波次 ${Math.min(state.wave + 1, waveCount)} / ${phaseText}`;
   const hpBlocks = document.querySelector('#hp-blocks');
   if (hpBlocks) hpBlocks.innerHTML = Array.from({ length: state.maxHp }, (_, index) => `<i class="${index >= state.hp ? 'is-empty' : ''}"></i>`).join('');
-  refs.waveTrack.innerHTML = Array.from({ length: waveCount }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.querySelector('strong').textContent = state.paused ? '继续' : '暂停'; refs.speedGame.querySelector('strong').textContent = `${state.speed}倍速`; refs.populationLabel.textContent = `${state.towers.length} / ${state.maxPopulation}`;
-  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} Lv.${selected.level} · ${beastDef(selected.id).kindText}` : state.selectedTowerUid ? `${beastDef(state.towers.find((tower) => tower.uid === state.selectedTowerUid)?.id || 'bifang').name} · 按住立绘可移动` : '点击召灵，随机请出 N 至 UR 妖灵';
-  refs.summonBeast.disabled = state.paused || (!state.summonOffers.length && state.energy < SUMMON_COST) || state.backpack.length >= MAX_BACKPACK; refs.summonBeast.querySelector('span').textContent = state.summonOffers.length ? '继续二选一' : `召灵 ${SUMMON_COST}`;
-  refs.advancedSummon.disabled = state.paused || (!state.advancedBatch.length && state.energy < ADVANCED_SUMMON_COST) || state.backpack.length + state.advancedBatch.length > MAX_BACKPACK; refs.advancedSummon.querySelector('span').textContent = state.advancedBatch.length ? '领取五连结果' : `高级五连 ${ADVANCED_SUMMON_COST}`;
-  refs.upgradeAll.disabled = !state.towers.length && !state.backpack.length || state.energy < upgradeCost(); refs.upgradeAll.querySelector('span').textContent = `一键升级 ${upgradeCost()}`;
-  refs.autoDeploy.disabled = !state.backpack.length || state.towers.length >= state.maxPopulation; refs.recallAll.disabled = !state.towers.length || state.backpack.length >= MAX_BACKPACK;
-  refs.fortuneSign.disabled = state.paused || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.querySelector('strong').textContent = state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
+  refs.waveTrack.innerHTML = Array.from({ length: waveCount }, (_, index) => `<i class="${index < state.wave ? 'done' : index === state.wave ? 'current' : ''}"></i>`).join(''); refs.pauseGame.querySelector('strong').textContent = state.paused ? '继续' : '暂停'; refs.speedGame.querySelector('strong').textContent = `${state.speed}倍速`; refs.populationLabel.textContent = `${usedPopulation()} / ${state.maxPopulation}`;
+  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} Lv.${selected.level} · 人口 ${populationCostFor(selected)} · ${beastDef(selected.id).kindText}` : state.selectedTowerUid ? `${beastDef(state.towers.find((tower) => tower.uid === state.selectedTowerUid)?.id || 'bifang').name} · 按住立绘可移动` : '点击召灵，随机请出 N 至 UR 妖灵';
+  const hasSingle = state.summonOffers.length > 0;
+  const hasFive = state.advancedBatch.length > 0;
+  const pendingNormalSingle = hasSingle && state.summonMode === 'normal';
+  const pendingAdvancedSingle = hasSingle && state.summonMode === 'advanced';
+  const pendingNormalFive = hasFive && state.advancedMode === 'normal';
+  const pendingAdvancedFive = hasFive && state.advancedMode === 'advanced';
+  refs.summonBeast.disabled = state.paused || hasFive || (hasSingle && !pendingNormalSingle) || (!hasSingle && (state.energy < SUMMON_COST || state.backpack.length >= MAX_BACKPACK)); refs.summonBeast.querySelector('span').textContent = pendingNormalSingle ? '查看普通结果' : `普通单抽 ${SUMMON_COST}`;
+  refs.summonBeastFive.disabled = state.paused || hasSingle || (hasFive && !pendingNormalFive) || (!hasFive && (state.energy < SUMMON_FIVE_COST || state.backpack.length + 5 > MAX_BACKPACK)); refs.summonBeastFive.querySelector('span').textContent = pendingNormalFive ? '领取普通五连' : `普通五连 ${SUMMON_FIVE_COST}`;
+  refs.advancedSummon.disabled = state.paused || hasFive || (hasSingle && !pendingAdvancedSingle) || (!hasSingle && (state.energy < ADVANCED_SUMMON_COST || state.backpack.length >= MAX_BACKPACK)); refs.advancedSummon.querySelector('span').textContent = pendingAdvancedSingle ? '查看高级结果' : `高级单抽 ${ADVANCED_SUMMON_COST}`;
+  refs.advancedSummonFive.disabled = state.paused || hasSingle || (hasFive && !pendingAdvancedFive) || (!hasFive && (state.energy < ADVANCED_FIVE_COST || state.backpack.length + 5 > MAX_BACKPACK)); refs.advancedSummonFive.querySelector('span').textContent = pendingAdvancedFive ? '领取高级五连' : `高级五连 ${ADVANCED_FIVE_COST}`;
+  const hasFormationCandidate = BOND_DEFS.some((bond) => bond.members.filter((id) => allOwnedUnits().some((unit) => unit.id === id)).length >= bond.need);
+  refs.autoDeploy.disabled = !hasFormationCandidate && !state.backpack.some((unit) => !state.towers.some((tower) => tower.id === unit.id) && usedPopulation() + populationCostFor(unit) <= state.maxPopulation); refs.recallAll.disabled = !state.towers.length || state.backpack.length >= MAX_BACKPACK;
+  refs.fortuneSign.disabled = state.paused || state.fortuneSpinning || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.querySelector('strong').textContent = state.fortuneSpinning ? '签轮转动中' : state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
+  refs.requiredBeastLabel.classList.toggle('is-complete', state.towers.some((tower) => tower.id === state.requiredBeastId));
   renderGameBonds();
 }
 
@@ -1060,20 +1200,76 @@ function drawSpawnFissure(x, y, level, index) {
 }
 
 function drawProjectile(projectile) {
+  const color = projectile.def.color;
+  const kind = projectile.def.proj;
+  const dx = projectile.target.x - projectile.x;
+  const dy = projectile.target.y - projectile.y;
+  const angle = Math.atan2(dy, dx);
+  const variant = projectile.seed || 0;
+  const phase = state.battleTime * (7 + variant % 5) + variant * .13;
   ctx.save();
-  ctx.strokeStyle = projectile.def.color;
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = .5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
   if (projectile.trail.length > 1) {
+    ctx.globalAlpha = kind === 'claw' ? .25 : .5;
+    ctx.lineWidth = kind === 'quake' ? 3 : 2;
     ctx.beginPath();
     projectile.trail.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
     ctx.stroke();
   }
+  ctx.translate(projectile.x, projectile.y);
+  ctx.rotate(angle);
   ctx.globalAlpha = 1;
-  ctx.fillStyle = projectile.def.color;
-  ctx.beginPath();
-  ctx.arc(projectile.x, projectile.y, projectile.def.proj === 'quake' ? 5 : 3, 0, Math.PI * 2);
-  ctx.fill();
+  const attackSprite = attackSprites[kind];
+  const attackFrame = Math.floor((projectile.age * 14 + variant * .07) % 4);
+  const attackCellW = attackSprite?.naturalWidth ? attackSprite.naturalWidth / 2 : 0;
+  const attackCellH = attackSprite?.naturalHeight ? attackSprite.naturalHeight / 2 : 0;
+  const attackSize = kind === 'quake' ? 48 : kind === 'claw' ? 42 : kind === 'wisp' ? 34 : 30;
+  const renderedAttackSprite = attackSprite?.complete && attackSprite.naturalWidth && attackCellW && attackCellH;
+  if (renderedAttackSprite) {
+    const sx = (attackFrame % 2) * attackCellW;
+    const sy = Math.floor(attackFrame / 2) * attackCellH;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = .92;
+    ctx.drawImage(attackSprite, sx, sy, attackCellW, attackCellH, -attackSize * .5, -attackSize * .5, attackSize, attackSize);
+  } else if (kind === 'ember') {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = color; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.moveTo(8, 0); ctx.quadraticCurveTo(-1, -7, -10, Math.sin(phase) * 3); ctx.quadraticCurveTo(-2, 7, 8, 0); ctx.fill();
+    ctx.fillStyle = '#fff2a8'; ctx.beginPath(); ctx.arc(2, 0, 2.2, 0, Math.PI * 2); ctx.fill();
+  } else if (kind === 'wisp') {
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = color; ctx.shadowBlur = 15;
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 5;
+    for (let i = 0; i < 3; i += 1) { const orbit = phase + i * Math.PI * 2 / 3; ctx.beginPath(); ctx.arc(Math.cos(orbit) * 9, Math.sin(orbit) * 5, 1.5, 0, Math.PI * 2); ctx.fill(); }
+  } else if (kind === 'claw') {
+    ctx.lineWidth = 2.4; ctx.shadowColor = color; ctx.shadowBlur = 7;
+    for (let i = -1; i <= 1; i += 1) { ctx.beginPath(); ctx.moveTo(-8, i * 5 - 3); ctx.quadraticCurveTo(0, i * 4 + 2, 9, i * 5); ctx.stroke(); }
+  } else if (kind === 'quake') {
+    ctx.rotate(phase * .35); ctx.shadowColor = color; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(7, 0); ctx.lineTo(0, 7); ctx.lineTo(-7, 0); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = .55; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(phase) * 2, 0, Math.PI * 2); ctx.stroke();
+  } else {
+    ctx.globalCompositeOperation = 'lighter'; ctx.shadowColor = color; ctx.shadowBlur = 11;
+    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = .7; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 9 + Math.sin(phase) * 2, -.8, .8); ctx.stroke();
+    ctx.beginPath(); ctx.arc(-2, 0, 13 + Math.cos(phase) * 2, -.55, .55); ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = variant % 2 ? '#f7dc9f' : color;
+  ctx.globalAlpha = .45;
+  const moteCount = 1 + variant % 4;
+  const moteRadius = 7 + variant % 6;
+  for (let i = 0; i < moteCount; i += 1) {
+    const moteAngle = phase * .55 + i * Math.PI * 2 / moteCount;
+    ctx.beginPath();
+    ctx.arc(Math.cos(moteAngle) * moteRadius - 2, Math.sin(moteAngle) * moteRadius * .55, 1 + variant % 3 * .35, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -1121,10 +1317,11 @@ function drawTower(tower) {
 }
 
 function drawEnemy(enemy) {
-  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * (enemy.def.boss ? 5.4 : 4.6);
+  const isBoss = enemy.role !== 'normal' || enemy.def.boss;
+  const sprite = combatSprites[enemy.type]; const radius = enemy.radius * 1.35; const size = radius * (isBoss ? 5.4 : 4.6);
   ctx.save(); ctx.translate(enemy.x, enemy.y); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1;
   ctx.fillStyle = 'rgba(43, 31, 21, .24)'; ctx.beginPath(); ctx.ellipse(0, 11, size * .29, 5, 0, 0, Math.PI * 2); ctx.fill();
-  if (enemy.def.boss) { ctx.strokeStyle = enemy.def.color; ctx.globalAlpha *= .38; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -size * .22, size * .34, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; }
+  if (isBoss) { ctx.strokeStyle = enemy.def.color; ctx.globalAlpha *= .38; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, -size * .22, size * .34, 0, Math.PI * 2); ctx.stroke(); ctx.globalAlpha = enemy.stealthTimer > 0 ? .32 : 1; }
   if (sprite?.complete && sprite.naturalWidth) {
     ctx.drawImage(sprite, -size * .5, 12 - size, size, size);
   } else if (enemyAtlas.complete && enemyAtlas.naturalWidth) {
@@ -1141,7 +1338,7 @@ function renderCodex() {
   const counterNames = { purge: '破法', execute: '斩杀', breakShield: '破盾', splash: '溅射', insight: '洞察' };
   refs.codexDialogList.innerHTML = ROSTER.map((beast) => {
     const data = beastDef(beast.id); const effects = [data.burn ? '灼烧' : '', data.splash ? `溅射 ${data.splash}` : '', data.chain ? `连锁 ${data.chain}` : '', data.slow ? `减速 ${Math.round(data.slow * 100)}%` : '', data.stunEvery ? `每 ${data.stunEvery} 次眩晕` : '', data.breakAt ? `第 ${data.breakAt} 击破甲` : ''].filter(Boolean).join(' · ') || '基础攻击';
-    return `<article class="codex-entry rarity-${RARITIES[beast.rarity]}">${portraitMarkup(beast)}<div class="codex-entry-head"><strong>${beast.name}</strong><em>${RARITIES[beast.rarity]}</em></div><small>${projectileNames[data.proj] || data.proj} · ${data.dmgType === 'mag' ? '法术' : data.dmgType === 'true' ? '真实' : '物理'} · ${counterNames[data.counters?.[0]] || '无克制'}</small><dl><div><dt>攻击</dt><dd>${data.dmg}</dd></div><div><dt>攻速</dt><dd>${data.interval.toFixed(2)}s</dd></div><div><dt>范围</dt><dd>${data.range}</dd></div><div><dt>召唤</dt><dd>${data.cost}</dd></div></dl><p>${effects}</p></article>`;
+    return `<article class="codex-entry rarity-${RARITIES[beast.rarity]}">${portraitMarkup(beast)}<div class="codex-entry-head"><strong>${beast.name}</strong><em>${RARITIES[beast.rarity]}</em></div><small>${projectileNames[data.proj] || data.proj} · ${data.dmgType === 'mag' ? '法术' : data.dmgType === 'true' ? '真实' : '物理'} · ${counterNames[data.counters?.[0]] || '无克制'}</small><dl><div><dt>攻击</dt><dd>${data.dmg}</dd></div><div><dt>攻速</dt><dd>${data.interval.toFixed(2)}s</dd></div><div><dt>范围</dt><dd>${data.range}</dd></div><div><dt>人口</dt><dd>${populationCostFor(beast.id)}</dd></div></dl><p>${effects}</p></article>`;
   }).join('');
 }
 
@@ -1212,9 +1409,10 @@ document.addEventListener('pointerup', (event) => {
 document.addEventListener('pointercancel', () => { state.draggingUnitId = null; state.draggingTowerIndex = -1; state.mouse.inside = false; });
 refs.startGame.addEventListener('click', initGame);
 refs.summonBeast.addEventListener('click', summonBeast);
+refs.summonBeastFive.addEventListener('click', summonBeastFive);
 refs.advancedSummon.addEventListener('click', advancedSummon);
+refs.advancedSummonFive.addEventListener('click', advancedSummonFive);
 refs.advancedClaim.addEventListener('click', claimAdvancedBatch);
-refs.upgradeAll.addEventListener('click', upgradeAll);
 refs.openBackpack.addEventListener('click', () => { renderBackpack(); showGameDialog(refs.backpackDialog); });
 refs.openBonds.addEventListener('click', () => { renderBondDialog(); showGameDialog(refs.bondsDialog); });
 refs.autoDeploy.addEventListener('click', autoDeploy);
@@ -1222,16 +1420,16 @@ refs.recallAll.addEventListener('click', recallAll);
 refs.fortuneSign.addEventListener('click', openFortuneSign);
 refs.openFusion.addEventListener('click', () => { if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return; } refs.backpackDialog.close(); openFusion(); });
 refs.fuseBeasts.addEventListener('click', fuseSelected);
-refs.fortuneDraw.addEventListener('click', drawFortune);
 refs.summonClose.addEventListener('click', () => closeGameDialog(refs.summonDialog));
 refs.advancedClose.addEventListener('click', () => closeGameDialog(refs.advancedDialog));
 refs.backpackClose.addEventListener('click', () => closeGameDialog(refs.backpackDialog));
 refs.fusionClose.addEventListener('click', () => closeGameDialog(refs.fusionDialog));
-refs.fortuneClose.addEventListener('click', () => closeGameDialog(refs.fortuneDialog));
+refs.fortuneClose.addEventListener('click', () => { if (refs.fortuneDialog.open) refs.fortuneDialog.close(); });
 refs.bondsClose.addEventListener('click', () => closeGameDialog(refs.bondsDialog));
 [
-  refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.fortuneDialog, refs.bondsDialog,
+  refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.bondsDialog,
 ].forEach((dialog) => dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeGameDialog(dialog); }));
+refs.fortuneDialog.addEventListener('cancel', (event) => { event.preventDefault(); refs.fortuneDialog.close(); });
 refs.pauseDialog.addEventListener('cancel', (event) => { event.preventDefault(); resumePauseMenu(); });
 refs.codexOpen.addEventListener('click', () => { renderCodex(); refs.codexDialog.showModal(); });
 refs.codexClose.addEventListener('click', () => refs.codexDialog.close());

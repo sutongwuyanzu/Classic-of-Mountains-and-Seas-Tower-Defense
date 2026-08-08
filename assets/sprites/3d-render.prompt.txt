@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: transparent game combat sprite
+Input image: the exact existing Chinese mythic creature is the reference; preserve identity, silhouette, pose, major accessories, color accents, and overall aspect ratio.
+Primary request: transform the referenced creature into a premium stylized 3D game render while keeping the same character and composition.
+Style/medium: high-end 3D character render, physically based materials, sculpted forms, layered feathers, fur, scales or stone as appropriate, believable depth, subtle subsurface scattering, hand-painted Dunhuang mineral-pigment palette and ancient Chinese mural ornament retained on the surface, crisp production game asset.
+Composition/framing: full-body isolated cutout, same camera distance and framing as reference, centered, feet or lowest body anchor kept at the same bottom position, generous padding.
+Lighting/mood: warm key light with cool rim light, controlled studio lighting, clear volume and contact form without a cast shadow.
+Constraints: do not redesign the creature; change only the rendering medium from flat illustration to 3D. No text, watermark, UI, pedestal, or background object. Render on a flat solid #00ff00 chroma-key background for local removal.

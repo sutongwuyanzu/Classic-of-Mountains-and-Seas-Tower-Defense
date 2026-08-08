@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: transparent game attack effect animation sheet
+Composition: a strict 2x2 grid with four sequential frames, one coherent effect per cell, same scale and center in every cell, generous padding, no borders or separators, nothing touches cell edges.
+Style/medium: premium 3D game VFX with Chinese ancient mural mineral pigments, volumetric glow, sculpted energy, crisp production sprite-sheet art.
+Primary request: a jade-turquoise and gold spirit-light attack; frame 1 small glowing orb, frame 2 three orbiting wisps, frame 3 coiling dragon-like light ribbon, frame 4 split chain-lightning sparkle. Teal, jade, gold and ivory.
+Animation order: top-left, top-right, bottom-left, bottom-right.
+Constraints: no character, no creature, no UI, no text, no watermark, no ground, no cast shadow. Use a perfectly flat solid #ff00ff chroma-key background for later removal.
