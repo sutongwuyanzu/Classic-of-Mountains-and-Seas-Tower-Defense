@@ -5,5 +5,6 @@ dist/
 release/
 assets/sprites/*-source.png
 assets/fx/*-source.png
+assets/animations/attacks/*-qc/
 codex-workbench/
 miniprogram/project.private.config.json
