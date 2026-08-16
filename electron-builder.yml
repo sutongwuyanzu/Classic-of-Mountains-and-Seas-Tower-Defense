@@ -9,6 +9,7 @@ files:
   - styles.css
   - package.json
   - src/**/*
+  - shared/**/*
   - assets/**/*
   - '!assets/sprites/*-source.png'
   - '!assets/sprites/*.prompt.txt'

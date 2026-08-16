@@ -21,6 +21,7 @@ Copy-Item -LiteralPath (Join-Path $root 'index.html') -Destination $app -Force
 Copy-Item -LiteralPath (Join-Path $root 'styles.css') -Destination $app -Force
 Copy-Item -LiteralPath (Join-Path $root 'package.json') -Destination $app -Force
 Copy-Item -LiteralPath (Join-Path $root 'src') -Destination $app -Recurse -Force
+Copy-Item -LiteralPath (Join-Path $root 'shared') -Destination $app -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root 'assets') -Destination $app -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $root 'electron') -Destination $app -Recurse -Force
 

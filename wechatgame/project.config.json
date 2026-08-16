@@ -1,0 +1,18 @@
+{
+  "description": "山海异兽志微信小游戏",
+  "compileType": "game",
+  "appid": "touristappid",
+  "projectname": "shan-hai-spirit-defense",
+  "libVersion": "trial",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": false,
+    "urlCheck": false,
+    "compileHotReLoad": true,
+    "uploadWithSourceMap": true
+  },
+  "condition": {
+    "game": { "currentL": -1, "list": [] }
+  }
+}

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#17120d" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-12" />
+    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-22" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -25,10 +25,19 @@
 
           <div id="stage-list" class="stage-list" aria-label="关卡选择"></div>
 
+          <div class="difficulty-select" id="difficulty-select" aria-label="难度选择">
+            <span>守关难度</span>
+            <button type="button" data-difficulty="easy"><strong>简单</strong><small>资源宽裕 · 敌军较弱</small></button>
+            <button type="button" data-difficulty="normal"><strong>中等</strong><small>标准规则 · 特性完整</small></button>
+            <button type="button" data-difficulty="hard"><strong>困难</strong><small>强特性 · 高评分</small></button>
+          </div>
+
           <div class="select-actions">
             <div class="selection-readout"><span>当前选择</span><strong id="selected-stage-label">幽都洞窟 · 01</strong></div>
             <button class="primary-button" id="start-game" type="button"><span>开始守关</span><b>入卷</b></button>
+            <button class="endless-button" id="endless-start" type="button" hidden><span>无尽封印</span><strong>STEAM</strong></button>
             <button class="codex-button" id="codex-open" type="button"><span>山海经图谱</span><strong id="codex-count">5 / 27</strong></button>
+            <button class="codex-button" id="medals-open" type="button"><span>山海勋章</span><strong id="medal-count">0 / 12</strong></button>
           </div>
 
           <details class="roster-details">
@@ -52,7 +61,7 @@
               <div class="meter" aria-hidden="true"><i id="hp-meter"></i></div>
             </div>
             <div class="battle-title">
-              <strong id="game-terrain">幽都洞窟</strong><span>·</span><b id="game-level">波次 1 / 整备</b>
+              <strong id="game-terrain">幽都洞窟</strong><span>·</span><em id="game-difficulty">中等</em><span>·</span><b id="game-level">波次 1 / 整备</b>
               <div class="required-beast">必选 <strong id="required-beast-label">毕方</strong></div>
               <div class="wave-track" id="wave-track"></div>
               <span id="wave-label" class="sr-only">1 / 8</span>
@@ -86,7 +95,8 @@
             <button class="rail-command" id="auto-deploy" type="button"><span>阵</span><strong>一键部署</strong></button>
             <button class="rail-command rail-warn" id="recall-all" type="button"><span>退</span><strong>一键下场</strong></button>
             <button class="rail-command rail-luck" id="fortune-sign" type="button"><span>签</span><strong>转运签 30</strong></button>
-            <button class="rail-command rail-skill" id="team-skill" type="button"><span>技</span><strong id="skill-label">羁绊技</strong></button>
+            <button class="rail-command rail-spirit" id="spirit-skill" type="button"><span>灵</span><strong id="spirit-skill-label">选择妖灵</strong></button>
+            <button class="rail-command rail-skill" id="team-skill" type="button"><span>契</span><strong id="skill-label">羁绊技</strong></button>
           </aside>
 
           <section class="selected-spirit-bar">
@@ -136,6 +146,7 @@
       <dialog id="summon-dialog" class="game-dialog summon-dialog">
         <div class="dialog-head"><div><span>SPIRIT CALLING</span><h2 id="summon-title">普通召灵 · 单抽</h2><p id="summon-subtitle">N、R 为主，小概率出现高阶妖灵。</p></div><button id="summon-close" type="button" aria-label="关闭">×</button></div>
         <div id="summon-offers" class="summon-offers"></div>
+        <div class="summon-swap-row"><button id="summon-swap" class="dialog-secondary" type="button">置换候选</button><small id="summon-swap-note">每次召灵最多置换两次</small></div>
       </dialog>
 
       <dialog id="advanced-dialog" class="game-dialog advanced-dialog">
@@ -162,8 +173,18 @@
       </dialog>
 
       <dialog id="bonds-dialog" class="game-dialog bonds-dialog">
-        <div class="dialog-head"><div><span>RESONANCE</span><h2>羁绊 · 阵型共鸣</h2><p>成员决定触发，站位决定强度与羁绊技。</p></div><button id="bonds-close" type="button" aria-label="关闭">×</button></div>
+        <div class="dialog-head"><div><span>RESONANCE</span><h2>羁绊 · 同行共鸣</h2><p>满足成员数量，上场即触发属性与羁绊技能。</p></div><button id="bonds-close" type="button" aria-label="关闭">×</button></div>
         <div id="bond-dialog-list" class="bond-dialog-list"></div>
+      </dialog>
+
+      <dialog id="evolution-dialog" class="game-dialog evolution-dialog">
+        <div class="dialog-head"><div><span>SPIRIT EVOLUTION</span><h2>妖灵进化</h2><p>击退关键波次后选择一只在阵妖灵，本局获得一项强化。</p></div></div>
+        <div id="evolution-choices" class="evolution-choices"></div>
+      </dialog>
+
+      <dialog id="medals-dialog" class="game-dialog medals-dialog">
+        <div class="dialog-head"><div><span>SHAN HAI MEDALS</span><h2>山海勋章</h2><p>标准守关与 Steam 无尽模式的永久挑战记录。</p></div><button id="medals-close" type="button" aria-label="关闭">×</button></div>
+        <div id="medals-list" class="medals-list"></div>
       </dialog>
 
       <dialog id="pause-dialog" class="game-dialog pause-dialog">
@@ -171,6 +192,7 @@
         <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">返回关卡</button></div>
       </dialog>
     </div>
-    <script src="./src/main.js?v=sol-rebuild-12"></script>
+    <script src="./shared/game-core.js?v=shared-core-3"></script>
+    <script src="./src/main.js?v=sol-rebuild-23"></script>
   </body>
 </html>

@@ -10,7 +10,9 @@
     "steam": "electron electron/main.cjs",
     "dist:steam": "electron-builder --config electron-builder.yml",
     "dist:portable": "electron-builder --config electron-builder.yml --win portable",
-    "dist:unpacked": "powershell -ExecutionPolicy Bypass -File scripts/build-portable.ps1"
+    "dist:unpacked": "powershell -ExecutionPolicy Bypass -File scripts/build-portable.ps1",
+    "sync:wechat": "powershell -ExecutionPolicy Bypass -File scripts/sync-wechatgame.ps1",
+    "check": "node scripts/check-game.cjs"
   },
   "devDependencies": {
     "electron": "^38.0.0",
