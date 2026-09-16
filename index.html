@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#17120d" />
+    <meta name="shan-hai-build" content="sol-3d-combat-25" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-rebuild-22" />
+    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-25" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -34,8 +35,10 @@
 
           <div class="select-actions">
             <div class="selection-readout"><span>当前选择</span><strong id="selected-stage-label">幽都洞窟 · 01</strong></div>
+            <button class="resume-button" id="resume-game" type="button" hidden>续守第 2 波</button>
             <button class="primary-button" id="start-game" type="button"><span>开始守关</span><b>入卷</b></button>
-            <button class="endless-button" id="endless-start" type="button" hidden><span>无尽封印</span><strong>STEAM</strong></button>
+            <button class="trial-button" id="trial-start" type="button" hidden><span>守印试炼</span><strong>同日同种子</strong></button>
+            <button class="endless-button" id="endless-start" type="button" hidden><span>无尽封印</span><strong>挑战</strong></button>
             <button class="codex-button" id="codex-open" type="button"><span>山海经图谱</span><strong id="codex-count">5 / 27</strong></button>
             <button class="codex-button" id="medals-open" type="button"><span>山海勋章</span><strong id="medal-count">0 / 12</strong></button>
           </div>
@@ -48,6 +51,7 @@
 
           <div class="save-strip">
             <span id="save-status">本地存档已启用</span>
+            <span class="build-label">构建 <b id="build-label">sol-3d-combat-25</b></span>
             <button id="reset-save" type="button" title="重置存档">重置</button>
           </div>
         </section>
@@ -55,7 +59,7 @@
         <section id="game-screen" class="screen game-screen is-hidden">
           <header class="battle-header">
             <div class="seal-status">
-              <button class="back-button" id="back-to-select" type="button" title="返回关卡">封印</button>
+              <button class="back-button" id="back-to-select" type="button" title="放弃本局并返回关卡">返回关卡</button>
               <div class="seal-blocks" id="hp-blocks" aria-hidden="true"></div>
               <span id="hp-label">10 / 10</span>
               <div class="meter" aria-hidden="true"><i id="hp-meter"></i></div>
@@ -78,6 +82,7 @@
           <div class="arena-wrap">
             <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
             <div class="arena-message" id="arena-hint">怪物自右而来，守住左侧封印</div>
+            <button class="wave-advance" id="next-wave" type="button" hidden>提前开波</button>
             <div class="combat-log" id="combat-log" aria-live="polite"></div>
           </div>
 
@@ -102,7 +107,8 @@
           <section class="selected-spirit-bar">
             <span class="selected-spirit-mark">灵</span>
             <div id="game-roster" class="game-roster"></div>
-            <strong id="selected-unit-label">未选择妖灵</strong>
+            <div class="selected-unit-details"><strong id="selected-unit-label">未选择妖灵</strong><small id="selected-unit-meta"></small></div>
+            <button id="recall-selected" class="selected-recall" type="button" title="将选中的场上妖灵收入背包">下场</button>
           </section>
 
           <section class="summon-dock">
@@ -125,13 +131,16 @@
             <strong id="result-stage">幽都洞窟 · 01</strong>
             <div class="result-total"><span>本局总评分</span><b id="result-score-total">0</b></div>
             <div class="result-breakdown">
+              <div><span>战斗得分</span><b id="result-combat-score">+0</b></div>
+              <div><span>通关奖励</span><b id="result-victory-score">+0</b></div>
               <div><span>羁绊数量</span><b id="result-bonds">0 · +0</b></div>
               <div><span>剩余封印</span><b id="result-hp">0 / 10 · +0</b></div>
               <div><span>剩余灵蕴</span><b id="result-energy">0 · +0</b></div>
               <div><span>UR 数量</span><b id="result-ur">0 · +0</b></div>
               <div><span>随机必选</span><b id="result-required">未完成 · +0</b></div>
             </div>
-            <div class="result-combat"><span>击破 <b id="result-kills">0</b></span><span>修为 <b id="result-xp">+0</b></span><span>最高连击 <b id="result-combo">0</b></span></div>
+            <div class="result-combat"><span>击破 <b id="result-kills">0</b></span><span>成长经验 <b id="result-xp">+0</b></span><span>最高连击 <b id="result-combo">0</b></span></div>
+            <p class="result-recap" id="result-recap"></p>
             <p class="result-copy" id="result-copy"></p>
             <div class="result-actions"><button id="replay-game" type="button">再守一次</button><button id="return-select" type="button">返回关卡</button></div>
           </div>
@@ -189,10 +198,11 @@
 
       <dialog id="pause-dialog" class="game-dialog pause-dialog">
         <div class="dialog-head"><div><span>BATTLE PAUSED</span><h2>战局暂停</h2><p>封印、敌群与投射物均已静止。</p></div></div>
-        <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">返回关卡</button></div>
+        <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">放弃并返回</button></div>
       </dialog>
     </div>
+    <div class="orientation-lock" role="status">请旋转设备至横屏后继续</div>
     <script src="./shared/game-core.js?v=shared-core-3"></script>
-    <script src="./src/main.js?v=sol-rebuild-23"></script>
+    <script src="./src/main.js?v=sol-3d-combat-25"></script>
   </body>
 </html>

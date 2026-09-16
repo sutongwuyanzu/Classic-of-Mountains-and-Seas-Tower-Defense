@@ -28,7 +28,16 @@ function writeText(name, value) {
 }
 
 ipcMain.on('save:load', (event) => { event.returnValue = readJsonText('save-v2.json', ''); });
-ipcMain.on('save:write', (_event, payload) => { try { JSON.parse(payload); writeText('save-v2.json', payload); } catch (error) { console.error('Failed to write save:', error.message); } });
+ipcMain.handle('save:write', (_event, payload) => {
+  try {
+    JSON.parse(payload);
+    writeText('save-v2.json', payload);
+    return { ok: true };
+  } catch (error) {
+    console.error('Failed to write save:', error.message);
+    return { ok: false, message: error.message };
+  }
+});
 ipcMain.on('achievement:unlock', (_event, achievementId) => {
   let current = [];
   try { current = JSON.parse(readText('achievements.json', '[]')); } catch {}

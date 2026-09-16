@@ -1,6 +1,9 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $port = 4173
+$package = Get-Content (Join-Path $root 'package.json') -Raw | ConvertFrom-Json
+$buildId = $package.buildId
+if ([string]::IsNullOrWhiteSpace($buildId)) { throw 'package.json buildId is missing.' }
 
 $listener = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
 if (-not $listener) {
@@ -18,8 +21,8 @@ if (-not $listener) {
 for ($attempt = 0; $attempt -lt 20; $attempt += 1) {
   try {
     $response = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:$port/" -TimeoutSec 2
-    if ($response.StatusCode -eq 200) {
-      Write-Output "Game server ready at http://127.0.0.1:$port/"
+    if ($response.StatusCode -eq 200 -and $response.Content -match ('shan-hai-build" content="' + $buildId + '"')) {
+      Write-Output "Game server ready at http://127.0.0.1:$port/ (build $buildId)"
       exit 0
     }
   } catch {
