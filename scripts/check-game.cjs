@@ -31,6 +31,8 @@ assert.match(desktopGame, /function portraitMarkup\(beast, fullArt = false\)/);
 assert.match(desktopGame, /function drawStageBackdrop\(\)/);
 assert.match(desktopGame, /function updateHUD\(immediate = true\)/);
 assert.match(desktopGame, /updateEffects\(simDt\); updateHUD\(false\);/);
+assert.match(desktopGame, /if \(state\.paused\) \{\s*if \(state\.backgroundPaused\) resumePauseMenu\(\);/);
+assert.match(desktopGame, /window\.addEventListener\('blur', pauseForBackground\);/);
 assert.match(desktopGame, /成员：\$\{bond\.members/);
 assert.match(desktopGame, /还需 \$\{Math\.max\(0, bond\.need - count\)\} 名/);
 assert.match(desktopGame, /counter === 'breakShield' && def\?\.breakShield === true/);

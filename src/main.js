@@ -308,7 +308,7 @@ refs.resultCombatScore = document.querySelector('#result-combat-score');
 refs.resultVictoryScore = document.querySelector('#result-victory-score');
 const state = {
   screen: 'select', mode: 'standard', stage: 0, difficulty: 'normal', selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(BASE_UNLOCK_IDS), completions: new Set(), beastGrowth: {}, medals: new Set(), xp: 0, tier: 0, soundEnabled: true,
-  paused: false, resumeAfterDialog: false, tutorialMode: false, draggingUnitId: null, draggingTowerIndex: -1, draggingTowerOffset: { x: 0, y: 0 }, selectedTowerUid: null, selectedEnemy: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
+  paused: false, backgroundPaused: false, resumeAfterDialog: false, tutorialMode: false, draggingUnitId: null, draggingTowerIndex: -1, draggingTowerOffset: { x: 0, y: 0 }, selectedTowerUid: null, selectedEnemy: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScores: {}, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], visualEffects: [], defeated: [], logs: [], mouse: { x: 480, y: 270, inside: false },
   screenShake: 0, screenFlash: 0,
@@ -917,15 +917,21 @@ function closeFortuneDialog() {
 }
 
 function openPauseMenu() {
-  if (state.screen !== 'game' || state.paused) return;
+  if (state.screen !== 'game') return;
+  if (state.paused) {
+    if (state.backgroundPaused) resumePauseMenu();
+    return;
+  }
   state.paused = true;
+  state.backgroundPaused = false;
   refs.pauseDialog.showModal();
   updateHUD();
 }
 
 function resumePauseMenu() {
-  refs.pauseDialog.close();
+  if (refs.pauseDialog.open) refs.pauseDialog.close();
   state.paused = false;
+  state.backgroundPaused = false;
   updateHUD();
 }
 
@@ -1116,7 +1122,7 @@ function initGame() {
   state.runId += 1;
   clearFortuneTimers();
   if (refs.fortuneDialog.open) refs.fortuneDialog.close();
-  state.paused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
+  state.paused = false; state.backgroundPaused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
   state.energy = Math.round(currentLevel().essence * currentDifficulty().startEssence); state.hp = state.maxHp; state.kills = 0; state.score = 0; state.combo = 0; state.bestCombo = 0;
   const eligibleRequired = ROSTER.filter((beast) => state.unlocked.has(beast.id));
   const initialSeed = isTrial() ? trialSeed() : (Date.now() ^ (state.stage + 1) * 2654435761) >>> 0;
@@ -1577,6 +1583,7 @@ function finishGame(won, abandoned = false) {
   if (refs.fortuneDialog.open) refs.fortuneDialog.close();
   state.resumeAfterDialog = false;
   state.paused = false;
+  state.backgroundPaused = false;
   state.screen = 'finishing'; state.finishTimer = 0;
   if (won) playSound('victory');
   const unlockedBefore = new Set(state.unlocked);
@@ -2734,11 +2741,13 @@ function fitAppToViewport() {
 function pauseForBackground() {
   if (state.screen !== 'game' || state.paused) return;
   state.paused = true;
+  state.backgroundPaused = true;
   addLog('窗口已切到后台，战局自动暂停；回到游戏后点击继续守关。');
   updateHUD();
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseForBackground(); });
+window.addEventListener('blur', pauseForBackground);
 
 window.addEventListener('resize', fitAppToViewport);
 fitAppToViewport();
