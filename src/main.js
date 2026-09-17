@@ -311,6 +311,7 @@ const WAVE_META = [
 const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'difficultySelect', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'endlessStart', 'trialStart', 'resumeGame', 'medalsOpen', 'medalCount', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'audioSettings', 'audioDialog', 'audioClose', 'audioEnabled', 'musicVolume', 'musicVolumeValue', 'sfxVolume', 'sfxVolumeValue', 'gameTerrain', 'gameDifficulty', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'nextWave', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'spiritSkill', 'spiritSkillLabel', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultRecap', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonSwap', 'summonSwapNote', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openBackpack', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'evolutionDialog', 'evolutionChoices', 'medalsDialog', 'medalsList', 'medalsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 refs.recallSelected = document.querySelector('#recall-selected');
+refs.fullscreenToggle = document.querySelector('#fullscreen-toggle');
 refs.selectedUnitMeta = document.querySelector('#selected-unit-meta');
 refs.resultCombatScore = document.querySelector('#result-combat-score');
 refs.resultVictoryScore = document.querySelector('#result-victory-score');
@@ -2944,6 +2945,7 @@ refs.speedGame.addEventListener('click', () => {
   updateHUD();
 });
 refs.soundToggle.addEventListener('click', () => setSoundEnabled(!state.soundEnabled, true));
+refs.fullscreenToggle.addEventListener('click', toggleFullscreen);
 refs.audioEnabled.addEventListener('change', () => setSoundEnabled(refs.audioEnabled.checked, true));
 refs.musicVolume.addEventListener('input', () => {
   state.musicVolume = clamp(Number(refs.musicVolume.value) / 100, 0, 1);
@@ -2989,6 +2991,36 @@ function fitAppToViewport() {
   document.documentElement.style.setProperty('--ui-scale', scale);
 }
 
+function supportsFullscreen() {
+  return typeof document.querySelector('#app-shell')?.requestFullscreen === 'function';
+}
+
+function syncFullscreenToggle() {
+  const supported = supportsFullscreen();
+  refs.fullscreenToggle.hidden = !supported;
+  if (!supported) return;
+  const active = document.fullscreenElement === document.querySelector('#app-shell');
+  const label = active ? '退出全屏' : '进入全屏';
+  refs.fullscreenToggle.classList.toggle('is-active', active);
+  refs.fullscreenToggle.title = label;
+  refs.fullscreenToggle.setAttribute('aria-label', label);
+  refs.fullscreenToggle.setAttribute('aria-pressed', String(active));
+}
+
+async function toggleFullscreen() {
+  if (!supportsFullscreen()) {
+    addLog('当前浏览器不支持全屏，已保持横屏适配。');
+    return;
+  }
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.querySelector('#app-shell').requestFullscreen();
+  } catch {
+    addLog('浏览器未允许进入全屏，已保持横屏适配。');
+  }
+  syncFullscreenToggle();
+}
+
 function pauseForBackground() {
   if (state.screen !== 'game' || state.paused) return;
   state.paused = true;
@@ -3002,11 +3034,19 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 window.addEventListener('blur', pauseForBackground);
 
 window.addEventListener('resize', fitAppToViewport);
+document.addEventListener('fullscreenchange', () => {
+  syncFullscreenToggle();
+  requestAnimationFrame(fitAppToViewport);
+});
+document.addEventListener('fullscreenerror', () => {
+  syncFullscreenToggle();
+});
 fitAppToViewport();
 
 document.querySelector('#build-label')?.replaceChildren(BUILD_ID);
 loadSave();
 renderAudioControls();
+syncFullscreenToggle();
 renderSelect(); showScreen('select'); requestAnimationFrame(tick);
 
 window.__shanHaiDebug = { state, ROSTER, BEASTS, ACTIVE_SKILLS, SUPPORT_SKILLS, BOND_DEFS, LEVELS, WAVES, DIFFICULTIES, growthFor, applyProgressUnlocks, resultGrade, canPlaceAt, pathInfo, castSpiritSkill, bondsForTowers, supportBonusesFor };

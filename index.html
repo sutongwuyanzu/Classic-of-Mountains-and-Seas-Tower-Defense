@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#17120d" />
-    <meta name="shan-hai-build" content="sol-3d-combat-38" />
+    <meta name="shan-hai-build" content="sol-3d-combat-42" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-38" />
+    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-42" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -51,7 +51,7 @@
 
           <div class="save-strip">
             <span id="save-status">本地存档已启用</span>
-            <span class="build-label">构建 <b id="build-label">sol-3d-combat-38</b></span>
+            <span class="build-label">构建 <b id="build-label">sol-3d-combat-42</b></span>
             <button id="reset-save" type="button" title="重置存档">重置</button>
           </div>
         </section>
@@ -77,6 +77,7 @@
               <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 18</strong></div>
               <button class="sound-toggle" id="sound-toggle" type="button" title="静音" aria-label="静音">♪</button>
               <button class="audio-settings" id="audio-settings" type="button" title="音频设置" aria-label="音频设置"><i></i><i></i><i></i></button>
+              <button class="fullscreen-toggle" id="fullscreen-toggle" type="button" title="进入全屏" aria-label="进入全屏" aria-pressed="false" hidden><span aria-hidden="true">⛶</span></button>
             </div>
           </header>
 
@@ -213,6 +214,6 @@
     </div>
     <div class="orientation-lock" role="status">请旋转设备至横屏后继续</div>
     <script src="./shared/game-core.js?v=shared-core-3"></script>
-    <script src="./src/main.js?v=sol-3d-combat-38"></script>
+    <script src="./src/main.js?v=sol-3d-combat-42"></script>
   </body>
 </html>

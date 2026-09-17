@@ -17,16 +17,27 @@ const BASIC_ATTACK_ARMOR_BREAK = 12;
 const BASIC_ATTACK_ARMOR_BREAK_DURATION = 3;
 const canvas = wx.createCanvas();
 const ctx = canvas.getContext('2d');
-const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
 const VIEW_W = 1280;
 const VIEW_H = 720;
-const scale = Math.min(info.windowWidth / VIEW_W, info.windowHeight / VIEW_H);
-const offsetX = (info.windowWidth - VIEW_W * scale) / 2;
-const offsetY = (info.windowHeight - VIEW_H * scale) / 2;
-const portraitMode = info.windowHeight > info.windowWidth;
-canvas.width = Math.round(info.windowWidth * (info.pixelRatio || 1));
-canvas.height = Math.round(info.windowHeight * (info.pixelRatio || 1));
-ctx.setTransform((info.pixelRatio || 1) * scale, 0, 0, (info.pixelRatio || 1) * scale, (info.pixelRatio || 1) * offsetX, (info.pixelRatio || 1) * offsetY);
+let info;
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+let portraitMode = false;
+
+function syncCanvasViewport() {
+  info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+  const pixelRatio = info.pixelRatio || 1;
+  scale = Math.min(info.windowWidth / VIEW_W, info.windowHeight / VIEW_H);
+  offsetX = (info.windowWidth - VIEW_W * scale) / 2;
+  offsetY = (info.windowHeight - VIEW_H * scale) / 2;
+  portraitMode = info.windowHeight > info.windowWidth;
+  canvas.width = Math.round(info.windowWidth * pixelRatio);
+  canvas.height = Math.round(info.windowHeight * pixelRatio);
+  ctx.setTransform(pixelRatio * scale, 0, 0, pixelRatio * scale, pixelRatio * offsetX, pixelRatio * offsetY);
+}
+
+syncCanvasViewport();
 
 function image(src) {
   const result = canvas.createImage ? canvas.createImage() : wx.createImage();
@@ -619,6 +630,7 @@ function pauseForBackground() {
 
 function resumeForeground() {
   last = Date.now();
+  syncCanvasViewport();
   if (state.screen === 'game' && state.backgroundPaused) log('已回到前台，战局仍暂停；点击继续守关。');
 }
 
@@ -704,7 +716,8 @@ let last=Date.now();
 wx.onTouchStart((event)=>{const touch=event.touches[0];const x=(touch.clientX-offsetX)/scale;const y=(touch.clientY-offsetY)/scale;const target=hit(x,y);if(target)handleButton(target.id,x,y);});
 if (typeof wx.onHide === 'function') wx.onHide(pauseForBackground);
 if (typeof wx.onShow === 'function') wx.onShow(resumeForeground);
+if (typeof wx.onWindowResize === 'function') wx.onWindowResize(syncCanvasViewport);
 function frame(){const now=Date.now();const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();if(canvas.requestAnimationFrame)canvas.requestAnimationFrame(frame);else if(typeof requestAnimationFrame==='function')requestAnimationFrame(frame);else setTimeout(frame,16);}
 frame();
 
-module.exports = { state, Core, ROSTER, LEVELS, WAVES, startGame, startWave, waveTemplate, nextWave, spawnEnemy, damageEnemy, openSummon, swapOffers, receive, selectBackpackUnit, placeSelected, recallSelected, autoDeploy, castSkill, useBondSkill, selectedBond, bondState, supportBonus, effectiveTowerRange, enemySpecialTrait, enemyCounterHint, enemyPanelLines, togglePause, pauseForBackground, resumeForeground, update, draw };
+module.exports = { state, Core, ROSTER, LEVELS, WAVES, startGame, startWave, waveTemplate, nextWave, spawnEnemy, damageEnemy, openSummon, swapOffers, receive, selectBackpackUnit, placeSelected, recallSelected, autoDeploy, castSkill, useBondSkill, selectedBond, bondState, supportBonus, effectiveTowerRange, enemySpecialTrait, enemyCounterHint, enemyPanelLines, togglePause, pauseForBackground, resumeForeground, syncCanvasViewport, update, draw };

@@ -17,6 +17,7 @@ assert.match(indexHtml, /id="trial-start"/);
 assert.match(indexHtml, /id="resume-game"/);
 assert.match(indexHtml, /id="selected-unit-meta"/);
 assert.match(indexHtml, /id="audio-settings"/);
+assert.match(indexHtml, /id="fullscreen-toggle"/);
 assert.match(indexHtml, /id="audio-dialog"/);
 assert.match(indexHtml, /id="music-volume"/);
 assert.match(indexHtml, /id="sfx-volume"/);
@@ -28,7 +29,9 @@ assert.match(styles, /\.rail-command \{\s*width: 100px;\s*height: 100px;/);
 assert.match(styles, /\.selected-spirit-bar \{\s*right: 218px;\s*bottom: 120px;\s*height: 110px;/);
 assert.match(styles, /\.selected-recall \{ width: 100px; height: 100px;/);
 assert.match(styles, /\.summon-dock \{\s*left: 176px;\s*bottom: 10px;\s*width: 924px;\s*height: 100px;/);
-assert.match(styles, /\.sound-toggle \{ display: none; \}\.audio-settings \{ width: 100px; height: 100px;/);
+assert.match(styles, /\.battle-header \{ grid-template-columns: 320px minmax\(0, 1fr\) 500px; height: 100px; \}/);
+assert.match(styles, /\.sound-toggle \{ display: none; \}\.audio-settings, \.fullscreen-toggle \{ width: 100px; height: 100px;/);
+assert.match(styles, /\.resource-panel \{ display: grid; grid-template-columns: 92px 76px 110px 100px 100px;/);
 assert.match(styles, /\.audio-controls label \{ min-height: 100px;/);
 assert.match(styles, /\.arena-message \{[^}]*width: min\(760px, calc\(100% - 170px\)\);[^}]*max-height: 44px;[^}]*text-align: center;/);
 assert.match(styles, /\.arena-message \{ width: min\(670px, calc\(100% - 240px\)\); max-height: 72px; font-size: 26px; \}/);
@@ -49,6 +52,9 @@ const mobileWaveAdvanceLeft = 995 - 10 - 150;
 const mobileArenaMessageRight = (995 + 670) / 2;
 assert(mobileArenaMessageRight <= mobileWaveAdvanceLeft, 'mobile arena message must not overlap the wave advance button');
 const desktopGame = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+assert.match(desktopGame, /function supportsFullscreen\(\)/);
+assert.match(desktopGame, /refs\.fullscreenToggle\.addEventListener\('click', toggleFullscreen\);/);
+assert.match(desktopGame, /document\.addEventListener\('fullscreenchange', \(\) => \{[\s\S]*?fitAppToViewport/);
 
 function readLiteralConst(source, name, bindings = {}) {
   const marker = `const ${name} = `;
@@ -135,7 +141,9 @@ assert.match(desktopGame, /let activeCombatBondTotals = null;/);
 assert.match(desktopGame, /function updateTowers\(dt, bondState = bondsForTowers\(\)\)/);
 assert.match(desktopGame, /function bondTotals\(\) \{ return activeCombatBondTotals \|\| bondsForTowers\(\)\.totals; \}/);
 assert.match(desktopGame, /const frameBondState = bondsForTowers\(\);\s*activeCombatBondTotals = frameBondState\.totals;\s*try \{\s*spawnFromGroups\(simDt\); updateTowers\(simDt, frameBondState\);[\s\S]*?finally \{ activeCombatBondTotals = null; \}/);
-assert.match(preload, /buildId/);
+assert.doesNotMatch(preload, /require\('\.\.\/package\.json'\)/);
+assert.match(preload, /loadSave: \(\) => ipcRenderer\.sendSync\('save:load'\)/);
+assert.match(preload, /writeSave: \(payload\) => ipcRenderer\.invoke\('save:write', payload\)/);
 assert.match(startServer, /package\.json/);
 assert.equal(fs.readFileSync(path.join(root, 'shared', 'game-core.js'), 'utf8'), fs.readFileSync(path.join(root, 'wechatgame', 'shared', 'game-core.js'), 'utf8'));
 const Core = require(path.join(root, 'shared', 'game-core.js'));
@@ -243,13 +251,16 @@ assert(miniData.BONDS.every((bond) => bond.ult && bond.skill && bond.cooldown > 
 const noop = () => {};
 let onHideHandler = null;
 let onShowHandler = null;
+let onWindowResizeHandler = null;
+let onTouchStartHandler = null;
 let writtenSave = null;
+let windowInfo = { windowWidth:1280, windowHeight:720, pixelRatio:1 };
 const context = new Proxy({}, { get(target, key) { if (!(key in target)) target[key] = noop; return target[key]; }, set(target, key, value) { target[key] = value; return true; } });
 const fakeCanvas = { width:0, height:0, getContext:() => context, createImage:() => ({ loaded:false, width:600, height:500 }), requestAnimationFrame:noop };
 global.wx = {
   createCanvas:() => fakeCanvas,
-  getWindowInfo:() => ({ windowWidth:1280, windowHeight:720, pixelRatio:1 }),
-  getStorageSync:() => ({ completions: [0, '0:normal', '99:normal', '01:normal', '1:invalid', '1:normal'] }), setStorageSync:(_key, value) => { writtenSave = value; }, onTouchStart:noop, onHide:(handler) => { onHideHandler = handler; }, onShow:(handler) => { onShowHandler = handler; },
+  getWindowInfo:() => windowInfo,
+  getStorageSync:() => ({ completions: [0, '0:normal', '99:normal', '01:normal', '1:invalid', '1:normal'] }), setStorageSync:(_key, value) => { writtenSave = value; }, onTouchStart:(handler) => { onTouchStartHandler = handler; }, onHide:(handler) => { onHideHandler = handler; }, onShow:(handler) => { onShowHandler = handler; }, onWindowResize:(handler) => { onWindowResizeHandler = handler; },
 };
 const miniGame = require(path.join(root, 'wechatgame', 'src', 'main.js'));
 miniGame.startGame();
@@ -260,6 +271,16 @@ assert.deepEqual([...miniGame.state.completions].sort(), ['0:normal', '1:normal'
 assert.deepEqual(writtenSave.completions, ['0:normal', '1:normal']);
 assert.equal(typeof onHideHandler, 'function');
 assert.equal(typeof onShowHandler, 'function');
+assert.equal(typeof onWindowResizeHandler, 'function');
+assert.equal(typeof onTouchStartHandler, 'function');
+windowInfo = { windowWidth:720, windowHeight:1280, pixelRatio:2 };
+onWindowResizeHandler();
+assert.equal(fakeCanvas.width, 1440);
+assert.equal(fakeCanvas.height, 2560);
+windowInfo = { windowWidth:1280, windowHeight:720, pixelRatio:1 };
+onWindowResizeHandler();
+assert.equal(fakeCanvas.width, 1280);
+assert.equal(fakeCanvas.height, 720);
 onHideHandler();
 assert.equal(miniGame.state.paused, true);
 assert.equal(miniGame.state.backgroundPaused, true);
@@ -269,6 +290,15 @@ assert.equal(miniGame.state.backgroundPaused, true);
 miniGame.togglePause();
 assert.equal(miniGame.state.paused, false);
 assert.equal(miniGame.state.backgroundPaused, false);
+windowInfo = { windowWidth:640, windowHeight:360, pixelRatio:2 };
+onWindowResizeHandler();
+miniGame.draw();
+onTouchStartHandler({ touches: [{ clientX:596.25, clientY:51 }] });
+assert.equal(miniGame.state.paused, true);
+assert.equal(miniGame.state.backgroundPaused, false);
+miniGame.togglePause();
+windowInfo = { windowWidth:1280, windowHeight:720, pixelRatio:1 };
+onWindowResizeHandler();
 miniGame.state.paused = false;
 miniGame.startGame(true);
 assert.equal(miniGame.state.tutorialMode, true);
