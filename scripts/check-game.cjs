@@ -16,19 +16,111 @@ assert.match(indexHtml, /id="result-recap"/);
 assert.match(indexHtml, /id="trial-start"/);
 assert.match(indexHtml, /id="resume-game"/);
 assert.match(indexHtml, /id="selected-unit-meta"/);
+assert.match(indexHtml, /id="audio-settings"/);
+assert.match(indexHtml, /id="audio-dialog"/);
+assert.match(indexHtml, /id="music-volume"/);
+assert.match(indexHtml, /id="sfx-volume"/);
+assert.match(indexHtml, /aria-labelledby="audio-title" aria-describedby="audio-copy"/);
 assert.match(styles, /@media \(max-width: 900px\) and \(max-height: 500px\) and \(orientation: landscape\)/);
-assert.match(styles, /grid-template-columns: repeat\(2, 81px\)/);
-assert.match(styles, /\.summon-dock \{\s*left: 176px;\s*bottom: 10px;\s*width: 924px;\s*height: 82px;/);
+assert.match(styles, /grid-template-columns: repeat\(2, 100px\)/);
+assert.match(styles, /\.command-rail \{\s*top: 104px;\s*right: 10px;\s*width: 206px;/);
+assert.match(styles, /\.rail-command \{\s*width: 100px;\s*height: 100px;/);
+assert.match(styles, /\.selected-spirit-bar \{\s*right: 218px;\s*bottom: 120px;\s*height: 110px;/);
+assert.match(styles, /\.selected-recall \{ width: 100px; height: 100px;/);
+assert.match(styles, /\.summon-dock \{\s*left: 176px;\s*bottom: 10px;\s*width: 924px;\s*height: 100px;/);
+assert.match(styles, /\.sound-toggle \{ display: none; \}\.audio-settings \{ width: 100px; height: 100px;/);
+assert.match(styles, /\.audio-controls label \{ min-height: 100px;/);
+assert.match(styles, /\.arena-message \{[^}]*width: min\(760px, calc\(100% - 170px\)\);[^}]*max-height: 44px;[^}]*text-align: center;/);
+assert.match(styles, /\.arena-message \{ width: min\(670px, calc\(100% - 240px\)\); max-height: 72px; font-size: 26px; \}/);
+assert.match(styles, /\.wave-advance \{ top: 7px; right: 10px; min-width: 150px; height: 100px; font-size: 24px; \}/);
+assert.match(styles, /\.combat-log \{ left: 20px; right: 230px; bottom: 142px; min-height: 54px; max-height: 54px; overflow: hidden; font-size: 23px;/);
+assert.match(styles, /\.dock-command small \{ display: none; \}/);
+const compactMobileScale = Math.min(568 / 1280, 320 / 720);
+assert(100 * compactMobileScale >= 44, 'key landscape controls must remain at least 44px at 568x320');
+assert(24 * compactMobileScale >= 10, 'key landscape command labels must remain at least 10px at 568x320');
+const mobileLayout = { width: 1280, height: 720, headerHeight: 100, arenaTop: 104, railRight: 10, railWidth: 206, selectedRight: 218, selectedBottom: 120, selectedHeight: 110, summonBottom: 10, summonHeight: 100 };
+assert(mobileLayout.headerHeight <= mobileLayout.arenaTop, 'mobile arena must start below the header');
+assert(mobileLayout.width - mobileLayout.selectedRight <= mobileLayout.width - mobileLayout.railRight - mobileLayout.railWidth, 'selected roster must not overlap the command rail');
+assert(mobileLayout.height - mobileLayout.selectedBottom <= mobileLayout.height - mobileLayout.summonBottom - mobileLayout.summonHeight, 'selected roster must not overlap the summon dock');
+const mobileCombatLogBottom = 104 + 524 - 142;
+const mobileSelectedBarTop = 720 - 120 - 110;
+assert(mobileCombatLogBottom <= mobileSelectedBarTop, 'mobile combat log must sit above the selected spirit bar');
+const mobileWaveAdvanceLeft = 995 - 10 - 150;
+const mobileArenaMessageRight = (995 + 670) / 2;
+assert(mobileArenaMessageRight <= mobileWaveAdvanceLeft, 'mobile arena message must not overlap the wave advance button');
 const desktopGame = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+
+function readLiteralConst(source, name, bindings = {}) {
+  const marker = `const ${name} = `;
+  const start = source.indexOf(marker);
+  assert.notEqual(start, -1, `missing desktop constant ${name}`);
+  let end = start + marker.length;
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (; end < source.length; end += 1) {
+    const character = source[end];
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === quote) quote = '';
+      continue;
+    }
+    if (character === "'" || character === '"' || character === '`') {
+      quote = character;
+      continue;
+    }
+    if (character === '{' || character === '[' || character === '(') depth += 1;
+    if (character === '}' || character === ']' || character === ')') depth -= 1;
+    if (character === ';' && depth === 0) break;
+  }
+  assert.notEqual(end, source.length, `unterminated desktop constant ${name}`);
+  return Function(...Object.keys(bindings), `return (${source.slice(start + marker.length, end)});`)(...Object.values(bindings));
+}
+
 assert.match(desktopGame, /function combatRecap\(\)/);
 assert.match(desktopGame, /runStats: \{ damageByBeast: \{\}, shieldByBeast: \{\}, breachesByRoute: \{\}, sealLost: 0, waves: \[\] \}/);
 assert.match(desktopGame, /function gameRandom\(stream = 'draw'\)/);
+assert.match(desktopGame, /function peekGameRandom\(stream = 'draw'\)/);
+assert.match(desktopGame, /function waveRouteThreatText\(groups, routeOffset = null\)/);
+assert.match(desktopGame, /const threatText = waveRouteThreatText\(groups, routeOffset\);/);
+assert.match(desktopGame, /const nextThreatText = waveRouteThreatText\(waveTemplate\(state\.wave\)\);/);
 assert.match(desktopGame, /function startTrialGame\(\)/);
+assert.match(desktopGame, /const TRIAL_RULES = Object\.freeze\(/);
+assert.match(desktopGame, /function trialRuleForSeed\(seed = trialSeed\(\), level = currentLevel\(\)\)/);
+assert.match(desktopGame, /function summonWeights\(mode\)/);
+assert.match(desktopGame, /function enforceTrialRuleBeforeWave\(\)/);
+assert.match(desktopGame, /trialFailedReason/);
+assert.match(desktopGame, /Core\.evolutionChoices\(state\.towers\.map\(\(tower\) => tower\.id\), state\.runSeed \+ completedWave \* 97, state\.runEvolutions\)/);
 assert.match(desktopGame, /function createWaveSnapshot\(\)/);
 assert.match(desktopGame, /function resumeWaveGame\(\)/);
+assert.match(desktopGame, /function startAmbient\(\)/);
+assert.match(desktopGame, /function updateAmbientState\(\)/);
+assert.match(desktopGame, /musicVolume: \.28, sfxVolume: 1/);
+assert.match(desktopGame, /musicVolume: state\.musicVolume, sfxVolume: state\.sfxVolume/);
+assert.match(desktopGame, /refs\.audioSettings\.addEventListener\('click', \(\) => \{ renderAudioControls\(\); showGameDialog\(refs\.audioDialog\); \}\);/);
+assert.match(desktopGame, /function pauseForBackground\(\)[\s\S]*?updateAmbientState\(\);/);
+assert.match(desktopGame, /function finishGame\(won, abandoned = false\)[\s\S]*?stopAmbient\(\);/);
+assert.match(desktopGame, /loadSave\(\);\s*updateAudioMix\(\);\s*renderAudioControls\(\);\s*renderSelect\(\);/);
 assert.match(desktopGame, /function counterEffectText\(def\)/);
+assert.match(desktopGame, /function enemySpecialTrait\(enemy\)/);
+assert.match(desktopGame, /法免→物\/净/);
+assert.match(desktopGame, /物免→法\/真/);
+assert.match(desktopGame, /周期治疗/);
+assert.match(desktopGame, /濒死复活/);
+assert.match(desktopGame, /击杀分裂/);
+assert.match(desktopGame, /function selectedEnemyMeta\(enemy\)/);
+assert.match(desktopGame, /refs\.selectedUnitMeta\.textContent = selectedEnemyMeta\(selectedEnemy\)/);
+assert.match(desktopGame, /const DISMISS_COMPENSATION = 6;/);
+assert.match(desktopGame, /function dismissBackpackUnit\(uid\)/);
+assert.match(desktopGame, /data-dismiss-unit=/);
 assert.match(desktopGame, /function portraitMarkup\(beast, fullArt = false\)/);
 assert.match(desktopGame, /function drawStageBackdrop\(\)/);
+assert.match(desktopGame, /const stageBackgrounds = new Array\(stageBackgroundSources\.length\);/);
+assert.match(desktopGame, /function stageBackgroundFor\(stage\)/);
+assert.doesNotMatch(desktopGame, /const biomeAtlas = document\.createElement\('img'\);/);
+assert.doesNotMatch(desktopGame, /const caveBattlefield = document\.createElement\('img'\);/);
+assert.match(desktopGame, /function renderSelect\(\) \{\s*stageBackgroundFor\(state\.stage\);/);
 assert.match(desktopGame, /function updateHUD\(immediate = true\)/);
 assert.match(desktopGame, /updateEffects\(simDt\); updateHUD\(false\);/);
 assert.match(desktopGame, /if \(state\.paused\) \{\s*if \(state\.backgroundPaused\) resumePauseMenu\(\);/);
@@ -37,11 +129,30 @@ assert.match(desktopGame, /成员：\$\{bond\.members/);
 assert.match(desktopGame, /还需 \$\{Math\.max\(0, bond\.need - count\)\} 名/);
 assert.match(desktopGame, /counter === 'breakShield' && def\?\.breakShield === true/);
 assert.match(desktopGame, /function damageEnemy\(enemy, amount, def, special = 0, source = null\) \{\s*if \(!canSeeEnemy\(enemy, def\)\) return;/);
+assert.match(desktopGame, /const pendingDamage = new Map\(\);/);
+assert.doesNotMatch(desktopGame, /function incomingDamage\(/);
+assert.match(desktopGame, /let activeCombatBondTotals = null;/);
+assert.match(desktopGame, /function updateTowers\(dt, bondState = bondsForTowers\(\)\)/);
+assert.match(desktopGame, /function bondTotals\(\) \{ return activeCombatBondTotals \|\| bondsForTowers\(\)\.totals; \}/);
+assert.match(desktopGame, /const frameBondState = bondsForTowers\(\);\s*activeCombatBondTotals = frameBondState\.totals;\s*try \{\s*spawnFromGroups\(simDt\); updateTowers\(simDt, frameBondState\);[\s\S]*?finally \{ activeCombatBondTotals = null; \}/);
 assert.match(preload, /buildId/);
 assert.match(startServer, /package\.json/);
 assert.equal(fs.readFileSync(path.join(root, 'shared', 'game-core.js'), 'utf8'), fs.readFileSync(path.join(root, 'wechatgame', 'shared', 'game-core.js'), 'utf8'));
 const Core = require(path.join(root, 'shared', 'game-core.js'));
 const miniData = require(path.join(root, 'wechatgame', 'src', 'data.js'));
+const runtimeSpriteDir = path.join(root, 'assets', 'sprites', 'runtime');
+const runtimeSpriteIds = [...miniData.ROSTER.map((item) => item.id), ...Object.keys(miniData.ENEMIES)].sort();
+const runtimeSpriteFiles = fs.readdirSync(runtimeSpriteDir).filter((file) => file.endsWith('.png')).sort();
+assert.deepEqual(runtimeSpriteFiles, runtimeSpriteIds.map((id) => `${id}.png`));
+assert.match(desktopGame, /assets\/sprites\/runtime\//);
+let runtimeSpriteBytes = 0;
+runtimeSpriteFiles.forEach((file) => {
+  const sprite = fs.readFileSync(path.join(runtimeSpriteDir, file));
+  assert.equal(sprite.subarray(1, 4).toString('ascii'), 'PNG');
+  assert(sprite.readUInt32BE(16) <= 384 && sprite.readUInt32BE(20) <= 384, `${file} exceeds the runtime sprite budget`);
+  runtimeSpriteBytes += sprite.length;
+});
+assert(runtimeSpriteBytes < 7 * 1024 * 1024, 'runtime sprites exceed the 7 MiB budget');
 assert.equal(Core.SUMMON_RULES.normal.cost, 20);
 assert.deepEqual(Core.SUMMON_RULES.normal.swaps, [8, 16]);
 assert.equal(Core.SUMMON_RULES.normal.weights.reduce((sum, pair) => sum + pair[1], 0), 100);
@@ -49,36 +160,96 @@ assert.equal(Core.SUMMON_RULES.advanced.weights.reduce((sum, pair) => sum + pair
 assert.equal(Core.passiveBonus('qinglong', 0).targets, 0);
 assert.equal(Core.passiveBonus('qinglong', 12).targets, 1);
 assert.equal(Core.evolutionChoices(['bifang', 'dayu'], 7).length, 3);
+const evolvedChoices = Core.evolutionChoices(['bifang', 'dayu'], 7, { bifang: ['fury'] });
+assert.deepEqual(evolvedChoices, Core.evolutionChoices(['bifang', 'dayu'], 7, { bifang: ['fury'] }));
+assert.equal(new Set(evolvedChoices.map((choice) => choice.id)).size, evolvedChoices.length);
+assert(!evolvedChoices.some((choice) => choice.beastId === 'bifang' && choice.id === 'fury'));
+assert.deepEqual(Core.evolutionChoices(['bifang'], 7, { bifang: ['fury', 'ritual', 'domain'] }), []);
 assert(Core.medalAwards({ won:true, hp:10, maxHp:10, difficulty:'normal', urCount:0, maxRarity:1, activeBonds:3, requiredFielded:true, maxGrowthKills:20, clearedAll:false, clearedHardAll:false, mode:'standard', wave:15 }).includes('perfect_seal'));
-const canonicalCombatStats = {
-  bifang:[20,1.15,168,'mag'], fuzhu:[15,.92,155,'mag'], jiuwei:[25,1.48,175,'mag'], tiangou:[17,.82,145,'phy'], xuangui:[34,1.85,138,'phy'],
-  shengsheng:[27,1.2,165,'phy'], kaiming:[22,.98,155,'mag'], bo:[31,1.55,170,'phy'], zheng:[19,.74,150,'phy'],
-  qiuniu:[21,1.12,174,'mag'], yazi:[38,1.7,145,'phy'], chaofeng:[18,.86,182,'mag'], pulao:[24,1.1,165,'mag'], suanni:[29,1.38,154,'mag'], bixi:[44,2.1,132,'phy'], bian:[20,.82,166,'phy'], fuxi_long:[32,1.35,178,'mag'], chiwen:[23,.94,190,'mag'],
-  dayu:[40,1.7,184,'true'], gonggong:[35,1.42,180,'true'], qinglong:[50,1.55,206,'mag'], baihu:[66,1.9,160,'phy'], zhuque:[45,1.22,194,'mag'], xuanwu:[32,.9,188,'true'], huangdi:[41,1.3,190,'true'], fuxi:[38,1.05,215,'mag'], nuwa:[36,1.15,200,'true'],
-};
-assert.deepEqual(Object.fromEntries(miniData.ROSTER.map((item) => [item.id, [item.dmg, item.interval, item.range, item.dmgType]])), canonicalCombatStats);
-assert.deepEqual(miniData.LEVELS.map((item) => item.essence), [56, 62, 70, 78, 86]);
-assert.equal(miniData.ROSTER.find((item) => item.id === 'bifang').splash, false);
-assert.equal(miniData.ROSTER.find((item) => item.id === 'jiuwei').chain, 2);
-assert.equal(miniData.ROSTER.find((item) => item.id === 'zheng').slow, .18);
-assert.match(fs.readFileSync(path.join(root, 'wechatgame', 'src', 'main.js'), 'utf8'), /const RARITY_POWER = \[1, 1\.03, 1\.08, 1\.16, 1\.3\]/);
+const desktopBeasts = readLiteralConst(desktopGame, 'BEASTS');
+const desktopEnemies = readLiteralConst(desktopGame, 'ENEMIES');
+const desktopLevels = readLiteralConst(desktopGame, 'LEVELS');
+const desktopWaves = readLiteralConst(desktopGame, 'WAVES');
+const desktopSkills = readLiteralConst(desktopGame, 'ACTIVE_SKILLS');
+const desktopSupportSkills = readLiteralConst(desktopGame, 'SUPPORT_SKILLS');
+const desktopBonds = readLiteralConst(desktopGame, 'BOND_DEFS');
+const desktopPopulation = readLiteralConst(desktopGame, 'POPULATION_BY_RARITY');
+const desktopRarityPower = readLiteralConst(desktopGame, 'RARITY_POWER');
+const desktopBasicArmorBreak = readLiteralConst(desktopGame, 'BASIC_ATTACK_ARMOR_BREAK');
+const desktopBasicArmorBreakDuration = readLiteralConst(desktopGame, 'BASIC_ATTACK_ARMOR_BREAK_DURATION');
+const desktopDifficulties = readLiteralConst(desktopGame, 'DIFFICULTIES', {
+  SUMMON_WEIGHTS: Core.SUMMON_RULES.normal.weights,
+  ADVANCED_SUMMON_WEIGHTS: Core.SUMMON_RULES.advanced.weights,
+});
+const combatContract = (def, miniGame = false) => ({
+  dmg: def.dmg,
+  interval: def.interval,
+  range: def.range,
+  dmgType: def.dmgType,
+  splash: miniGame ? def.splashRadius : def.splash || 0,
+  chain: def.chain || 0,
+  burn: Boolean(def.burn),
+  burnDps: def.burnDps || 0,
+  slow: def.slow || 0,
+  slowDur: def.slowDur || 0,
+  breakAt: def.breakAt || 0,
+  stunEvery: def.stunEvery || 0,
+  counters: def.counters || [],
+});
+const enemyContract = (def) => ({
+  name: def.name,
+  hp: def.hp,
+  speed: def.speed,
+  radius: def.radius,
+  reward: def.reward,
+  armor: def.armor || 0,
+  shield: def.shield || 0,
+  immuneMag: Boolean(def.immuneMag),
+  stealth: Boolean(def.stealth),
+  boss: Boolean(def.boss),
+  heal: def.skill === 'heal' || Boolean(def.heal),
+  revive: def.skill === 'revive' || Boolean(def.revive),
+  split: def.skill === 'split' || Boolean(def.split),
+});
+assert.deepEqual(miniData.ROSTER.map((item) => item.id), Object.keys(desktopBeasts));
+assert.deepEqual(
+  Object.fromEntries(miniData.ROSTER.map((item) => [item.id, combatContract(item, true)])),
+  Object.fromEntries(Object.entries(desktopBeasts).map(([id, def]) => [id, combatContract(def)])),
+);
+assert.deepEqual(
+  Object.fromEntries(Object.entries(miniData.ENEMIES).map(([id, def]) => [id, enemyContract(def)])),
+  Object.fromEntries(Object.entries(desktopEnemies).map(([id, def]) => [id, enemyContract(def)])),
+);
+assert.deepEqual(miniData.WAVES, desktopWaves);
+assert.deepEqual(
+  miniData.LEVELS.map((item) => ({ name: item.name, hp: item.hp, speed: item.speed, essence: item.essence, boss: item.boss, routeCount: item.routes.length })),
+  desktopLevels.map((item) => ({ name: item.name, hp: item.hpMul, speed: item.spdMul, essence: item.essence, boss: item.boss, routeCount: item.spawnCount })),
+);
+assert.deepEqual(miniData.ACTIVE_SKILLS, desktopSkills);
+assert.deepEqual(miniData.SUPPORT_SKILLS, desktopSupportSkills);
+assert.deepEqual(miniData.BONDS, desktopBonds);
+const miniGameSource = fs.readFileSync(path.join(root, 'wechatgame', 'src', 'main.js'), 'utf8');
+assert.deepEqual(readLiteralConst(miniGameSource, 'POPULATION'), desktopPopulation);
+assert.deepEqual(readLiteralConst(miniGameSource, 'RARITY_POWER'), desktopRarityPower);
+assert.equal(readLiteralConst(miniGameSource, 'BASIC_ATTACK_ARMOR_BREAK'), desktopBasicArmorBreak);
+assert.equal(readLiteralConst(miniGameSource, 'BASIC_ATTACK_ARMOR_BREAK_DURATION'), desktopBasicArmorBreakDuration);
+assert.deepEqual(
+  miniData.DIFFICULTIES,
+  Object.fromEntries(Object.entries(desktopDifficulties).map(([id, def]) => [id, { name: def.name, hp: def.hp, speed: def.speed, armor: def.armor, count: def.count, essence: def.startEssence, power: def.towerPower }])),
+);
 assert.equal(miniData.BONDS.length, 13);
-assert.deepEqual(miniData.BONDS.map((bond) => [bond.id, bond.stat, bond.bonus, bond.stepBonus]), [
-  ['wild','power',.14,.07], ['fierce','haste',.12,.06], ['dragon_sky','haste',.16,0], ['dragon_earth','sunder',.2,0], ['dragon_tide','range',.14,0], ['sishou','range',.1,.06], ['renzu','cdr',.16,.1], ['zhishui','sunder',.16,0], ['yanhuo','power',.1,.08], ['shuize','enemySlow',.09,.06], ['night_fire','haste',.09,0], ['frost_shell','enemySlow',.08,0], ['beast_hunt','range',.12,0],
-]);
 assert(miniData.BONDS.every((bond) => bond.ult && bond.skill && bond.cooldown > 0 && bond.ultMul > 0));
-assert.deepEqual(miniData.SUPPORT_SKILLS.fuxi, ['河图拓界','range',.18,225]);
-assert.deepEqual(miniData.SUPPORT_SKILLS.xuanwu, ['玄冥灵泉','manaRegen',.48,215]);
 
 const noop = () => {};
 let onHideHandler = null;
+let onShowHandler = null;
 let writtenSave = null;
 const context = new Proxy({}, { get(target, key) { if (!(key in target)) target[key] = noop; return target[key]; }, set(target, key, value) { target[key] = value; return true; } });
 const fakeCanvas = { width:0, height:0, getContext:() => context, createImage:() => ({ loaded:false, width:600, height:500 }), requestAnimationFrame:noop };
 global.wx = {
   createCanvas:() => fakeCanvas,
   getWindowInfo:() => ({ windowWidth:1280, windowHeight:720, pixelRatio:1 }),
-  getStorageSync:() => ({ completions: [0, '0:normal', '99:normal', '01:normal', '1:invalid', '1:normal'] }), setStorageSync:(_key, value) => { writtenSave = value; }, onTouchStart:noop, onHide:(handler) => { onHideHandler = handler; },
+  getStorageSync:() => ({ completions: [0, '0:normal', '99:normal', '01:normal', '1:invalid', '1:normal'] }), setStorageSync:(_key, value) => { writtenSave = value; }, onTouchStart:noop, onHide:(handler) => { onHideHandler = handler; }, onShow:(handler) => { onShowHandler = handler; },
 };
 const miniGame = require(path.join(root, 'wechatgame', 'src', 'main.js'));
 miniGame.startGame();
@@ -88,8 +259,16 @@ assert.equal(miniGame.state.hp, 10);
 assert.deepEqual([...miniGame.state.completions].sort(), ['0:normal', '1:normal']);
 assert.deepEqual(writtenSave.completions, ['0:normal', '1:normal']);
 assert.equal(typeof onHideHandler, 'function');
+assert.equal(typeof onShowHandler, 'function');
 onHideHandler();
 assert.equal(miniGame.state.paused, true);
+assert.equal(miniGame.state.backgroundPaused, true);
+onShowHandler();
+assert.equal(miniGame.state.paused, true);
+assert.equal(miniGame.state.backgroundPaused, true);
+miniGame.togglePause();
+assert.equal(miniGame.state.paused, false);
+assert.equal(miniGame.state.backgroundPaused, false);
 miniGame.state.paused = false;
 miniGame.startGame(true);
 assert.equal(miniGame.state.tutorialMode, true);
@@ -214,6 +393,30 @@ assert.equal(stealthEnemy.hp, stealthHp);
 const insightDef = miniGame.ROSTER.find((item) => item.id === 'fuzhu');
 miniGame.damageEnemy(stealthEnemy, 100, source, insightDef);
 assert(stealthEnemy.hp < stealthHp);
+assert.equal(miniGame.enemyCounterHint(immuneEnemy), '法免：物/净');
+assert.equal(miniGame.enemyCounterHint(stealthEnemy), '隐身：需洞察');
+const healerInfo = miniGame.enemyPanelLines(miniGame.spawnEnemy('taotie', 1, 0, 0, 'stageBoss'));
+assert.equal(healerInfo.counter, '护盾：破盾更快');
+assert.equal(healerInfo.threat, '周期治疗 · 破封 9');
+const splitInfo = miniGame.enemyPanelLines(miniGame.spawnEnemy('shanxiao', 1, 0));
+assert.equal(splitInfo.threat, '击杀分裂 · 破封 1');
+miniGame.state.stage = 0;
+miniGame.state.difficulty = 'normal';
+miniGame.state.towers = [];
+miniGame.state.enemies = [];
+const splashPrimary = miniGame.spawnEnemy('bashe', 1, 0);
+const splashNeighbor = miniGame.spawnEnemy('xingxing', 1, 0);
+splashNeighbor.x = splashPrimary.x + 1; splashNeighbor.y = splashPrimary.y + 1;
+const splashNeighborHp = splashNeighbor.hp;
+miniGame.damageEnemy(splashPrimary, 100, source, { ...breakerDef, counters: [], splash: true, splashRadius: 200 });
+assert.equal(Math.round(splashNeighborHp - splashNeighbor.hp), Math.round(70 * Math.max(.35, 1 - splashNeighbor.armor / 100)), 'splash should use the impact damage before the primary target armor calculation');
+miniGame.state.enemies = [];
+const splashMagicPrimary = miniGame.spawnEnemy('xingxing', 1, 0);
+const splashMagicImmune = miniGame.spawnEnemy('huali', 1, 0);
+splashMagicImmune.x = splashMagicPrimary.x + 1; splashMagicImmune.y = splashMagicPrimary.y + 1;
+const splashMagicImmuneHp = splashMagicImmune.hp;
+miniGame.damageEnemy(splashMagicPrimary, 100, source, { ...nonPurgeMagicDef, splash: true, splashRadius: 200 });
+assert.equal(splashMagicImmune.hp, splashMagicImmuneHp, 'splash must not bypass magic immunity');
 
 function setupCombatTarget(towerId, enemyType, difficulty = 'normal') {
   miniGame.state.stage = 0;
@@ -434,6 +637,32 @@ miniGame.state.difficulty = 'hard';
 const hardRevive = miniGame.spawnEnemy('baize', 1, 0);
 miniGame.damageEnemy(hardRevive, hardRevive.hp + 1, source, { dmgType: 'true', counters: [] });
 assert.equal(hardRevive.shield, 180);
+
+for (const [difficultyId, interval, rate] of [['easy', 9, .05], ['normal', 7, .08], ['hard', 5, .12]]) {
+  miniGame.state.stage = 0;
+  miniGame.state.difficulty = difficultyId;
+  miniGame.startGame();
+  const healer = miniGame.spawnEnemy('taotie', 1, 0);
+  assert.equal(healer.healInterval, interval);
+  assert.equal(healer.healRate, rate);
+  assert.equal(healer.healTimer, interval);
+  healer.hp = healer.maxHp * .5;
+  healer.healTimer = .001;
+  miniGame.update(.01);
+  assert(Math.abs(healer.hp - healer.maxHp * (.5 + rate)) < 1e-9, `${difficultyId} healing must match the desktop rule contract`);
+  assert.equal(healer.healTimer, interval);
+}
+
+miniGame.state.stage = 0;
+miniGame.state.difficulty = 'normal';
+miniGame.startGame();
+const splitter = miniGame.spawnEnemy('shanxiao', 1, 0, 123);
+miniGame.damageEnemy(splitter, splitter.hp + 1, { id: 'split-contract' }, { dmgType: 'true', counters: [] });
+const splitChildren = miniGame.state.enemies.filter((enemy) => enemy.type === 'xingxing' && !enemy.dead);
+assert.equal(splitChildren.length, 2);
+assert(splitChildren.every((enemy) => enemy.routeIndex === splitter.routeIndex && enemy.d === splitter.d));
+const expectedSplitHp = miniData.ENEMIES.xingxing.hp * miniData.LEVELS[0].hp * miniData.DIFFICULTIES.normal.hp * .55;
+assert(splitChildren.every((enemy) => Math.abs(enemy.maxHp - expectedSplitHp) < 1e-9));
 
 miniGame.state.difficulty = 'normal';
 const armoredEnemy = miniGame.spawnEnemy('bashe', 1, 0);

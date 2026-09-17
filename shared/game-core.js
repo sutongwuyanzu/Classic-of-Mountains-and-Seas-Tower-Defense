@@ -127,16 +127,20 @@
     };
   }
 
-  function evolutionChoices(towerIds, seed) {
+  function evolutionChoices(towerIds, seed, chosenByBeast = {}) {
     const ids = [...new Set(towerIds || [])];
     if (!ids.length) return [];
     const rng = createSeededRng(seed);
-    const pool = [];
-    ids.forEach((beastId) => EVOLUTION_PATHS.forEach((path) => pool.push({ ...path, beastId })));
+    const candidatesByPath = EVOLUTION_PATHS.map((path) => ({
+      path,
+      beastIds: ids.filter((beastId) => !(chosenByBeast[beastId] || []).includes(path.id)),
+    })).filter((entry) => entry.beastIds.length);
     const choices = [];
-    while (pool.length && choices.length < 3) {
-      const index = Math.floor(rng() * pool.length);
-      choices.push(pool.splice(index, 1)[0]);
+    while (candidatesByPath.length && choices.length < 3) {
+      const index = Math.floor(rng() * candidatesByPath.length);
+      const entry = candidatesByPath.splice(index, 1)[0];
+      const beastId = entry.beastIds[Math.floor(rng() * entry.beastIds.length)];
+      choices.push({ ...entry.path, beastId });
     }
     return choices;
   }

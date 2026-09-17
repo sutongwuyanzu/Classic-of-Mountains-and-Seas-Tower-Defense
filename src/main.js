@@ -21,17 +21,23 @@ vignetteTexture.width = canvas.width; vignetteTexture.height = canvas.height;
 const vignetteCtx = vignetteTexture.getContext('2d');
 const vignetteGradient = vignetteCtx.createRadialGradient(canvas.width * .5, canvas.height * .46, canvas.width * .18, canvas.width * .5, canvas.height * .48, canvas.width * .7);
 vignetteGradient.addColorStop(0, 'rgba(0,0,0,0)'); vignetteGradient.addColorStop(.72, 'rgba(15,12,10,.03)'); vignetteGradient.addColorStop(1, 'rgba(12,10,9,.30)'); vignetteCtx.fillStyle = vignetteGradient; vignetteCtx.fillRect(0, 0, canvas.width, canvas.height);
-const biomeAtlas = document.createElement('img');
-biomeAtlas.src = './assets/biome-atlas.png';
-const caveBattlefield = document.createElement('img');
-caveBattlefield.src = './assets/cave-battlefield.png';
-const stageBackgrounds = [
+const stageBackgroundSources = [
   './assets/background-cave.png',
   './assets/background-grass.png',
   './assets/background-sea.png',
   './assets/background-volcano.png',
   './assets/background-heaven.png',
-].map((src) => { const image = document.createElement('img'); image.src = src; return image; });
+];
+const stageBackgrounds = new Array(stageBackgroundSources.length);
+function stageBackgroundFor(stage) {
+  if (!stageBackgrounds[stage]) {
+    const image = document.createElement('img');
+    image.decoding = 'async';
+    image.src = stageBackgroundSources[stage];
+    stageBackgrounds[stage] = image;
+  }
+  return stageBackgrounds[stage];
+}
 const stageBackdrop = document.createElement('canvas');
 const stageBackdropCtx = stageBackdrop.getContext('2d');
 let stageBackdropKey = '';
@@ -47,42 +53,42 @@ beastAtlas.src = './assets/beast-atlas.png';
 const enemyAtlas = document.createElement('img');
 enemyAtlas.src = './assets/enemy-atlas.png';
 const combatSpriteSources = {
-  bifang: './assets/sprites/bifang-3d.png',
-  fuzhu: './assets/sprites/fuzhu-3d.png',
-  jiuwei: './assets/sprites/jiuwei-3d.png',
-  tiangou: './assets/sprites/tiangou-3d.png',
-  xuangui: './assets/sprites/xuangui-3d.png',
-  shengsheng: './assets/sprites/shengsheng-3d.png',
-  kaiming: './assets/sprites/kaiming-3d.png',
-  bo: './assets/sprites/bo-3d.png',
-  zheng: './assets/sprites/zheng-3d.png',
-  qiuniu: './assets/sprites/qiuniu-3d.png',
-  yazi: './assets/sprites/yazi-3d.png',
-  chaofeng: './assets/sprites/chaofeng-3d.png',
-  pulao: './assets/sprites/pulao-3d.png',
-  suanni: './assets/sprites/suanni-3d.png',
-  bixi: './assets/sprites/bixi-3d.png',
-  bian: './assets/sprites/bian-3d.png',
-  fuxi_long: './assets/sprites/fuxi_long-3d.png',
-  chiwen: './assets/sprites/chiwen-3d.png',
-  dayu: './assets/sprites/dayu-3d.png',
-  gonggong: './assets/sprites/gonggong-3d.png',
-  qinglong: './assets/sprites/qinglong-3d.png',
-  baihu: './assets/sprites/baihu-3d.png',
-  zhuque: './assets/sprites/zhuque-3d.png',
-  xuanwu: './assets/sprites/xuanwu-3d.png',
-  huangdi: './assets/sprites/huangdi-3d.png',
-  fuxi: './assets/sprites/fuxi-3d.png',
-  nuwa: './assets/sprites/nuwa-3d.png',
-  xingxing: './assets/sprites/xingxing-3d.png',
-  fei: './assets/sprites/fei-3d.png',
-  bashe: './assets/sprites/bashe-3d.png',
-  huali: './assets/sprites/huali-3d.png',
-  wangliang: './assets/sprites/wangliang-3d.png',
-  zhuyan: './assets/sprites/zhuyan-3d.png',
-  shanxiao: './assets/sprites/shanxiao-3d.png',
-  taotie: './assets/sprites/taotie-3d.png',
-  baize: './assets/sprites/baize-3d.png',
+  bifang: './assets/sprites/runtime/bifang.png',
+  fuzhu: './assets/sprites/runtime/fuzhu.png',
+  jiuwei: './assets/sprites/runtime/jiuwei.png',
+  tiangou: './assets/sprites/runtime/tiangou.png',
+  xuangui: './assets/sprites/runtime/xuangui.png',
+  shengsheng: './assets/sprites/runtime/shengsheng.png',
+  kaiming: './assets/sprites/runtime/kaiming.png',
+  bo: './assets/sprites/runtime/bo.png',
+  zheng: './assets/sprites/runtime/zheng.png',
+  qiuniu: './assets/sprites/runtime/qiuniu.png',
+  yazi: './assets/sprites/runtime/yazi.png',
+  chaofeng: './assets/sprites/runtime/chaofeng.png',
+  pulao: './assets/sprites/runtime/pulao.png',
+  suanni: './assets/sprites/runtime/suanni.png',
+  bixi: './assets/sprites/runtime/bixi.png',
+  bian: './assets/sprites/runtime/bian.png',
+  fuxi_long: './assets/sprites/runtime/fuxi_long.png',
+  chiwen: './assets/sprites/runtime/chiwen.png',
+  dayu: './assets/sprites/runtime/dayu.png',
+  gonggong: './assets/sprites/runtime/gonggong.png',
+  qinglong: './assets/sprites/runtime/qinglong.png',
+  baihu: './assets/sprites/runtime/baihu.png',
+  zhuque: './assets/sprites/runtime/zhuque.png',
+  xuanwu: './assets/sprites/runtime/xuanwu.png',
+  huangdi: './assets/sprites/runtime/huangdi.png',
+  fuxi: './assets/sprites/runtime/fuxi.png',
+  nuwa: './assets/sprites/runtime/nuwa.png',
+  xingxing: './assets/sprites/runtime/xingxing.png',
+  fei: './assets/sprites/runtime/fei.png',
+  bashe: './assets/sprites/runtime/bashe.png',
+  huali: './assets/sprites/runtime/huali.png',
+  wangliang: './assets/sprites/runtime/wangliang.png',
+  zhuyan: './assets/sprites/runtime/zhuyan.png',
+  shanxiao: './assets/sprites/runtime/shanxiao.png',
+  taotie: './assets/sprites/runtime/taotie.png',
+  baize: './assets/sprites/runtime/baize.png',
 };
 const combatSprites = Object.fromEntries(Object.keys(combatSpriteSources).map((id) => [id, null]));
 function combatSpriteFor(id) {
@@ -97,8 +103,8 @@ function combatSpriteFor(id) {
 }
 
 function drawStageBackdrop() {
-  const stageBackground = stageBackgrounds[state.stage];
-  const key = [state.stage, stageBackground?.complete ? stageBackground.naturalWidth : 0, caveBattlefield.complete ? caveBattlefield.naturalWidth : 0, biomeAtlas.complete ? biomeAtlas.naturalWidth : 0, canvas.width, canvas.height].join(':');
+  const stageBackground = stageBackgroundFor(state.stage);
+  const key = [state.stage, stageBackground?.complete ? stageBackground.naturalWidth : 0, canvas.width, canvas.height].join(':');
   if (key !== stageBackdropKey) {
     stageBackdropKey = key;
     stageBackdrop.width = canvas.width; stageBackdrop.height = canvas.height;
@@ -107,11 +113,6 @@ function drawStageBackdrop() {
     if (stageBackground?.complete && stageBackground.naturalWidth) {
       stageBackdropCtx.drawImage(stageBackground, 0, 0, stageBackground.naturalWidth, stageBackground.naturalHeight, 0, 0, canvas.width, canvas.height);
       stageBackdropCtx.fillStyle = state.stage === 3 ? 'rgba(36, 10, 8, .08)' : 'rgba(23, 36, 33, .08)'; stageBackdropCtx.fillRect(0, 0, canvas.width, canvas.height);
-    } else if (state.stage === 0 && caveBattlefield.complete && caveBattlefield.naturalWidth) {
-      stageBackdropCtx.drawImage(caveBattlefield, 0, 0, caveBattlefield.naturalWidth, caveBattlefield.naturalHeight, 0, 0, canvas.width, canvas.height);
-    } else if (biomeAtlas.complete && biomeAtlas.naturalWidth) {
-      const panelW = biomeAtlas.naturalWidth / 5;
-      stageBackdropCtx.drawImage(biomeAtlas, panelW * state.stage, 0, panelW, biomeAtlas.naturalHeight, 0, 0, canvas.width, canvas.height);
     }
   }
   ctx.drawImage(stageBackdrop, 0, 0);
@@ -144,6 +145,7 @@ const FORTUNE_COST = 30;
 const MAX_BACKPACK = 12;
 const MAX_UNIT_LEVEL = 9;
 const DUPLICATE_COMPENSATION = 12;
+const DISMISS_COMPENSATION = 6;
 const SUMMON_WEIGHTS = Core.SUMMON_RULES.normal.weights;
 const ADVANCED_SUMMON_WEIGHTS = Core.SUMMON_RULES.advanced.weights;
 const POPULATION_BY_RARITY = [1, 1, 2, 2, 3];
@@ -275,6 +277,12 @@ const LEVELS = [
   { name: '天庭云阶', intro: '上下云阶汇入同一封印，后段火力必须兼顾双线。', hpMul: 1.58, spdMul: 1.12, essence: 86, tint: '#8a82aa', accent: '#f0d39a', path: 'cloud', spawnCount: 2, seals: [[74, 270]], spawnPoints: [[884, 100], [884, 440]], boss: 'taotie' },
 ];
 
+const TRIAL_RULES = Object.freeze([
+  { id: 'low-rarity', name: '草木守印', short: '仅 N/R', copy: '普通召灵仅会出现 N、R 妖灵；高级召灵不可用。', rarityCap: 1 },
+  { id: 'perfect-seal', name: '十全封印', short: '无漏怪', copy: '任意敌军冲过封印，立刻判定试炼失败。', noLeak: true },
+  { id: 'dual-coverage', name: '双路均衡', short: '双路覆盖', copy: '从第 3 波起，上下两路都必须有妖灵射程覆盖。', requiresDualCoverage: true },
+]);
+
 const WAVES = [
   [['xingxing', 6, 1.15, 0, .82]],
   [['xingxing', 7, 1.05, 0, .86], ['fei', 2, 1.4, 2.5, .82]],
@@ -300,21 +308,22 @@ const WAVE_META = [
   [8, 10, '隐匿与免疫敌群同至'], [9, 10, '朱厌护住飞廉大军'], [0, 0, '终阵小怪来袭，清场后首领降临'],
 ].map(([rest, bonus, hint]) => ({ rest, bonus, hint }));
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'difficultySelect', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'endlessStart', 'trialStart', 'resumeGame', 'medalsOpen', 'medalCount', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'gameTerrain', 'gameDifficulty', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'nextWave', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'spiritSkill', 'spiritSkillLabel', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultRecap', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonSwap', 'summonSwapNote', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openBackpack', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'evolutionDialog', 'evolutionChoices', 'medalsDialog', 'medalsList', 'medalsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'difficultySelect', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'endlessStart', 'trialStart', 'resumeGame', 'medalsOpen', 'medalCount', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'audioSettings', 'audioDialog', 'audioClose', 'audioEnabled', 'musicVolume', 'musicVolumeValue', 'sfxVolume', 'sfxVolumeValue', 'gameTerrain', 'gameDifficulty', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'nextWave', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'spiritSkill', 'spiritSkillLabel', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultRecap', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonSwap', 'summonSwapNote', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openBackpack', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'evolutionDialog', 'evolutionChoices', 'medalsDialog', 'medalsList', 'medalsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 refs.recallSelected = document.querySelector('#recall-selected');
 refs.selectedUnitMeta = document.querySelector('#selected-unit-meta');
 refs.resultCombatScore = document.querySelector('#result-combat-score');
 refs.resultVictoryScore = document.querySelector('#result-victory-score');
 const state = {
-  screen: 'select', mode: 'standard', stage: 0, difficulty: 'normal', selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(BASE_UNLOCK_IDS), completions: new Set(), beastGrowth: {}, medals: new Set(), xp: 0, tier: 0, soundEnabled: true,
+  screen: 'select', mode: 'standard', stage: 0, difficulty: 'normal', selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(BASE_UNLOCK_IDS), completions: new Set(), beastGrowth: {}, medals: new Set(), xp: 0, tier: 0, soundEnabled: true, musicVolume: .28, sfxVolume: 1,
   paused: false, backgroundPaused: false, resumeAfterDialog: false, tutorialMode: false, draggingUnitId: null, draggingTowerIndex: -1, draggingTowerOffset: { x: 0, y: 0 }, selectedTowerUid: null, selectedEnemy: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScores: {}, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], visualEffects: [], defeated: [], logs: [], mouse: { x: 480, y: 270, inside: false },
   screenShake: 0, screenFlash: 0,
-  skillCooldowns: {}, skillBond: null, pendingTargetSkillUid: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], summonMode: 'normal', summonSwapCount: 0, summonAttempts: 0, requiredOffered: false, advancedBatch: [], advancedMode: 'normal', requiredBeastId: null, fortuneSpinning: false, fortuneTimers: [], runId: 0, finalScoreBreakdown: null, lastSign: null, resultGrowthXp: 0, bossEscaped: false, pendingResume: null, runFielded: new Set(), runBeastKills: {}, runEvolutions: {}, runStats: { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }, runSeed: 1, randomStates: { draw: 1, route: 1, enemy: 1 }, waveStartedAt: 0,
+  skillCooldowns: {}, skillBond: null, pendingTargetSkillUid: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], summonMode: 'normal', summonSwapCount: 0, summonAttempts: 0, requiredOffered: false, advancedBatch: [], advancedMode: 'normal', requiredBeastId: null, fortuneSpinning: false, fortuneTimers: [], runId: 0, finalScoreBreakdown: null, lastSign: null, resultGrowthXp: 0, bossEscaped: false, pendingResume: null, runFielded: new Set(), runBeastKills: {}, runEvolutions: {}, runStats: { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }, trialRuleId: null, trialFailedReason: '', runSeed: 1, randomStates: { draw: 1, route: 1, enemy: 1 }, waveStartedAt: 0,
 };
 let desktopSaveQueue = Promise.resolve(true);
+let activeCombatBondTotals = null;
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -357,15 +366,58 @@ function waveThreatText(groups) {
   return groups.map(([type, count, gap, delay, hpMul, role = 'normal']) => `${enemyThreatLabel(type, role)}×${Math.max(1, Math.round(count * currentDifficulty().count))}`).join('、');
 }
 
+function routeLabel(routeIndex, routeCount = pathInfo().length) {
+  if (routeCount < 2) return '主路';
+  return ['上路', '下路'][routeIndex] || `第${routeIndex + 1}路`;
+}
+
+function waveRouteThreatText(groups, routeOffset = null) {
+  const routeCount = pathInfo().length;
+  if (routeCount < 2) return waveThreatText(groups);
+  const offset = routeOffset == null ? Math.floor(peekGameRandom('route') * routeCount) : routeOffset;
+  const lanes = Array.from({ length: routeCount }, () => []);
+  groups.forEach(([type, count, gap, delay, hpMul, role = 'normal'], groupIndex) => {
+    const actualCount = Math.max(1, Math.round(count * currentDifficulty().count));
+    for (let spawnIndex = 0; spawnIndex < actualCount; spawnIndex += 1) {
+      const lane = lanes[(groupIndex + offset + spawnIndex) % routeCount];
+      const entry = lane.find((item) => item.type === type && item.role === role);
+      if (entry) entry.count += 1;
+      else lane.push({ type, role, count: 1 });
+    }
+  });
+  return lanes.map((lane, index) => `${routeLabel(index, routeCount)} ${lane.map((item) => `${enemyThreatLabel(item.type, item.role)}×${item.count}`).join('、')}`).join('；');
+}
+
+function enemySpecialTrait(enemy) {
+  if (enemy.def.skill === 'heal') return '周期治疗';
+  if (enemy.def.skill === 'revive') return enemy.revived ? '已复活' : '濒死复活';
+  if (enemy.def.skill === 'split') return '击杀分裂';
+  return '';
+}
+
 function selectedEnemyText(enemy) {
   const status = [
     enemy.shield > 0 ? `护盾 ${Math.ceil(enemy.shield)}` : '',
-    enemy.immuneMag ? '法免' : '',
-    enemy.immunePhy ? '物免' : '',
+    enemy.immuneMag ? '法免→物/净' : '',
+    enemy.immunePhy ? '物免→法/真' : '',
     enemy.stealthTimer > 0 ? `隐身 ${enemy.stealthTimer.toFixed(1)}s` : '',
     enemy.armor > 0 ? `护甲 ${Math.round(enemy.armor)}` : '',
+    enemySpecialTrait(enemy),
   ].filter(Boolean).join(' · ');
   return `${enemy.def.name} · HP ${Math.ceil(Math.max(0, enemy.hp))}/${Math.ceil(enemy.maxHp)}${status ? ` · ${status}` : ''} · 破封 ${enemy.sealDamage}`;
+}
+
+function selectedEnemyMeta(enemy) {
+  const status = [
+    enemy.shield > 0 ? `护盾 ${Math.ceil(enemy.shield)}` : '',
+    enemy.immuneMag ? '法免→物/净' : '',
+    enemy.immunePhy ? '物免→法/真' : '',
+    enemy.stealthTimer > 0 ? `隐身 ${enemy.stealthTimer.toFixed(1)}s` : '',
+    enemy.armor > 0 ? `护甲 ${Math.round(enemy.armor)}` : '',
+    enemy.armorBreak > 0 ? `破甲 -${Math.round(enemy.armorBreak)}` : '',
+    enemySpecialTrait(enemy),
+  ].filter(Boolean);
+  return `${status.length ? status.join(' · ') : '无特殊防御'} · 破封 ${enemy.sealDamage}`;
 }
 
 function towerContainsPoint(tower, point) {
@@ -489,8 +541,84 @@ function unlockHint(id) {
 }
 let audioContext = null;
 let audioMaster = null;
+let audioSfxBus = null;
+let audioMusicBus = null;
 let audioNoiseBuffer = null;
+let audioAmbient = null;
 const soundTimestamps = {};
+
+function updateAudioMix() {
+  if (!audioContext || !audioMaster || !audioSfxBus || !audioMusicBus) return;
+  const at = audioContext.currentTime;
+  audioMaster.gain.setTargetAtTime(state.soundEnabled ? .42 : .0001, at, .03);
+  audioSfxBus.gain.setTargetAtTime(state.sfxVolume, at, .03);
+  audioMusicBus.gain.setTargetAtTime(state.musicVolume * .16, at, .08);
+}
+
+function updateAmbientState() {
+  if (!audioContext || !audioAmbient) return;
+  const active = state.soundEnabled && state.screen === 'game' && !state.paused && !state.backgroundPaused;
+  audioAmbient.gain.gain.setTargetAtTime(active ? 1 : .0001, audioContext.currentTime, active ? .38 : .12);
+}
+
+function stopAmbient() {
+  if (!audioContext || !audioAmbient) return;
+  const { gain, nodes } = audioAmbient;
+  const at = audioContext.currentTime;
+  gain.gain.setTargetAtTime(.0001, at, .08);
+  nodes.forEach((node) => node.stop(at + .42));
+  audioAmbient = null;
+}
+
+function startAmbient() {
+  if (!state.soundEnabled || !ensureAudio()) return;
+  if (audioAmbient?.stage === state.stage) { updateAmbientState(); return; }
+  stopAmbient();
+  const root = [73.42, 82.41, 98, 65.41, 110][state.stage] || 73.42;
+  const gain = audioContext.createGain();
+  gain.gain.value = .0001;
+  gain.connect(audioMusicBus);
+  const nodes = [[root, 'sine', .25], [root * 1.5, 'triangle', .045]].map(([frequency, type, level]) => {
+    const oscillator = audioContext.createOscillator();
+    const voiceGain = audioContext.createGain();
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    voiceGain.gain.value = level;
+    oscillator.connect(voiceGain).connect(gain);
+    oscillator.start();
+    return oscillator;
+  });
+  audioAmbient = { stage: state.stage, gain, nodes };
+  updateAmbientState();
+}
+
+function renderAudioControls() {
+  const music = Math.round(state.musicVolume * 100);
+  const sfx = Math.round(state.sfxVolume * 100);
+  refs.soundToggle.textContent = state.soundEnabled ? '♪' : '×';
+  refs.soundToggle.title = state.soundEnabled ? '静音' : '恢复音频';
+  refs.soundToggle.setAttribute('aria-label', refs.soundToggle.title);
+  refs.soundToggle.setAttribute('aria-pressed', String(state.soundEnabled));
+  refs.audioEnabled.checked = state.soundEnabled;
+  refs.audioEnabled.nextElementSibling.textContent = state.soundEnabled ? '开启' : '静音';
+  refs.musicVolume.value = music;
+  refs.musicVolumeValue.textContent = `${music}%`;
+  refs.sfxVolume.value = sfx;
+  refs.sfxVolumeValue.textContent = `${sfx}%`;
+}
+
+function setSoundEnabled(enabled, audibleConfirmation = false) {
+  state.soundEnabled = enabled;
+  if (enabled) {
+    ensureAudio();
+    startAmbient();
+  }
+  updateAudioMix();
+  updateAmbientState();
+  renderAudioControls();
+  saveProgress();
+  if (enabled && audibleConfirmation) playSound('deploy');
+}
 
 function ensureAudio() {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -499,12 +627,17 @@ function ensureAudio() {
     audioContext = new AudioContext();
     const compressor = audioContext.createDynamicsCompressor();
     compressor.threshold.value = -20; compressor.knee.value = 16; compressor.ratio.value = 7; compressor.attack.value = .004; compressor.release.value = .22;
-    audioMaster = audioContext.createGain(); audioMaster.gain.value = .42;
+    audioMaster = audioContext.createGain();
+    audioSfxBus = audioContext.createGain();
+    audioMusicBus = audioContext.createGain();
+    audioSfxBus.connect(audioMaster);
+    audioMusicBus.connect(audioMaster);
     audioMaster.connect(compressor).connect(audioContext.destination);
     audioNoiseBuffer = audioContext.createBuffer(1, Math.ceil(audioContext.sampleRate * .5), audioContext.sampleRate);
     const noise = audioNoiseBuffer.getChannelData(0);
     for (let i = 0; i < noise.length; i += 1) noise[i] = Math.random() * 2 - 1;
   }
+  updateAudioMix();
   if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
   return true;
 }
@@ -515,7 +648,7 @@ function soundTone(at, from, to, duration, gainValue = .08, type = 'sine', pan =
   const panner = audioContext.createStereoPanner?.();
   oscillator.type = type; oscillator.frequency.setValueAtTime(Math.max(20, from), at); oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, to), at + duration);
   gain.gain.setValueAtTime(.0001, at); gain.gain.exponentialRampToValueAtTime(gainValue, at + Math.min(.018, duration * .25)); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
-  if (panner) { panner.pan.value = pan; oscillator.connect(gain).connect(panner).connect(audioMaster); } else oscillator.connect(gain).connect(audioMaster);
+  if (panner) { panner.pan.value = pan; oscillator.connect(gain).connect(panner).connect(audioSfxBus); } else oscillator.connect(gain).connect(audioSfxBus);
   oscillator.start(at); oscillator.stop(at + duration + .03);
 }
 
@@ -525,11 +658,11 @@ function soundNoise(at, duration, gainValue, frequency = 900) {
   const gain = audioContext.createGain();
   source.buffer = audioNoiseBuffer; filter.type = 'lowpass'; filter.frequency.setValueAtTime(frequency, at); filter.frequency.exponentialRampToValueAtTime(Math.max(80, frequency * .25), at + duration);
   gain.gain.setValueAtTime(gainValue, at); gain.gain.exponentialRampToValueAtTime(.0001, at + duration);
-  source.connect(filter).connect(gain).connect(audioMaster); source.start(at); source.stop(at + duration);
+  source.connect(filter).connect(gain).connect(audioSfxBus); source.start(at); source.stop(at + duration);
 }
 
 function playSound(kind) {
-  if (!state.soundEnabled || !ensureAudio()) return;
+  if (!state.soundEnabled || state.sfxVolume <= 0 || !ensureAudio()) return;
   const now = performance.now();
   const cooldown = { kill: 75, deploy: 50, wave: 400, warning: 800 }[kind] || 0;
   if (now - (soundTimestamps[kind] || 0) < cooldown) return;
@@ -559,7 +692,7 @@ function playSound(kind) {
 }
 
 function playAttackSound(projectileType, x) {
-  if (!state.soundEnabled || !ensureAudio()) return;
+  if (!state.soundEnabled || state.sfxVolume <= 0 || !ensureAudio()) return;
   const now = performance.now();
   if (now - (soundTimestamps.attack || 0) < 85) return;
   soundTimestamps.attack = now;
@@ -582,7 +715,7 @@ function portraitMarkup(beast, fullArt = false) {
   const portraitX = beast.portraitIndex % 6;
   const portraitY = Math.floor(beast.portraitIndex / 6);
   const useFullArt = fullArt && hasCombatSprite(beast.id);
-  const spriteStyle = useFullArt ? `--spirit-sprite:url('./assets/sprites/${beast.id}-3d.png')` : '';
+  const spriteStyle = useFullArt ? `--spirit-sprite:url('./assets/sprites/runtime/${beast.id}.png')` : '';
   return `<span class="portrait portrait-image ${useFullArt ? 'portrait-spirit' : ''}" style="--portrait-x:${portraitX};--portrait-y:${portraitY};${spriteStyle}"></span>`;
 }
 
@@ -665,6 +798,8 @@ function loadSave() {
     state.medals = new Set(Array.isArray(saved.medals) ? saved.medals : []);
     state.beastGrowth = saved.beastGrowth && typeof saved.beastGrowth === 'object' ? saved.beastGrowth : {};
     state.soundEnabled = saved.soundEnabled !== false;
+    state.musicVolume = clamp(typeof saved.musicVolume === 'number' ? saved.musicVolume : .28, 0, 1);
+    state.sfxVolume = clamp(typeof saved.sfxVolume === 'number' ? saved.sfxVolume : 1, 0, 1);
     state.pendingResume = validWaveSnapshot(saved.waveSnapshot) ? saved.waveSnapshot : null;
     const migratedUnlocks = saved.progressionVersion === PROGRESSION_VERSION && Array.isArray(saved.unlocked) ? saved.unlocked : BASE_UNLOCK_IDS;
     state.unlocked = new Set([...migratedUnlocks, ...BASE_UNLOCK_IDS]);
@@ -689,14 +824,14 @@ function createWaveSnapshot() {
   return {
     mode: state.mode, stage: state.stage, difficulty: state.difficulty, wave: state.wave, energy: state.energy, hp: state.hp, kills: state.kills, score: state.score, combo: state.combo, bestCombo: state.bestCombo,
     towers: state.towers, backpack: state.backpack, nextUnitId: state.nextUnitId, maxPopulation: state.maxPopulation, requiredBeastId: state.requiredBeastId, skillCooldowns: state.skillCooldowns,
-    runFielded: [...state.runFielded], runBeastKills: state.runBeastKills, runEvolutions: state.runEvolutions, runStats: state.runStats, runSeed: state.runSeed, randomStates: state.randomStates,
+    runFielded: [...state.runFielded], runBeastKills: state.runBeastKills, runEvolutions: state.runEvolutions, runStats: state.runStats, trialRuleId: state.trialRuleId, runSeed: state.runSeed, randomStates: state.randomStates,
   };
 }
 
 async function saveProgress() {
   let payload;
   try {
-    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, soundEnabled: state.soundEnabled, waveSnapshot: createWaveSnapshot() });
+    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, soundEnabled: state.soundEnabled, musicVolume: state.musicVolume, sfxVolume: state.sfxVolume, waveSnapshot: createWaveSnapshot() });
   } catch (error) {
     document.querySelector('#save-status').textContent = '存档暂未更新，请重试';
     return { local: false, desktop: false, message: error.message };
@@ -726,9 +861,11 @@ function showScreen(name) {
   refs.selectScreen.classList.toggle('is-hidden', name !== 'select');
   refs.gameScreen.classList.toggle('is-hidden', name !== 'game');
   refs.resultScreen.classList.toggle('is-hidden', name !== 'result');
+  if (name !== 'game') stopAmbient(); else updateAmbientState();
 }
 
 function renderSelect() {
+  stageBackgroundFor(state.stage);
   refs.stageList.innerHTML = LEVELS.map((level, index) => {
     const seals = DIFFICULTY_ORDER.map((difficulty) => `<i class="${state.completions.has(completionKey(index, difficulty)) ? 'is-cleared' : ''}" title="${DIFFICULTIES[difficulty].name}">${DIFFICULTIES[difficulty].name.slice(0, 1)}</i>`).join('');
     return `<button class="stage-card ${index === state.stage ? 'is-selected' : ''}" data-stage="${index}" type="button"><span class="stage-number">0${index + 1}</span><span><strong>${level.name}</strong><small>${level.intro}</small></span><span class="stage-clears">${seals}</span></button>`;
@@ -749,8 +886,10 @@ function renderSelect() {
   refs.endlessStart.hidden = false;
   refs.endlessStart.disabled = !endlessUnlocked();
   refs.endlessStart.title = endlessUnlocked() ? '进入持续增强的无尽封印' : '先完成任意标准关卡解锁';
+  const previewTrialRule = trialRuleForSeed();
   refs.trialStart.hidden = false;
-  refs.trialStart.title = `今日固定种子 ${trialSeed()}；相同选卡顺序下可复现战局`;
+  refs.trialStart.querySelector('strong').textContent = previewTrialRule.short;
+  refs.trialStart.title = `今日固定种子 ${trialSeed()}；试炼「${previewTrialRule.name}」：${previewTrialRule.copy}`;
   refs.resumeGame.hidden = !state.pendingResume;
   if (state.pendingResume) refs.resumeGame.textContent = `续守第 ${state.pendingResume.wave + 1} 波`;
 }
@@ -765,6 +904,25 @@ function trialSeed() {
   return (Math.imul(now.getFullYear() * 372 + (now.getMonth() + 1) * 31 + now.getDate(), 2654435761) ^ (state.stage + 1) * 2246822519 ^ (DIFFICULTY_ORDER.indexOf(state.difficulty) + 1) * 3266489917) >>> 0;
 }
 
+function trialRuleForSeed(seed = trialSeed(), level = currentLevel()) {
+  const candidates = level.spawnCount > 1 ? TRIAL_RULES : TRIAL_RULES.filter((rule) => !rule.requiresDualCoverage);
+  return candidates[(seed >>> 0) % candidates.length];
+}
+
+function currentTrialRule() {
+  if (!isTrial()) return null;
+  return TRIAL_RULES.find((rule) => rule.id === state.trialRuleId) || trialRuleForSeed(state.runSeed || trialSeed());
+}
+
+function trialRarityCap() {
+  return currentTrialRule()?.rarityCap ?? RARITIES.length - 1;
+}
+
+function summonWeights(mode) {
+  const rule = Core.SUMMON_RULES[mode];
+  return rule ? rule.weights.filter(([rarity]) => rarity <= trialRarityCap()) : [];
+}
+
 function resetRunRandom(seed) {
   state.runSeed = seed >>> 0 || 1;
   state.randomStates = {
@@ -774,9 +932,14 @@ function resetRunRandom(seed) {
   };
 }
 
+function nextRandomState(seed) { return (Math.imul(seed >>> 0 || 1, 1664525) + 1013904223) >>> 0; }
+
+function peekGameRandom(stream = 'draw') {
+  return nextRandomState(state.randomStates[stream]) / 0x100000000;
+}
+
 function gameRandom(stream = 'draw') {
-  const previous = state.randomStates[stream] >>> 0 || 1;
-  const next = (Math.imul(previous, 1664525) + 1013904223) >>> 0;
+  const next = nextRandomState(state.randomStates[stream]);
   state.randomStates[stream] = next;
   return next / 0x100000000;
 }
@@ -791,7 +954,7 @@ function randomFromWeights(weights) {
 }
 
 function randomBeastAtRarity(rarity, excludedIds = new Set()) {
-  const available = ROSTER.filter((beast) => state.unlocked.has(beast.id) && !excludedIds.has(beast.id));
+  const available = ROSTER.filter((beast) => state.unlocked.has(beast.id) && beast.rarity <= trialRarityCap() && !excludedIds.has(beast.id));
   let pool = available.filter((beast) => beast.rarity === rarity);
   if (!pool.length) {
     const availableRarities = [...new Set(available.map((beast) => beast.rarity))].sort((a, b) => Math.abs(a - rarity) - Math.abs(b - rarity));
@@ -823,7 +986,7 @@ function randomSummon(weights = SUMMON_WEIGHTS) {
 
 function randomSummonChoices(weights, count) {
   const choices = [];
-  const available = ROSTER.filter((beast) => state.unlocked.has(beast.id));
+  const available = ROSTER.filter((beast) => state.unlocked.has(beast.id) && beast.rarity <= trialRarityCap());
   const targetCount = Math.min(count, available.length);
   const usedIds = new Set();
   while (choices.length < targetCount) {
@@ -894,12 +1057,14 @@ function receiveSummonedUnit(unit) {
 function showGameDialog(dialog) {
   if (!state.paused) { state.paused = true; state.resumeAfterDialog = true; }
   dialog.showModal();
+  updateAmbientState();
   updateHUD();
 }
 
 function closeGameDialog(dialog) {
   dialog.close();
   if (state.resumeAfterDialog) { state.paused = false; state.resumeAfterDialog = false; }
+  updateAmbientState();
   updateHUD();
 }
 
@@ -925,6 +1090,7 @@ function openPauseMenu() {
   state.paused = true;
   state.backgroundPaused = false;
   refs.pauseDialog.showModal();
+  updateAmbientState();
   updateHUD();
 }
 
@@ -932,6 +1098,7 @@ function resumePauseMenu() {
   if (refs.pauseDialog.open) refs.pauseDialog.close();
   state.paused = false;
   state.backgroundPaused = false;
+  updateAmbientState();
   updateHUD();
 }
 
@@ -943,7 +1110,7 @@ function unitCard(unit, attributes = '') {
 function renderSummonOffers() {
   const advanced = state.summonMode === 'advanced';
   const rule = Core.SUMMON_RULES[state.summonMode];
-  const weights = rule.weights;
+  const weights = summonWeights(state.summonMode);
   refs.summonTitle.textContent = `${advanced ? '高级三选一' : '普通二选一'} · 选中即入卷`;
   refs.summonSubtitle.textContent = `固定概率 ${summonOddsText(weights)}；候选不重复。天命妖灵属于当前召灵池时，前三次内必定出现。`;
   refs.summonOffers.classList.toggle('is-triple', advanced);
@@ -963,7 +1130,7 @@ function renderSummonOffers() {
 function ensureRequiredOffer(choices) {
   const required = ROSTER.find((beast) => beast.id === state.requiredBeastId);
   if (!required || state.requiredOffered || allOwnedUnits().some((unit) => unit.id === required.id)) return choices;
-  if (!Core.SUMMON_RULES[state.summonMode].weights.some(([rarity]) => rarity === required.rarity)) return choices;
+  if (!summonWeights(state.summonMode).some(([rarity]) => rarity === required.rarity)) return choices;
   if (state.summonAttempts < 3) return choices;
   const guaranteed = [required, ...choices.filter((beast) => beast.id !== required.id)].slice(0, choices.length);
   state.requiredOffered = true;
@@ -973,11 +1140,13 @@ function ensureRequiredOffer(choices) {
 function swapSummonOffers() {
   if (!state.summonOffers.length || state.summonSwapCount >= 2) return;
   const rule = Core.SUMMON_RULES[state.summonMode];
+  const weights = summonWeights(state.summonMode);
+  if (!weights.length) { addLog(`${currentTrialRule()?.name || '当前规则'}中不可置换该召灵池。`); return; }
   const cost = rule.swaps[state.summonSwapCount];
   if (state.energy < cost) { addLog(`置换需要 ${cost} 灵蕴。`); return; }
   state.energy -= cost;
   state.summonSwapCount += 1;
-  state.summonOffers = ensureRequiredOffer(randomSummonChoices(rule.weights, rule.choices));
+  state.summonOffers = ensureRequiredOffer(randomSummonChoices(weights, rule.choices));
   if (state.summonOffers.some((beast) => beast.id === state.requiredBeastId)) state.requiredOffered = true;
   playSound('summon');
   renderSummonOffers();
@@ -988,6 +1157,8 @@ function summonSingle(mode) {
   if (state.screen !== 'game') return;
   if (state.paused) { addLog('暂停中，继续战斗后才能召灵。'); return; }
   if (!state.summonOffers.length) {
+    const weights = summonWeights(mode);
+    if (!weights.length) { addLog(`${currentTrialRule()?.name || '当前规则'}中禁用高级召灵。`); return; }
     const cost = mode === 'advanced' ? ADVANCED_SUMMON_COST : SUMMON_COST;
     if (state.energy < cost) { addLog(`灵蕴不足，需要 ${cost} 点进行${mode === 'advanced' ? '高级' : '普通'}召灵。`); return; }
     if (state.backpack.length >= MAX_BACKPACK) { addLog('背包已满，请先部署、合成或遣返妖灵。'); return; }
@@ -996,7 +1167,7 @@ function summonSingle(mode) {
     const rule = Core.SUMMON_RULES[mode];
     state.summonAttempts += 1;
     state.summonSwapCount = 0;
-    state.summonOffers = ensureRequiredOffer(randomSummonChoices(rule.weights, rule.choices));
+    state.summonOffers = ensureRequiredOffer(randomSummonChoices(weights, rule.choices));
     if (state.summonOffers.some((beast) => beast.id === state.requiredBeastId)) state.requiredOffered = true;
   }
   renderSummonOffers();
@@ -1026,7 +1197,7 @@ function claimSummonOffer(index) {
 function renderAdvancedResults() {
   const advanced = state.advancedMode === 'advanced';
   const rule = Core.SUMMON_RULES[state.advancedMode];
-  const weights = rule.weights;
+  const weights = summonWeights(state.advancedMode);
   refs.advancedTitle.textContent = `${advanced ? '高级' : '普通'}召灵 · 五连`;
   refs.advancedSubtitle.textContent = `固定概率 ${summonOddsText(weights)}；领取前可置换其中一张，整组最多两次。`;
   refs.advancedResults.innerHTML = state.advancedBatch.map((unit, index) => {
@@ -1041,11 +1212,13 @@ function renderAdvancedResults() {
 function swapAdvancedResult(index) {
   if (!state.advancedBatch[index] || state.summonSwapCount >= 2) return;
   const rule = Core.SUMMON_RULES[state.advancedMode];
+  const weights = summonWeights(state.advancedMode);
+  if (!weights.length) return;
   const cost = rule.swaps[state.summonSwapCount];
   if (state.energy < cost) return;
   state.energy -= cost;
   state.summonSwapCount += 1;
-  const beast = randomSummon(rule.weights);
+  const beast = randomSummon(weights);
   if (beast) state.advancedBatch[index] = createUnit(beast);
   renderAdvancedResults();
   updateHUD();
@@ -1054,12 +1227,13 @@ function swapAdvancedResult(index) {
 function summonFive(mode) {
   if (state.screen !== 'game' || state.paused) return;
   if (state.advancedBatch.length) { renderAdvancedResults(); showGameDialog(refs.advancedDialog); return; }
+  const weights = summonWeights(mode);
+  if (!weights.length) { addLog(`${currentTrialRule()?.name || '当前规则'}中禁用高级召灵。`); return; }
   const cost = mode === 'advanced' ? ADVANCED_FIVE_COST : SUMMON_FIVE_COST;
   if (state.energy < cost) { addLog(`灵蕴不足，需要 ${cost} 点进行${mode === 'advanced' ? '高级' : '普通'}五连。`); return; }
   if (state.backpack.length + 5 > MAX_BACKPACK) { addLog('背包至少需要留出 5 个位置，才能进行五连召灵。'); return; }
   state.energy -= cost;
   state.advancedMode = mode;
-  const weights = Core.SUMMON_RULES[mode].weights;
   state.summonSwapCount = 0;
   const required = ROSTER.find((beast) => beast.id === state.requiredBeastId);
   const requiredInPool = required && weights.some(([rarity]) => rarity === required.rarity);
@@ -1081,7 +1255,10 @@ function advancedSummonFive() { summonFive('advanced'); }
 
 function fusionOutcome(rarity) {
   const roll = gameRandom('draw');
-  if (roll < .15) return { rarity: Math.min(4, rarity + 1), label: '上跃' };
+  if (roll < .15) {
+    const nextRarity = Math.min(trialRarityCap(), 4, rarity + 1);
+    return { rarity: nextRarity, label: nextRarity > rarity ? '上跃' : '封阶' };
+  }
   if (roll < .50) return { rarity, label: '同级' };
   return { rarity: Math.max(0, rarity - 1), label: '降阶' };
 }
@@ -1124,14 +1301,15 @@ function initGame() {
   if (refs.fortuneDialog.open) refs.fortuneDialog.close();
   state.paused = false; state.backgroundPaused = false; state.speed = 1; state.wave = 0; state.waveTimer = 0; state.spawning = null; state.waveCooldown = 0; state.phase = 'prep'; state.prepTimer = 15; state.battleTime = 0;
   state.energy = Math.round(currentLevel().essence * currentDifficulty().startEssence); state.hp = state.maxHp; state.kills = 0; state.score = 0; state.combo = 0; state.bestCombo = 0;
-  const eligibleRequired = ROSTER.filter((beast) => state.unlocked.has(beast.id));
   const initialSeed = isTrial() ? trialSeed() : (Date.now() ^ (state.stage + 1) * 2654435761) >>> 0;
   resetRunRandom(initialSeed);
-  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.visualEffects = []; state.defeated = []; state.screenShake = 0; state.screenFlash = 0; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.pendingTargetSkillUid = null; state.selectedEnemy = null; state.tutorialStep = state.tutorialMode && state.stage === 0 && !isEndless() ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.summonMode = 'normal'; state.summonSwapCount = 0; state.summonAttempts = 0; state.requiredOffered = false; state.advancedBatch = []; state.advancedMode = 'normal'; state.requiredBeastId = eligibleRequired[Math.floor(gameRandom('draw') * eligibleRequired.length)].id; state.fortuneSpinning = false; state.finalScoreBreakdown = null; state.resultGrowthXp = 0; state.bossEscaped = false; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.draggingTowerOffset = { x: 0, y: 0 }; state.selectedTowerUid = null; state.runFielded = new Set(); state.runBeastKills = {}; state.runEvolutions = {}; state.runStats = { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }; state.runSeed = initialSeed; state.waveStartedAt = 0;
+  const trialRule = isTrial() ? trialRuleForSeed(initialSeed) : null;
+  const eligibleRequired = ROSTER.filter((beast) => state.unlocked.has(beast.id) && beast.rarity <= (trialRule?.rarityCap ?? RARITIES.length - 1));
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.visualEffects = []; state.defeated = []; state.screenShake = 0; state.screenFlash = 0; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.pendingTargetSkillUid = null; state.selectedEnemy = null; state.tutorialStep = state.tutorialMode && state.stage === 0 && !isEndless() ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.summonMode = 'normal'; state.summonSwapCount = 0; state.summonAttempts = 0; state.requiredOffered = false; state.advancedBatch = []; state.advancedMode = 'normal'; state.requiredBeastId = eligibleRequired[Math.floor(gameRandom('draw') * eligibleRequired.length)].id; state.fortuneSpinning = false; state.finalScoreBreakdown = null; state.resultGrowthXp = 0; state.bossEscaped = false; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.draggingTowerOffset = { x: 0, y: 0 }; state.selectedTowerUid = null; state.runFielded = new Set(); state.runBeastKills = {}; state.runEvolutions = {}; state.runStats = { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }; state.trialRuleId = trialRule?.id || null; state.trialFailedReason = ''; state.runSeed = initialSeed; state.waveStartedAt = 0;
   if (state.tutorialStep === 0) { state.phase = 'tutorial'; state.prepTimer = 0; }
   if (state.soundEnabled) ensureAudio();
   const mechanic = Core.STAGE_MECHANICS[state.stage];
-  showScreen('game'); refs.gameTerrain.textContent = currentLevel().name; refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? '试炼' : currentDifficulty().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.requiredBeastLabel.textContent = beastDef(state.requiredBeastId).name; refs.arenaHint.textContent = `本局必选「${beastDef(state.requiredBeastId).name}」；${mechanic.name}：${mechanic.copy}${isTrial() ? ` · 试炼种子 ${state.runSeed}` : ''}`; addLog(`${isEndless() ? '无尽封印' : isTrial() ? `固定种子试炼 ${state.runSeed}` : `${currentDifficulty().name}难度`} · ${mechanic.name}：${mechanic.copy}`); renderGameRoster(); renderGameBonds(); updateHUD();
+  showScreen('game'); startAmbient(); refs.gameTerrain.textContent = currentLevel().name; refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? `试炼·${trialRule.short}` : currentDifficulty().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.requiredBeastLabel.textContent = beastDef(state.requiredBeastId).name; refs.arenaHint.textContent = `本局必选「${beastDef(state.requiredBeastId).name}」；${mechanic.name}：${mechanic.copy}${isTrial() ? ` · 试炼「${trialRule.name}」：${trialRule.copy} · 种子 ${state.runSeed}` : ''}`; addLog(`${isEndless() ? '无尽封印' : isTrial() ? `固定种子试炼 ${state.runSeed} · ${trialRule.name}：${trialRule.copy}` : `${currentDifficulty().name}难度`} · ${mechanic.name}：${mechanic.copy}`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function discardPendingResume() { state.pendingResume = null; saveProgress(); }
@@ -1146,6 +1324,18 @@ function startEndlessGame() {
 }
 function startTrialGame() { discardPendingResume(); state.mode = 'trial'; state.tutorialMode = false; initGame(); }
 
+function enforceTrialRuleBeforeWave() {
+  const rule = currentTrialRule();
+  if (!rule?.requiresDualCoverage || state.wave < 2) return true;
+  const uncoveredRoutes = pathInfo().map((route, index) => ({ route, index })).filter(({ route }) => !state.towers.some((tower) => distanceToRoute(tower.x, tower.y, route) <= effectiveTowerRange(tower)));
+  if (!uncoveredRoutes.length) return true;
+  const routeNames = uncoveredRoutes.map(({ index }) => index === 0 ? '上路' : '下路').join('、');
+  state.trialFailedReason = `双路均衡：${routeNames}尚无覆盖火力`;
+  addLog(`试炼失败：${state.trialFailedReason}。`);
+  finishGame(false);
+  return false;
+}
+
 function resumeWaveGame() {
   const snapshot = state.pendingResume;
   if (!validWaveSnapshot(snapshot)) { state.pendingResume = null; renderSelect(); return; }
@@ -1155,20 +1345,23 @@ function resumeWaveGame() {
   state.towers = snapshot.towers; state.backpack = snapshot.backpack; state.nextUnitId = Number(snapshot.nextUnitId) || 1; state.maxPopulation = Number(snapshot.maxPopulation) || 18; state.requiredBeastId = ROSTER.some((beast) => beast.id === snapshot.requiredBeastId) ? snapshot.requiredBeastId : state.requiredBeastId;
   state.skillCooldowns = snapshot.skillCooldowns && typeof snapshot.skillCooldowns === 'object' ? snapshot.skillCooldowns : {}; state.runFielded = new Set(Array.isArray(snapshot.runFielded) ? snapshot.runFielded : []); state.runBeastKills = snapshot.runBeastKills && typeof snapshot.runBeastKills === 'object' ? snapshot.runBeastKills : {}; state.runEvolutions = snapshot.runEvolutions && typeof snapshot.runEvolutions === 'object' ? snapshot.runEvolutions : {};
   state.runStats = snapshot.runStats && typeof snapshot.runStats === 'object' && snapshot.runStats.damageByBeast && snapshot.runStats.shieldByBeast && snapshot.runStats.breachesByRoute && Array.isArray(snapshot.runStats.waves) ? snapshot.runStats : { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] };
-  state.runSeed = Number(snapshot.runSeed) || 1; state.randomStates = snapshot.randomStates && typeof snapshot.randomStates === 'object' ? snapshot.randomStates : { draw: 1, route: 1, enemy: 1 }; state.phase = 'rest'; state.waveCooldown = isBossWave(state.wave) ? 12 : 7; state.spawning = null; state.pendingResume = null;
-  refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? '试炼' : currentDifficulty().name;
-  refs.arenaHint.textContent = `已续守至第 ${state.wave + 1} 波，敌军将在 ${state.waveCooldown} 秒后出现。`;
+  state.runSeed = Number(snapshot.runSeed) || 1; state.randomStates = snapshot.randomStates && typeof snapshot.randomStates === 'object' ? snapshot.randomStates : { draw: 1, route: 1, enemy: 1 }; state.trialRuleId = isTrial() && TRIAL_RULES.some((rule) => rule.id === snapshot.trialRuleId) ? snapshot.trialRuleId : state.trialRuleId; state.trialFailedReason = ''; state.phase = 'rest'; state.waveCooldown = isBossWave(state.wave) ? 12 : 7; state.spawning = null; state.pendingResume = null;
+  const resumedTrialRule = currentTrialRule();
+  refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? `试炼·${resumedTrialRule.short}` : currentDifficulty().name;
+  refs.arenaHint.textContent = `已续守至第 ${state.wave + 1} 波，敌军将在 ${state.waveCooldown} 秒后出现 · ${waveRouteThreatText(waveTemplate(state.wave))}${resumedTrialRule ? ` · 试炼「${resumedTrialRule.name}」：${resumedTrialRule.copy}` : ''}`;
   addLog(`已从第 ${state.wave} 波结算后恢复，下一波即将来袭。`); renderGameRoster(); renderGameBonds(); updateHUD(); saveProgress();
 }
 
 function startWave() {
   if (!isEndless() && state.wave >= totalWaves()) return;
+  if (!enforceTrialRuleBeforeWave()) return;
   const groups = waveTemplate(state.wave);
   const meta = waveMeta(state.wave);
   const difficulty = currentDifficulty();
   const endless = isEndless() ? Core.endlessScale(state.wave) : { hp: 1, speed: 1, armor: 0 };
   const routeCount = pathInfo().length;
   const routeOffset = routeCount > 1 ? Math.floor(gameRandom('route') * routeCount) : 0;
+  const threatText = waveRouteThreatText(groups, routeOffset);
   state.spawning = groups.map(([type, count, gap, delay, hpMul, role = 'normal'], index) => ({ type, count: Math.max(1, Math.round(count * difficulty.count)), gap: gap * difficulty.gap / endless.speed, delay, hpMul: hpMul * endless.hp, role, spawned: 0, timer: delay, route: (index + routeOffset) % routeCount }));
   state.spawning.bossAfterClear = (!isEndless() && state.wave === WAVES.length - 1) || (isEndless() && (state.wave + 1) % WAVES.length === 0) ? currentLevel().boss : null;
   state.spawning.bossSpawned = false;
@@ -1176,7 +1369,7 @@ function startWave() {
   state.phase = 'combat'; state.waveStarted = true; state.waveTimer = 0; state.waveStartedAt = state.battleTime;
   playSound('wave');
   refs.waveLabel.textContent = `${state.wave + 1} / ${totalWaves()}`;
-  refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint} · ${waveThreatText(groups)}`;
+  refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint} · ${threatText}`;
   addLog(`第 ${state.wave + 1} 波：${meta.hint}`);
 }
 
@@ -1232,11 +1425,12 @@ function spawnFromGroups(dt) {
     state.spawning = null; state.wave += 1;
     if (!isEndless() && state.wave >= WAVES.length) { finishGame(true); return; }
     const bossWarning = bossWarningFor(state.wave);
+    const nextThreatText = waveRouteThreatText(waveTemplate(state.wave));
     state.phase = 'rest'; state.waveCooldown = isBossWave(state.wave) ? 12 : 7;
     saveProgress();
-    refs.arenaHint.textContent = bossWarning || `第 ${state.wave + 1} 波将在 7 秒后开始 · ${waveThreatText(waveTemplate(state.wave))}`;
+    refs.arenaHint.textContent = bossWarning || `第 ${state.wave + 1} 波将在 7 秒后开始 · ${nextThreatText}`;
     if (bossWarning) playSound('warning');
-    addLog(`${bossWarning || '下一波将在 7 秒后开始'}${completedMeta.bonus ? `，奖励 ${completedMeta.bonus} 灵蕴` : ''}。`);
+    addLog(`${bossWarning || `下一波将在 7 秒后开始 · ${nextThreatText}`}${completedMeta.bonus ? `，奖励 ${completedMeta.bonus} 灵蕴` : ''}。`);
     if ((completedWave + 1) % 5 === 0 && state.towers.length) openEvolutionChoice(completedWave);
   }
 }
@@ -1270,8 +1464,6 @@ function spawnEnemy(type, hpMul, routeIndex = 0, distanceAlong = 0, role = 'norm
   state.screenShake = Math.max(state.screenShake, role === 'stageBoss' ? 8 : role === 'miniBoss' ? 4 : 0);
   return enemy;
 }
-
-function incomingDamage(enemy) { return state.projectiles.reduce((sum, projectile) => projectile.target === enemy ? sum + projectile.amount : sum, 0); }
 
 function bondsForTowers(towers = state.towers) {
   const totals = { power: 0, haste: 0, range: 0, cdr: 0, sunder: 0, enemySlow: 0 };
@@ -1318,9 +1510,17 @@ function canDamageEnemy(enemy, def) {
 
 function canControlEnemy(enemy, def) { return canSeeEnemy(enemy, def); }
 
-function updateTowers(dt) {
-  const bondState = bondsForTowers();
+function updateTowers(dt, bondState = bondsForTowers()) {
   const allyBlessing = activeSignEffect('allyBuff');
+  const pendingDamage = new Map();
+  state.projectiles.forEach((projectile) => {
+    if (!projectile.target || projectile.target.hp <= 0) return;
+    pendingDamage.set(projectile.target, (pendingDamage.get(projectile.target) || 0) + projectile.amount);
+  });
+  const queueProjectile = (projectile) => {
+    state.projectiles.push(projectile);
+    pendingDamage.set(projectile.target, (pendingDamage.get(projectile.target) || 0) + projectile.amount);
+  };
   state.towers.forEach((tower) => {
     const def = beastDef(tower.id);
     tower.recoil = Math.max(0, (tower.recoil || 0) - dt * 6.5);
@@ -1337,8 +1537,18 @@ function updateTowers(dt) {
     tower.cd -= dt * growth.haste * (1 + runPassive.haste) * (1 + bondState.totals.haste + support.haste + (allyBlessing ? .2 : 0));
     if (tower.cd > 0) return;
     const range = effectiveTowerRange(tower, bondState.totals, support, evolution);
-    let target = state.enemies.filter((enemy) => canDamageEnemy(enemy, def) && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range && enemy.hp - incomingDamage(enemy) > 0).sort((a, b) => b.d - a.d)[0];
-    if (!target) target = state.enemies.filter((enemy) => canDamageEnemy(enemy, def) && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range).sort((a, b) => b.d - a.d)[0];
+    const rangeSquared = range * range;
+    let target = null;
+    let fallbackTarget = null;
+    state.enemies.forEach((enemy) => {
+      if (!canDamageEnemy(enemy, def)) return;
+      const dx = enemy.x - tower.x;
+      const dy = enemy.y - tower.y;
+      if (dx * dx + dy * dy > rangeSquared) return;
+      if (!fallbackTarget || enemy.d > fallbackTarget.d) fallbackTarget = enemy;
+      if (enemy.hp - (pendingDamage.get(enemy) || 0) > 0 && (!target || enemy.d > target.d)) target = enemy;
+    });
+    target ||= fallbackTarget;
     if (!target) return;
     if (tower.hitTarget === target) tower.hitCount += 1; else { tower.hitTarget = target; tower.hitCount = 1; }
     const special = def.stunEvery && tower.hitCount % def.stunEvery === 0 ? -1 : def.breakAt && tower.hitCount % def.breakAt === 0 ? -2 : 0;
@@ -1348,16 +1558,16 @@ function updateTowers(dt) {
     tower.recoil = 1;
     tower.attackFlash = 1;
     addVisualEffect('muzzle', tower.x + Math.cos(tower.attackAngle) * 16, tower.y - 28 + Math.sin(tower.attackAngle) * 10, def.color, { angle: tower.attackAngle, size: 34 + def.rarity * 3, ttl: .18, proj: def.proj, depthY: tower.y });
-    state.projectiles.push({ x: tower.x, y: tower.y - 34, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, seed, age: 0, trail: [] });
+    queueProjectile({ x: tower.x, y: tower.y - 34, target, amount: power, speed: def.projSpeed, def, source: tower, life: special, seed, age: 0, trail: [] });
     if (runPassive.targets > 0) {
       state.enemies.filter((enemy) => enemy !== target && canDamageEnemy(enemy, def) && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range).sort((a, b) => b.d - a.d).slice(0, runPassive.targets).forEach((enemy, index) => {
-        state.projectiles.push({ x: tower.x, y: tower.y - 34, target: enemy, amount: power * .65, speed: def.projSpeed, def, source: tower, life: 0, seed: seed + 20 + index, age: 0, trail: [] });
+        queueProjectile({ x: tower.x, y: tower.y - 34, target: enemy, amount: power * .65, speed: def.projSpeed, def, source: tower, life: 0, seed: seed + 20 + index, age: 0, trail: [] });
       });
     }
     if (tower.skillShots > 0) {
       const skill = activeSkillFor(tower.id);
       const extraTargets = state.enemies.filter((enemy) => enemy !== target && canDamageEnemy(enemy, def) && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= range).sort((a, b) => b.d - a.d).slice(0, Math.max(1, (skill.count || 2) - 1));
-      extraTargets.forEach((enemy, index) => state.projectiles.push({ x: tower.x, y: tower.y - 34, target: enemy, amount: power * (skill.mult || .7), speed: def.projSpeed, def, source: tower, life: 0, seed: seed + index + 1, age: 0, trail: [] }));
+      extraTargets.forEach((enemy, index) => queueProjectile({ x: tower.x, y: tower.y - 34, target: enemy, amount: power * (skill.mult || .7), speed: def.projSpeed, def, source: tower, life: 0, seed: seed + index + 1, age: 0, trail: [] }));
       tower.skillShots -= 1;
     }
     playAttackSound(def.proj, tower.x);
@@ -1394,7 +1604,7 @@ function targetDamage(enemy, amount, def, special, source) {
   return final;
 }
 
-function bondTotals() { return bondsForTowers().totals; }
+function bondTotals() { return activeCombatBondTotals || bondsForTowers().totals; }
 
 function recordRunCombat(source, field, amount) {
   const id = source?.combatStatsId || source?.id;
@@ -1493,10 +1703,10 @@ function updateEnemies(dt) {
     enemy.walkPhase += dt * enemy.speed * .12;
     enemy.x = next.x; enemy.y = next.y;
     enemy.d += enemy.speed * (1 - enemy.slow) * (1 - totals.enemySlow) * dt;
-    if (enemy.d >= enemy.routeLength) { const actualSealLoss = Math.min(Math.max(0, state.hp), enemy.sealDamage); enemy.hp = 0; state.hp -= enemy.sealDamage; state.runStats.breachesByRoute[enemy.route] = (state.runStats.breachesByRoute[enemy.route] || 0) + 1; state.runStats.sealLost += actualSealLoss; state.bossEscaped ||= enemy.role === 'stageBoss'; state.combo = 0; state.screenShake = Math.max(state.screenShake, 7); state.screenFlash = Math.max(state.screenFlash, .36); addVisualEffect('breach', enemy.x, enemy.y, '#d64031', { size: enemy.role === 'stageBoss' ? 120 : 76, ttl: .7 }); playSound('breach'); addLog(`${enemy.def.name}冲过封印，造成 ${enemy.sealDamage} 点破封伤害。${enemy.role === 'stageBoss' ? '终局首领破封，守关失败。' : ''}`); }
+    if (enemy.d >= enemy.routeLength) { const actualSealLoss = Math.min(Math.max(0, state.hp), enemy.sealDamage); enemy.hp = 0; state.hp -= enemy.sealDamage; state.runStats.breachesByRoute[enemy.route] = (state.runStats.breachesByRoute[enemy.route] || 0) + 1; state.runStats.sealLost += actualSealLoss; state.bossEscaped ||= enemy.role === 'stageBoss'; if (currentTrialRule()?.noLeak) state.trialFailedReason = '十全封印：敌军漏过封印'; state.combo = 0; state.screenShake = Math.max(state.screenShake, 7); state.screenFlash = Math.max(state.screenFlash, .36); addVisualEffect('breach', enemy.x, enemy.y, '#d64031', { size: enemy.role === 'stageBoss' ? 120 : 76, ttl: .7 }); playSound('breach'); addLog(`${enemy.def.name}冲过封印，造成 ${enemy.sealDamage} 点破封伤害。${enemy.role === 'stageBoss' ? '终局首领破封，守关失败。' : ''}`); }
   }
   state.enemies = state.enemies.filter((enemy) => enemy.hp > 0);
-  if (state.hp <= 0 || state.bossEscaped) finishGame(false);
+  if (state.hp <= 0 || state.bossEscaped || state.trialFailedReason) finishGame(false);
 }
 
 function killEnemy(enemy) {
@@ -1584,6 +1794,7 @@ function finishGame(won, abandoned = false) {
   state.resumeAfterDialog = false;
   state.paused = false;
   state.backgroundPaused = false;
+  stopAmbient();
   state.screen = 'finishing'; state.finishTimer = 0;
   if (won) playSound('victory');
   const unlockedBefore = new Set(state.unlocked);
@@ -1624,7 +1835,8 @@ function finishGame(won, abandoned = false) {
   state.tier = cultivationTierFor(state.xp);
   const savePromise = saveProgress();
   refs.resultTitle.textContent = isEndless() ? `无尽封印止于第 ${state.wave + 1} 波` : won ? '封印守住了' : abandoned ? '守阵主动撤离' : '封印被突破';
-  refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1} · ${isEndless() ? '无尽模式' : isTrial() ? `固定种子 ${state.runSeed}` : currentDifficulty().name}`;
+  const trialRule = currentTrialRule();
+  refs.resultStage.textContent = `${currentLevel().name} · 0${state.stage + 1} · ${isEndless() ? '无尽模式' : isTrial() ? `固定种子 ${state.runSeed} · ${trialRule.name}` : currentDifficulty().name}`;
   refs.resultScoreStamp.textContent = breakdown.grade;
   refs.resultScoreTotal.textContent = breakdown.total.toLocaleString('zh-CN');
   refs.resultCombatScore.textContent = `+${breakdown.combat.toLocaleString('zh-CN')}`;
@@ -1639,8 +1851,9 @@ function finishGame(won, abandoned = false) {
   const growthCopy = growthSummaries.length ? ` ${growthSummaries.join('，')}。` : '';
   const medalCopy = newMedals.length ? ` 新勋章：${newMedals.map((id) => Core.MEDALS.find((medal) => medal.id === id)?.name).filter(Boolean).join('、')}。` : '';
   const capReasons = [gradeResult.integrityCap !== 'S' ? `封印完整度 ${Math.round(integrity * 100)}%，评级上限 ${gradeResult.integrityCap}` : '', !requiredFielded ? '未上阵必选妖灵，评级上限 A' : '', activeBonds === 0 ? '未触发羁绊，评级上限 A' : ''].filter(Boolean);
-  const outcomeReason = abandoned ? '主动撤守' : state.bossEscaped ? '终局首领已破封' : !won && remainingHp <= 0 ? '封印完整度归零' : '';
-  const resultCopy = `${isEndless() ? `无尽模式抵达第 ${state.wave + 1} 波` : won ? '守关成功' : '守关失败'}${outcomeReason ? `（${outcomeReason}）` : ''}，${currentDifficulty().name}难度倍率 ×${currentDifficulty().score.toFixed(2)}，总分评级 ${gradeResult.scoreGrade}${capReasons.length ? `；${capReasons.join('；')}` : ''}。${unlockCopy}${growthCopy}${medalCopy}`;
+  const outcomeReason = abandoned ? '主动撤守' : state.trialFailedReason || (state.bossEscaped ? '终局首领已破封' : !won && remainingHp <= 0 ? '封印完整度归零' : '');
+  const trialCopy = trialRule ? ` 试炼「${trialRule.name}」${won ? '达成' : '未达成'}。` : '';
+  const resultCopy = `${isEndless() ? `无尽模式抵达第 ${state.wave + 1} 波` : won ? '守关成功' : '守关失败'}${outcomeReason ? `（${outcomeReason}）` : ''}，${currentDifficulty().name}难度倍率 ×${currentDifficulty().score.toFixed(2)}，总分评级 ${gradeResult.scoreGrade}${capReasons.length ? `；${capReasons.join('；')}` : ''}。${trialCopy}${unlockCopy}${growthCopy}${medalCopy}`;
   refs.resultCopy.textContent = `${resultCopy} 存档更新中……`;
   showScreen('result');
   savePromise.then((saveResult) => {
@@ -1699,6 +1912,7 @@ function beginTutorialBattle() {
 function placeTower(x, y) {
   const unit = selectedUnit();
   if (!unit) { addLog('请先召灵，再从背包选择一只妖灵。'); return; }
+  if (beastDef(unit.id).rarity > trialRarityCap()) { addLog(`${currentTrialRule()?.name || '当前规则'}中只能部署 ${RARITIES[trialRarityCap()]} 及以下妖灵。`); return; }
   if (state.towers.some((tower) => tower.id === unit.id)) { addLog(`${beastDef(unit.id).name}本局已经上场，每种妖灵只能部署一只。`); return; }
   const population = populationCostFor(unit);
   if (usedPopulation() + population > state.maxPopulation) { addLog(`${beastDef(unit.id).name}需要 ${population} 人口，当前人口不足。`); return; }
@@ -1859,11 +2073,26 @@ function recallAll() {
 
 function renderBackpack() {
   if (!refs.backpackList) return;
-  refs.backpackList.innerHTML = state.backpack.length ? orderedBackpackUnits().map((unit) => unitCard(unit, `${state.selectedUnitId === unit.uid ? 'is-selected' : ''} ${state.fusionSelection.includes(unit.uid) ? 'is-fusing' : ''}`)).join('') : '<p class="dialog-empty">背包为空。普通、高级召灵均可单抽或八折五连。</p>';
+  refs.backpackList.innerHTML = state.backpack.length ? orderedBackpackUnits().map((unit) => `<div class="backpack-entry">${unitCard(unit, `${state.selectedUnitId === unit.uid ? 'is-selected' : ''} ${state.fusionSelection.includes(unit.uid) ? 'is-fusing' : ''}`)}<button type="button" class="dismiss-unit" data-dismiss-unit="${unit.uid}" title="遣返并返还 ${DISMISS_COMPENSATION} 灵蕴">遣返 +${DISMISS_COMPENSATION}</button></div>`).join('') : '<p class="dialog-empty">背包为空。普通、高级召灵均可单抽或八折五连。</p>';
   refs.backpackList.querySelectorAll('[data-unit-id]').forEach((button) => button.addEventListener('click', () => {
     const uid = button.dataset.unitId;
     if (refs.fusionDialog.open) toggleFusionUnit(uid); else { selectUnit(uid); closeGameDialog(refs.backpackDialog); }
   }));
+  refs.backpackList.querySelectorAll('[data-dismiss-unit]').forEach((button) => button.addEventListener('click', () => dismissBackpackUnit(button.dataset.dismissUnit)));
+}
+
+function dismissBackpackUnit(uid) {
+  const unit = state.backpack.find((item) => item.uid === uid);
+  if (!unit) return;
+  const beast = beastDef(unit.id);
+  if (!window.confirm(`确定遣返 ${beast.name} 吗？将返还 ${DISMISS_COMPENSATION} 灵蕴。`)) return;
+  state.backpack = state.backpack.filter((item) => item.uid !== uid);
+  if (state.selectedUnitId === uid) state.selectedUnitId = null;
+  state.energy += DISMISS_COMPENSATION;
+  addLog(`${beast.name}已遣返，返还 ${DISMISS_COMPENSATION} 灵蕴。`);
+  renderGameRoster();
+  renderBackpack();
+  updateHUD();
 }
 
 function openFusion() {
@@ -1965,7 +2194,7 @@ function drawFortune() {
 }
 
 function openEvolutionChoice(completedWave) {
-  const choices = Core.evolutionChoices(state.towers.map((tower) => tower.id), state.runSeed + completedWave * 97);
+  const choices = Core.evolutionChoices(state.towers.map((tower) => tower.id), state.runSeed + completedWave * 97, state.runEvolutions);
   if (!choices.length) return;
   refs.evolutionChoices.innerHTML = choices.map((choice, index) => {
     const beast = beastDef(choice.beastId);
@@ -2114,19 +2343,19 @@ function updateHUD(immediate = true) {
   refs.nextWave.hidden = state.phase !== 'rest' || state.waveCooldown <= 0;
   refs.nextWave.disabled = state.paused || state.phase !== 'rest' || state.waveCooldown <= 0;
   if (state.selectedEnemy?.hp <= 0 || !state.enemies.includes(state.selectedEnemy)) state.selectedEnemy = null;
-  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.title = ''; refs.selectedUnitMeta.textContent = ''; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} 局内Lv.${selected.level} · 人口 ${populationCostFor(selected)}` : state.selectedTowerUid ? `${beastDef(state.towers.find((tower) => tower.uid === state.selectedTowerUid)?.id || 'bifang').name} · 按住立绘可移动` : state.selectedEnemy ? selectedEnemyText(state.selectedEnemy) : '点击召灵，随机请出已解锁妖灵';
+  const selectedTower = state.towers.find((tower) => tower.uid === state.selectedTowerUid);
+  const selectedEnemy = state.selectedEnemy;
+  refs.backpackLabel.textContent = `${state.backpack.length}/${MAX_BACKPACK}`; refs.selectedUnitLabel.title = ''; refs.selectedUnitMeta.textContent = ''; refs.selectedUnitLabel.textContent = selected ? `${beastDef(selected.id).name} · ${RARITIES[beastDef(selected.id).rarity]} 局内Lv.${selected.level} · 人口 ${populationCostFor(selected)}` : selectedTower ? `${beastDef(selectedTower.id).name} · 按住立绘可移动` : selectedEnemy ? `${selectedEnemy.def.name} · HP ${Math.ceil(Math.max(0, selectedEnemy.hp))}/${Math.ceil(selectedEnemy.maxHp)}` : '点击召灵，随机请出已解锁妖灵';
   if (selected) refs.selectedUnitMeta.textContent = `${beastDef(selected.id).dmgType === 'mag' ? '法术' : beastDef(selected.id).dmgType === 'true' ? '真实' : '物理'} · ${counterEffectText(beastDef(selected.id))}`;
   refs.recallSelected.hidden = !state.selectedTowerUid;
   refs.recallSelected.disabled = state.backpack.length >= MAX_BACKPACK;
-  if (state.selectedEnemy) refs.selectedUnitLabel.title = selectedEnemyText(state.selectedEnemy);
-  const selectedTower = state.towers.find((tower) => tower.uid === state.selectedTowerUid);
+  if (selectedEnemy) { refs.selectedUnitLabel.title = selectedEnemyText(selectedEnemy); refs.selectedUnitMeta.textContent = selectedEnemyMeta(selectedEnemy); }
   const selectedSkill = selectedTower ? activeSkillFor(selectedTower.id) : null;
   const effectiveSkill = selectedTower && selectedSkill ? effectiveSkillStats(selectedTower, selectedSkill) : null;
   if (selectedTower && selectedSkill) {
-    const towerDef = beastDef(selectedTower.id); const towerGrowth = growthFor(selectedTower.id); const damageType = towerDef.dmgType === 'mag' ? '法' : towerDef.dmgType === 'true' ? '真' : '物'; const attack = Math.round(towerDef.dmg * RARITY_POWER[towerDef.rarity] * towerGrowth.attack); const attacksPerSecond = towerGrowth.haste * (towerDef.rate || 1) / towerDef.interval; const detail = `${towerDef.name} · ${damageType}${attack}伤 · ${attacksPerSecond.toFixed(2)}/s · 射程${Math.round(effectiveTowerRange(selectedTower))} · 法力 ${Math.floor(selectedTower.mana)}/${selectedTower.maxMana}`;
-    refs.selectedUnitLabel.textContent = detail; refs.selectedUnitMeta.textContent = `主动「${selectedSkill.name}」· ${counterEffectText(towerDef)}`; refs.selectedUnitLabel.title = `${detail} · ${towerDef.kindText || ''}`;
+    const towerDef = beastDef(selectedTower.id); const towerGrowth = growthFor(selectedTower.id); const damageType = towerDef.dmgType === 'mag' ? '法' : towerDef.dmgType === 'true' ? '真' : '物'; const attack = Math.round(towerDef.dmg * RARITY_POWER[towerDef.rarity] * towerGrowth.attack); const attacksPerSecond = towerGrowth.haste * (towerDef.rate || 1) / towerDef.interval; const detail = `${towerDef.name} · ${damageType}${attack}伤 · ${attacksPerSecond.toFixed(2)}/s`;
+    refs.selectedUnitLabel.textContent = detail; refs.selectedUnitMeta.textContent = `射程 ${Math.round(effectiveTowerRange(selectedTower))} · ${counterEffectText(towerDef)} · 主动「${selectedSkill.name}」`; refs.selectedUnitLabel.title = `${detail} · 射程 ${Math.round(effectiveTowerRange(selectedTower))} · 法力 ${Math.floor(selectedTower.mana)}/${selectedTower.maxMana} · ${towerDef.kindText || ''}`;
   }
-  if (state.selectedEnemy) refs.selectedUnitMeta.textContent = '点选敌军可查看护盾、免疫、护甲与破封伤害';
   refs.spiritSkill.disabled = state.paused || !selectedTower || !selectedSkill || selectedTower.skillCd > 0 || selectedTower.mana < effectiveSkill.mana;
   refs.spiritSkillLabel.textContent = state.pendingTargetSkillUid ? '点击目标' : !selectedSkill ? '选择妖灵' : selectedTower.skillCd > 0 ? `${selectedTower.skillCd.toFixed(1)}s` : selectedTower.mana < effectiveSkill.mana ? `法力 ${Math.floor(selectedTower.mana)}` : selectedSkill.name;
   refs.spiritSkill.title = selectedSkill ? `${selectedSkill.name} · ${skillEffectText(selectedSkill)} · 消耗 ${effectiveSkill.mana} 法力 · CD ${effectiveSkill.cooldown.toFixed(1)} 秒` : '选择场上妖灵后发动主动技能';
@@ -2136,10 +2365,11 @@ function updateHUD(immediate = true) {
   const pendingAdvancedSingle = hasSingle && state.summonMode === 'advanced';
   const pendingNormalFive = hasFive && state.advancedMode === 'normal';
   const pendingAdvancedFive = hasFive && state.advancedMode === 'advanced';
+  const advancedAvailable = summonWeights('advanced').length > 0;
   refs.summonBeast.disabled = state.paused || hasFive || (hasSingle && !pendingNormalSingle) || (!hasSingle && (state.energy < SUMMON_COST || state.backpack.length >= MAX_BACKPACK)); refs.summonBeast.querySelector('span').textContent = pendingNormalSingle ? '查看普通结果' : `普通单抽 ${SUMMON_COST}`;
   refs.summonBeastFive.disabled = state.paused || state.tutorialStep === 0 || hasSingle || (hasFive && !pendingNormalFive) || (!hasFive && (state.energy < SUMMON_FIVE_COST || state.backpack.length + 5 > MAX_BACKPACK)); refs.summonBeastFive.querySelector('span').textContent = pendingNormalFive ? '领取普通五连' : `普通五连 ${SUMMON_FIVE_COST}`;
-  refs.advancedSummon.disabled = state.paused || state.tutorialStep === 0 || hasFive || (hasSingle && !pendingAdvancedSingle) || (!hasSingle && (state.energy < ADVANCED_SUMMON_COST || state.backpack.length >= MAX_BACKPACK)); refs.advancedSummon.querySelector('span').textContent = pendingAdvancedSingle ? '查看高级结果' : `高级单抽 ${ADVANCED_SUMMON_COST}`;
-  refs.advancedSummonFive.disabled = state.paused || state.tutorialStep === 0 || hasSingle || (hasFive && !pendingAdvancedFive) || (!hasFive && (state.energy < ADVANCED_FIVE_COST || state.backpack.length + 5 > MAX_BACKPACK)); refs.advancedSummonFive.querySelector('span').textContent = pendingAdvancedFive ? '领取高级五连' : `高级五连 ${ADVANCED_FIVE_COST}`;
+  refs.advancedSummon.disabled = !advancedAvailable || state.paused || state.tutorialStep === 0 || hasFive || (hasSingle && !pendingAdvancedSingle) || (!hasSingle && (state.energy < ADVANCED_SUMMON_COST || state.backpack.length >= MAX_BACKPACK)); refs.advancedSummon.querySelector('span').textContent = pendingAdvancedSingle ? '查看高级结果' : advancedAvailable ? `高级单抽 ${ADVANCED_SUMMON_COST}` : '试炼禁用'; refs.advancedSummon.title = advancedAvailable ? `高级单抽 ${ADVANCED_SUMMON_COST}` : `${currentTrialRule()?.name || '当前规则'}中禁用高级召灵`;
+  refs.advancedSummonFive.disabled = !advancedAvailable || state.paused || state.tutorialStep === 0 || hasSingle || (hasFive && !pendingAdvancedFive) || (!hasFive && (state.energy < ADVANCED_FIVE_COST || state.backpack.length + 5 > MAX_BACKPACK)); refs.advancedSummonFive.querySelector('span').textContent = pendingAdvancedFive ? '领取高级五连' : advancedAvailable ? `高级五连 ${ADVANCED_FIVE_COST}` : '试炼禁用'; refs.advancedSummonFive.title = advancedAvailable ? `高级五连 ${ADVANCED_FIVE_COST}` : `${currentTrialRule()?.name || '当前规则'}中禁用高级召灵`;
   const hasBondCandidate = BOND_DEFS.some((bond) => bond.members.filter((id) => allOwnedUnits().some((unit) => unit.id === id)).length >= bond.need);
   refs.autoDeploy.disabled = (state.tutorialStep >= 0 && state.tutorialStep < 4) || (!hasBondCandidate && !state.backpack.some((unit) => !state.towers.some((tower) => tower.id === unit.id) && usedPopulation() + populationCostFor(unit) <= state.maxPopulation)); refs.recallAll.disabled = !state.towers.length || state.backpack.length >= MAX_BACKPACK;
   refs.fortuneSign.disabled = state.paused || state.fortuneSpinning || !state.towers.length || state.energy < FORTUNE_COST; refs.fortuneSign.querySelector('strong').textContent = state.fortuneSpinning ? '签轮转动中' : state.towers.length ? `转运签 ${FORTUNE_COST}` : '转运签 · 需上阵';
@@ -2559,7 +2789,11 @@ function tick(timestamp) {
     const simDt = rawDt * state.speed;
     state.battleTime += simDt;
     Object.keys(state.skillCooldowns).forEach((id) => { state.skillCooldowns[id] = Math.max(0, state.skillCooldowns[id] - simDt); });
-    spawnFromGroups(simDt); updateTowers(simDt); updateProjectiles(simDt); updateEnemies(simDt); updateEffects(simDt); updateHUD(false);
+    const frameBondState = bondsForTowers();
+    activeCombatBondTotals = frameBondState.totals;
+    try {
+      spawnFromGroups(simDt); updateTowers(simDt, frameBondState); updateProjectiles(simDt); updateEnemies(simDt); updateEffects(simDt); updateHUD(false);
+    } finally { activeCombatBondTotals = null; }
   }
   if (state.screen === 'game' || state.screen === 'finishing') drawCanvas(); requestAnimationFrame(tick);
 }
@@ -2677,8 +2911,10 @@ refs.fortuneClose.addEventListener('click', closeFortuneDialog);
 refs.bondsClose.addEventListener('click', () => closeGameDialog(refs.bondsDialog));
 refs.medalsOpen.addEventListener('click', () => { renderMedals(); refs.medalsDialog.showModal(); });
 refs.medalsClose.addEventListener('click', () => refs.medalsDialog.close());
+refs.audioSettings.addEventListener('click', () => { renderAudioControls(); showGameDialog(refs.audioDialog); });
+refs.audioClose.addEventListener('click', () => closeGameDialog(refs.audioDialog));
 [
-  refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.bondsDialog,
+  refs.summonDialog, refs.advancedDialog, refs.backpackDialog, refs.fusionDialog, refs.bondsDialog, refs.audioDialog,
 ].forEach((dialog) => dialog.addEventListener('cancel', (event) => { event.preventDefault(); closeGameDialog(dialog); }));
 refs.evolutionDialog.addEventListener('cancel', (event) => event.preventDefault());
 refs.medalsDialog.addEventListener('cancel', (event) => { event.preventDefault(); refs.medalsDialog.close(); });
@@ -2707,12 +2943,25 @@ refs.speedGame.addEventListener('click', () => {
   if (!threeSpeedUnlocked() && state.speed === 2) addLog('3倍速将在任意难度通关全部五关后永久解锁。');
   updateHUD();
 });
-refs.soundToggle.addEventListener('click', () => { state.soundEnabled = !state.soundEnabled; refs.soundToggle.textContent = state.soundEnabled ? '♪' : '×'; refs.soundToggle.setAttribute('aria-pressed', String(state.soundEnabled)); saveProgress(); if (state.soundEnabled) playSound('deploy'); });
+refs.soundToggle.addEventListener('click', () => setSoundEnabled(!state.soundEnabled, true));
+refs.audioEnabled.addEventListener('change', () => setSoundEnabled(refs.audioEnabled.checked, true));
+refs.musicVolume.addEventListener('input', () => {
+  state.musicVolume = clamp(Number(refs.musicVolume.value) / 100, 0, 1);
+  updateAudioMix();
+  renderAudioControls();
+});
+refs.musicVolume.addEventListener('change', saveProgress);
+refs.sfxVolume.addEventListener('input', () => {
+  state.sfxVolume = clamp(Number(refs.sfxVolume.value) / 100, 0, 1);
+  updateAudioMix();
+  renderAudioControls();
+});
+refs.sfxVolume.addEventListener('change', saveProgress);
 refs.spiritSkill.addEventListener('click', useSpiritSkill);
 refs.teamSkill.addEventListener('click', useSkill);
 async function resetSave() {
   if (!window.confirm('确定重置全部局外进度吗？此操作不可撤销。')) return;
-  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'normal', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, soundEnabled: true });
+  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'normal', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1 });
   let local = true;
   let desktop = true;
   try {
@@ -2723,6 +2972,8 @@ async function resetSave() {
     desktop = await queueDesktopSave(resetPayload);
   } catch { desktop = false; }
   loadSave();
+  updateAudioMix();
+  renderAudioControls();
   renderSelect();
   document.querySelector('#save-status').textContent = local && desktop ? '存档已重置' : local ? '浏览器存档已重置，桌面存档失败' : desktop ? '桌面存档已重置，浏览器存档失败' : '存档重置失败，请重试';
 }
@@ -2742,6 +2993,7 @@ function pauseForBackground() {
   if (state.screen !== 'game' || state.paused) return;
   state.paused = true;
   state.backgroundPaused = true;
+  updateAmbientState();
   addLog('窗口已切到后台，战局自动暂停；回到游戏后点击继续守关。');
   updateHUD();
 }
@@ -2754,8 +3006,7 @@ fitAppToViewport();
 
 document.querySelector('#build-label')?.replaceChildren(BUILD_ID);
 loadSave();
-refs.soundToggle.textContent = state.soundEnabled ? '♪' : '×';
-refs.soundToggle.setAttribute('aria-pressed', String(state.soundEnabled));
+renderAudioControls();
 renderSelect(); showScreen('select'); requestAnimationFrame(tick);
 
 window.__shanHaiDebug = { state, ROSTER, BEASTS, ACTIVE_SKILLS, SUPPORT_SKILLS, BOND_DEFS, LEVELS, WAVES, DIFFICULTIES, growthFor, applyProgressUnlocks, resultGrade, canPlaceAt, pathInfo, castSpiritSkill, bondsForTowers, supportBonusesFor };

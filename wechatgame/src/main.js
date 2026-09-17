@@ -13,6 +13,8 @@ const STAGE_UNLOCKS = [['pulao','suanni'],['bixi','bian'],['fuxi_long','chiwen']
 const WAVE_REWARDS = [18,14,12,12,20,14,12,12,12,24,10,10,10,10,0];
 const MAX_UNIT_LEVEL = 9;
 const DUPLICATE_COMPENSATION = 12;
+const BASIC_ATTACK_ARMOR_BREAK = 12;
+const BASIC_ATTACK_ARMOR_BREAK_DURATION = 3;
 const canvas = wx.createCanvas();
 const ctx = canvas.getContext('2d');
 const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
@@ -52,7 +54,7 @@ const state = {
   completions: new Set(validCompletions),
   tutorialCompleted: saved.tutorialCompleted === true,
   growth: saved.growth && typeof saved.growth === 'object' ? saved.growth : {}, merit: Number(saved.merit) || 0, xp: Number(saved.xp) || 0, tier: 0,
-  unlocked: new Set(BASE_UNLOCKS), buttons: [], logs: [], speed: 1, paused: false,
+  unlocked: new Set(BASE_UNLOCKS), buttons: [], logs: [], speed: 1, paused: false, backgroundPaused: false,
   wave: 0, phase: 'prep', cooldown: 12, groups: null, bossSpawned: false, hp: 10, energy: 0, score: 0, kills: 0,
   towers: [], backpack: [], enemies: [], projectiles: [], selectedUid: null, selectedTowerUid: null, selectedEnemy: null, nextUid: 1,
   summonMode: 'normal', summonOffers: [], summonRemaining: 0, summonSwap: 0, summonAttempts: 0, requiredId: 'bifang', freeSwapUsed: false,
@@ -223,7 +225,7 @@ async function adFreeSwap() {
 
 function startGame(tutorial = false) {
   state.screen = 'game'; state.modal = ''; state.wave = 0; state.phase = 'prep'; state.cooldown = 12; state.groups = null; state.bossSpawned = false; state.hp = 10;
-  state.energy = Math.round(level().essence * difficulty().essence); state.score = 0; state.kills = 0; state.speed = 1; state.paused = false; state.finished = false;
+  state.energy = Math.round(level().essence * difficulty().essence); state.score = 0; state.kills = 0; state.speed = 1; state.paused = false; state.backgroundPaused = false; state.finished = false;
   state.towers = []; state.backpack = []; state.enemies = []; state.projectiles = []; state.selectedUid = null; state.selectedTowerUid = null; state.selectedEnemy = null; state.nextUid = 1;
   state.summonOffers = []; state.summonRemaining = 0; state.summonSwap = 0; state.summonAttempts = 0; state.freeSwapUsed = false; state.continued = false; state.doubled = false; state.bondCooldowns = {}; state.selectedBondId = null; state.bondPulse = null;
   state.backpackPage = 0; state.adPending = false;
@@ -247,7 +249,7 @@ function spawnEnemy(type, hpMul, routeIndex, distance = 0, role = 'normal') {
   const maxHp = def.hp * level().hp * difficulty().hp * hpMul;
   const point = pointAt(route, distance);
   const heavenShield = state.stage === 4 && role !== 'normal' ? (role === 'stageBoss' ? 160 : 55) : 0;
-  const enemy = { type, def, role, route, routeIndex, routeLength:routeLength(route), d:distance, x:point[0], y:point[1], hp:maxHp, maxHp, speed:def.speed * level().speed * difficulty().speed * (state.stage === 1 && ['fei','wangliang'].includes(type) ? 1.08 : 1), armor:Math.max(0,(def.armor || 0) + difficulty().armor), shield:(def.shield || 0) * (hard ? 1.35 : easy ? .7 : 1) + heavenShield, immuneMag:Boolean(def.immuneMag && !easy), immunePhy:Boolean(def.immunePhy || (hard && type === 'bashe')), resistMag:easy && def.immuneMag ? .45 : 0, slow:0, slowTimer:0, stunned:0, stealthTimer:def.stealth ? (hard ? 3.5 : easy ? 1 : 2) : 0, armorBreak:0, armorBreakTimer:0, burnTimer:0, burnDps:0, burnSource:null, revived:false, contributors:new Set(), healTimer:tide ? 6 : def.heal ? 5 : 0 };
+  const enemy = { type, def, role, route, routeIndex, routeLength:routeLength(route), d:distance, x:point[0], y:point[1], hp:maxHp, maxHp, speed:def.speed * level().speed * difficulty().speed * (state.stage === 1 && ['fei','wangliang'].includes(type) ? 1.08 : 1), armor:Math.max(0,(def.armor || 0) + difficulty().armor), shield:(def.shield || 0) * (hard ? 1.35 : easy ? .7 : 1) + heavenShield, immuneMag:Boolean(def.immuneMag && !easy), immunePhy:Boolean(def.immunePhy || (hard && type === 'bashe')), resistMag:easy && def.immuneMag ? .45 : 0, slow:0, slowTimer:0, stunned:0, stealthTimer:def.stealth ? (hard ? 3.5 : easy ? 1 : 2) : 0, armorBreak:0, armorBreakTimer:0, burnTimer:0, burnDps:0, burnSource:null, revived:false, contributors:new Set(), healRate:hard ? .12 : easy ? .05 : .08, healInterval:hard ? 5 : easy ? 9 : 7, healTimer:tide ? 6 : def.heal ? (hard ? 5 : easy ? 9 : 7) : 0 };
   state.enemies.push(enemy);
   return enemy;
 }
@@ -297,16 +299,32 @@ function canDamageEnemy(enemy, def) {
   return true;
 }
 
+function enemySealDamage(enemy) { return enemy.role === 'stageBoss' ? 9 : enemy.role === 'miniBoss' ? 5 : 1; }
+function enemySpecialTrait(enemy) {
+  if (enemy.def.heal) return '周期治疗';
+  if (enemy.def.revive) return enemy.revived ? '已复活' : '濒死复活';
+  if (enemy.def.split) return '击杀分裂';
+  return '';
+}
+function enemyCounterHint(enemy) {
+  if (enemy.immuneMag) return '法免：物/净';
+  if (enemy.immunePhy) return '物免：法/真';
+  if (enemy.stealthTimer > 0) return '隐身：需洞察';
+  if (enemy.shield > 0) return '护盾：破盾更快';
+  if (enemy.armor > 0) return `护甲 ${Math.round(enemy.armor)}`;
+  return '无特殊防御';
+}
+function enemyPanelLines(enemy) {
+  const special = enemySpecialTrait(enemy);
+  return {
+    title: `${enemy.def.name} · HP ${Math.ceil(Math.max(0, enemy.hp))}/${Math.ceil(enemy.maxHp)}`,
+    counter: enemyCounterHint(enemy),
+    threat: `${special || '普通敌军'} · 破封 ${enemySealDamage(enemy)}`,
+  };
+}
 function enemyStatusText(enemy) {
-  const status = [
-    enemy.shield > 0 ? `护盾 ${Math.ceil(enemy.shield)}` : '',
-    enemy.immuneMag ? '法免' : '',
-    enemy.immunePhy ? '物免' : '',
-    enemy.stealthTimer > 0 ? `隐身 ${enemy.stealthTimer.toFixed(1)}s` : '',
-    enemy.armor > 0 ? `护甲 ${Math.round(enemy.armor)}` : '',
-    enemy.armorBreakTimer > 0 ? '破甲中' : '',
-  ].filter(Boolean).join(' · ');
-  return `${enemy.def.name} · HP ${Math.ceil(Math.max(0, enemy.hp))}/${Math.ceil(enemy.maxHp)}${status ? ` · ${status}` : ''}`;
+  const status = [enemyCounterHint(enemy), enemy.armorBreakTimer > 0 ? '破甲中' : '', enemySpecialTrait(enemy)].filter(Boolean).join(' · ');
+  return `${enemyPanelLines(enemy).title} · ${status} · 破封 ${enemySealDamage(enemy)}`;
 }
 
 function updateTowers(dt) {
@@ -334,8 +352,9 @@ function updateTowers(dt) {
 
 function damageEnemy(enemy, damage, source, def, skill = false, allowSplash = true, special = 0) {
   if (!canSeeEnemy(enemy, def) || (def.dmgType === 'phy' && enemy.immunePhy) || (def.dmgType === 'mag' && enemy.immuneMag && !hasCounter(def, 'purge'))) return;
+  const impactDamage = damage;
   if (def.dmgType === 'mag' && enemy.resistMag) damage *= 1 - enemy.resistMag;
-  if (def.dmgType !== 'true' && special === -2) { enemy.armorBreak = 12; enemy.armorBreakTimer = 3; damage *= 1.2; }
+  if (def.dmgType !== 'true' && special === -2) { enemy.armorBreak = BASIC_ATTACK_ARMOR_BREAK; enemy.armorBreakTimer = BASIC_ATTACK_ARMOR_BREAK_DURATION; damage *= 1.2; }
   if (enemy.shield > 0) {
     const shieldMultiplier = hasCounter(def, 'breakShield') ? 1.5 : .3;
     const absorbed = Math.min(enemy.shield, damage * shieldMultiplier);
@@ -352,13 +371,14 @@ function damageEnemy(enemy, damage, source, def, skill = false, allowSplash = tr
   if (def.slow) { enemy.slow = Math.max(enemy.slow, def.slow); enemy.slowTimer = Math.max(enemy.slowTimer, def.slowDur || 2.5); }
   if (skill || special === -1) enemy.stunned = Math.max(enemy.stunned, 1.8);
   if (def.burn) { enemy.burnTimer = Math.max(enemy.burnTimer, 4); const burnDps = def.dmg * (def.burnDps || .22); if (burnDps >= enemy.burnDps) { enemy.burnDps = burnDps; enemy.burnSource = source; } }
-  if (allowSplash && def.splash) state.enemies.filter((item) => item !== enemy && canDamageEnemy(item, def) && Math.hypot(item.x - enemy.x, item.y - enemy.y) <= def.splashRadius).forEach((item) => damageEnemy(item, amount * .7, source, def, false, false));
+  if (allowSplash && def.splash) state.enemies.filter((item) => item !== enemy && canDamageEnemy(item, def) && Math.hypot(item.x - enemy.x, item.y - enemy.y) <= def.splashRadius).forEach((item) => damageEnemy(item, impactDamage * .7, source, def, false, false));
   if (enemy.hp <= 0) killEnemy(enemy, source);
 }
 
 function killEnemy(enemy, killer) {
   if (enemy.def.revive && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * .35; enemy.shield = state.difficulty === 'hard' ? 180 : state.difficulty === 'easy' ? 70 : 120; return; }
   if (enemy.dead) return; enemy.dead = true;
+  if (enemy.def.split && !enemy.split) { enemy.split = true; for (let index = 0; index < 2; index += 1) spawnEnemy('xingxing', .55, enemy.routeIndex, enemy.d); }
   enemy.contributors.forEach((uid) => { const tower = state.towers.find((item) => item.uid === uid); if (tower) tower.growthKills += 1; });
   if (killer) state.runKills[killer.id] = (state.runKills[killer.id] || 0) + 1;
   state.kills += enemy.def.reward; state.score += enemy.def.reward * 100; state.energy += enemy.def.reward * 2; state.xp += enemy.def.reward;
@@ -374,7 +394,7 @@ function updateEnemies(dt) {
     if (enemy.hp <= 0) return;
     enemy.slowTimer -= dt; if (enemy.slowTimer <= 0) enemy.slow = 0; enemy.stunned = Math.max(0, enemy.stunned - dt); enemy.stealthTimer = Math.max(0, enemy.stealthTimer - dt); enemy.armorBreakTimer = Math.max(0, (enemy.armorBreakTimer || 0) - dt); if (enemy.armorBreakTimer <= 0) enemy.armorBreak = 0; if (enemy.burnTimer > 0) { enemy.burnTimer -= dt; damageEnemy(enemy, enemy.burnDps * dt, enemy.burnSource, { dmgType:'true', counters:['insight'], burn:false }); }
     if (enemy.hp <= 0) return;
-    if (enemy.healTimer > 0) { enemy.healTimer -= dt; if (enemy.healTimer <= 0) { enemy.healTimer = enemy.def.heal ? 5 : 6; enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * (enemy.def.heal ? .08 : .012)); } }
+    if (enemy.healTimer > 0) { enemy.healTimer -= dt; if (enemy.healTimer <= 0) { enemy.healTimer = enemy.def.heal ? enemy.healInterval : 6; enemy.hp = Math.min(enemy.maxHp, enemy.hp + enemy.maxHp * (enemy.def.heal ? enemy.healRate : .012)); } }
     if (enemy.stunned > 0) return;
     enemy.d += enemy.speed * (1 - enemy.slow) * (1 - bonds.enemySlow) * dt; const point = pointAt(enemy.route, enemy.d); enemy.x = point[0]; enemy.y = point[1];
     if (enemy.d >= enemy.routeLength) { enemy.hp = 0; state.hp -= enemy.role === 'stageBoss' ? 9 : enemy.role === 'miniBoss' ? 5 : 1; state.bossEscaped ||= enemy.role === 'stageBoss'; if (enemy.role === 'stageBoss') log(`${enemy.def.name}破封，终局首领未被击退。`); }
@@ -579,6 +599,29 @@ async function doubleReward() {
 
 function nextWave() { if ((state.phase === 'prep' || state.phase === 'rest') && !state.modal) { const reward = Math.max(1, Math.floor(state.cooldown * .35)); state.energy += reward; state.cooldown = 0; log(`提前开波，获得 ${reward} 灵蕴。`); } }
 
+function togglePause() {
+  if (state.screen !== 'game') return;
+  if (state.paused) {
+    state.paused = false;
+    if (state.backgroundPaused) log('已回到战场，继续守关。');
+    state.backgroundPaused = false;
+    return;
+  }
+  state.paused = true;
+}
+
+function pauseForBackground() {
+  if (state.screen !== 'game' || state.paused) return;
+  state.paused = true;
+  state.backgroundPaused = true;
+  log('小游戏已切到后台，战局自动暂停；回到游戏后点击继续。');
+}
+
+function resumeForeground() {
+  last = Date.now();
+  if (state.screen === 'game' && state.backgroundPaused) log('已回到前台，战局仍暂停；点击继续守关。');
+}
+
 function update(dt) {
   if (state.screen !== 'game' || state.paused || state.modal || state.finished) return;
   const scaled = dt * state.speed; Object.keys(state.bondCooldowns).forEach((id) => { state.bondCooldowns[id] = Math.max(0, state.bondCooldowns[id] - scaled); }); if(state.bondPulse){state.bondPulse.ttl=Math.max(0,state.bondPulse.ttl-scaled);if(!state.bondPulse.ttl)state.bondPulse=null;} updateSpawning(scaled); updateTowers(scaled); updateProjectiles(scaled); updateEnemies(scaled); if (state.selectedEnemy && (!state.enemies.includes(state.selectedEnemy) || state.selectedEnemy.hp <= 0)) state.selectedEnemy = null;
@@ -613,8 +656,8 @@ function drawGame() {
   drawBattlefield();
   const bond=selectedBond();const bondCooldown=bond?state.bondCooldowns[bond.id]||0:0;
   button('pause',state.paused?'继续':'暂停',1125,78,135,48);button('speed',`${state.speed}倍速`,1125,134,135,48);button('next','下一波',1125,190,135,48,'gold',state.phase==='combat');button('skill','主动技能',1125,246,135,58,'jade',!state.selectedTowerUid);button('bond-skill',bond?(bondCooldown>0?`${bond.ult} ${Math.ceil(bondCooldown)}s`:`羁绊·${bond.ult}`):'羁绊未就绪',1125,312,135,48,'gold',!bond||bondCooldown>0);button('bonds',`选择羁绊 ${activeBonds().length}`,1125,366,135,42,'dark');
-  const selectedTower=state.towers.find((tower)=>tower.uid===state.selectedTowerUid);const selectedSupport=selectedTower?supportSkillForSource(selectedTower):null;const receivedSupport=selectedTower?supportBonus(selectedTower):null;const supportLabels={power:'攻击',haste:'攻速',range:'射程',cdr:'冷却恢复',manaRegen:'回灵'};const receivedEntries=receivedSupport?Object.entries(receivedSupport).filter(([,value])=>value>0):[];const receivedText=receivedEntries.length?`受益 ${receivedEntries.length} 项 · ${supportLabels[receivedEntries[0][0]]}+${Math.round(receivedEntries[0][1]*100)}%`:'未受友军增益';
-  panel(1125,418,135,82,'#332b22','#a67b3e');text(selectedTower?beast(selectedTower.id).name:`天命：${beast(state.requiredId).name}`,1192,438,11,'#f0d49a','center','bold');text(selectedTower?`辅助：${supportLabels[selectedSupport.stat]} +${Math.round(selectedSupport.value*100)}%`:`背包 ${state.backpack.length}/12`,1192,458,10,'#e8dcc0','center');text(selectedTower?`生效半径 ${Math.round(selectedSupport.radius)}`:state.phase==='combat'?`余敌 ${state.enemies.length}`:`等待 ${Math.ceil(state.cooldown)}s`,1192,478,10,'#d9b85f','center','bold');text(state.selectedEnemy?enemyStatusText(state.selectedEnemy):selectedTower?receivedText:state.logs[0]||'',1192,495,9,state.selectedEnemy?'#f0d49a':'#dfcfad','center');
+  const selectedTower=state.towers.find((tower)=>tower.uid===state.selectedTowerUid);const selectedEnemy=state.selectedEnemy;const selectedEnemyInfo=selectedEnemy?enemyPanelLines(selectedEnemy):null;const selectedSupport=selectedTower?supportSkillForSource(selectedTower):null;const receivedSupport=selectedTower?supportBonus(selectedTower):null;const supportLabels={power:'攻击',haste:'攻速',range:'射程',cdr:'冷却恢复',manaRegen:'回灵'};const receivedEntries=receivedSupport?Object.entries(receivedSupport).filter(([,value])=>value>0):[];const receivedText=receivedEntries.length?`受益 ${receivedEntries.length} 项 · ${supportLabels[receivedEntries[0][0]]}+${Math.round(receivedEntries[0][1]*100)}%`:'未受友军增益';
+  panel(1125,418,135,82,'#332b22','#a67b3e');text(selectedEnemyInfo?selectedEnemyInfo.title:selectedTower?beast(selectedTower.id).name:`天命：${beast(state.requiredId).name}`,1192,438,selectedEnemyInfo?10:11,'#f0d49a','center','bold');text(selectedEnemyInfo?selectedEnemyInfo.counter:selectedTower?`辅助：${supportLabels[selectedSupport.stat]} +${Math.round(selectedSupport.value*100)}%`:`背包 ${state.backpack.length}/12`,1192,458,10,'#e8dcc0','center');text(selectedEnemyInfo?selectedEnemyInfo.threat:selectedTower?`生效半径 ${Math.round(selectedSupport.radius)}`:state.phase==='combat'?`余敌 ${state.enemies.length}`:`等待 ${Math.ceil(state.cooldown)}s`,1192,478,10,'#d9b85f','center','bold');text(selectedEnemy?'点击空处取消选择':selectedTower?receivedText:state.logs[0]||'',1192,495,9,selectedEnemy?'#f0d49a':'#dfcfad','center');
   button('recall', '选中下场', 1125, 510, 135, 42, 'dark', !state.selectedTowerUid || state.backpack.length >= 12); button('auto', '一键部阵', 1125, 558, 135, 42, 'gold', !state.backpack.length || state.phase === 'combat');
   const dockY=620; const tutorialSingle = state.tutorialMode && state.tutorialStep === 0; button('summon:normal:1','普通单抽 20',150,dockY,180,55,'red',state.tutorialMode&&!tutorialSingle);button('summon:normal:5','普通五连 80',338,dockY,180,55,'red',state.tutorialMode);button('summon:advanced:1','高级单抽 50',526,dockY,180,55,'jade',state.tutorialMode);button('summon:advanced:5','高级五连 200',714,dockY,190,55,'jade',state.tutorialMode);
   panel(912,dockY,198,55,'#dbc28d','#a57b40'); const ordered=orderedBackpack(); const pageCount=Math.max(1,Math.ceil(ordered.length/4)); state.backpackPage=clamp(state.backpackPage,0,pageCount-1); const visible=ordered.slice(state.backpackPage*4,state.backpackPage*4+4); button('backpack-prev','‹',914,dockY+8,18,38,'dark',state.backpackPage===0); visible.forEach((unit,index)=>{const item=beast(unit.id);drawPortrait(item,935+index*39,dockY+8,38);if(unit.uid===state.selectedUid){ctx.strokeStyle='#b62f27';ctx.lineWidth=3;ctx.strokeRect(933+index*39,dockY+6,42,42);}state.buttons.push({id:`unit:${unit.uid}`,x:933+index*39,y:dockY+6,w:42,h:42});});button('backpack-next','›',1090,dockY+8,18,38,'dark',state.backpackPage>=pageCount-1);
@@ -652,15 +695,16 @@ function handleButton(id,x,y) {
   if(id.startsWith('summon:')){const [,mode,count]=id.split(':');openSummon(mode,Number(count));return;} if(id.startsWith('offer:')){receive(state.summonOffers[Number(id.split(':')[1])]);return;} if(id==='swap'){swapOffers();return;} if(id==='ad-swap'){adFreeSwap();return;}
   if(id.startsWith('unit:')){selectBackpackUnit(id.slice(5));return;} if(id==='battlefield'){const bx=x-150,by=y-70;const tower=state.towers.find((item)=>Math.hypot(item.x-bx,item.y-by)<=36);const enemy=state.enemies.filter((item)=>item.hp>0&&Math.hypot(item.x-bx,item.y-by)<=item.def.radius*1.8).sort((a,b)=>b.y-a.y)[0];if(tower){state.selectedTowerUid=tower.uid;state.selectedUid=null;state.selectedEnemy=null;}else if(!state.selectedUid&&enemy){state.selectedEnemy=enemy;state.selectedTowerUid=null;log(enemyStatusText(enemy));}else placeSelected(bx,by);return;}
   if(id==='backpack-prev'){state.backpackPage=Math.max(0,state.backpackPage-1);return;}if(id==='backpack-next'){state.backpackPage+=1;return;}
-  if(id==='pause'){state.paused=!state.paused;return;}if(id==='speed'){const speeds=threeSpeedUnlocked()?[1,2,3]:[1,2];state.speed=speeds[(speeds.indexOf(state.speed)+1)%speeds.length];if(!threeSpeedUnlocked()&&state.speed===2)log('任意难度完成全部五关后永久解锁3倍速。');return;}if(id==='next'){nextWave();return;}if(id==='skill'){castSkill();return;}if(id==='bond-skill'){useBondSkill();return;}if(id==='bonds'){state.modal='bonds';return;}if(id.startsWith('bond:')){state.selectedBondId=id.slice(5);state.modal='';return;}if(id==='recall'){recallSelected();return;}if(id==='auto'){autoDeploy();return;}
+  if(id==='pause'){togglePause();return;}if(id==='speed'){const speeds=threeSpeedUnlocked()?[1,2,3]:[1,2];state.speed=speeds[(speeds.indexOf(state.speed)+1)%speeds.length];if(!threeSpeedUnlocked()&&state.speed===2)log('任意难度完成全部五关后永久解锁3倍速。');return;}if(id==='next'){nextWave();return;}if(id==='skill'){castSkill();return;}if(id==='bond-skill'){useBondSkill();return;}if(id==='bonds'){state.modal='bonds';return;}if(id.startsWith('bond:')){state.selectedBondId=id.slice(5);state.modal='';return;}if(id==='recall'){recallSelected();return;}if(id==='auto'){autoDeploy();return;}
   if(id.startsWith('evolution:')){chooseEvolution(Number(id.split(':')[1]));return;}if(id==='close'){state.modal='';return;}if(id==='codex-prev'){state.codexPage=Math.max(0,state.codexPage-1);return;}if(id==='codex-next'){state.codexPage=Math.min(2,state.codexPage+1);return;}
   if(id==='replay'){startGame();return;}if(id==='select'){state.screen='select';state.modal='';return;}if(id==='ad-continue'){continueWithAd();return;}if(id==='ad-double'){doubleReward();}
 }
 
-wx.onTouchStart((event)=>{const touch=event.touches[0];const x=(touch.clientX-offsetX)/scale;const y=(touch.clientY-offsetY)/scale;const target=hit(x,y);if(target)handleButton(target.id,x,y);});
-if (typeof wx.onHide === 'function') wx.onHide(() => { if (state.screen === 'game' && !state.paused) { state.paused = true; log('小游戏已切到后台，战局自动暂停；回到游戏后点击继续。'); } });
 let last=Date.now();
+wx.onTouchStart((event)=>{const touch=event.touches[0];const x=(touch.clientX-offsetX)/scale;const y=(touch.clientY-offsetY)/scale;const target=hit(x,y);if(target)handleButton(target.id,x,y);});
+if (typeof wx.onHide === 'function') wx.onHide(pauseForBackground);
+if (typeof wx.onShow === 'function') wx.onShow(resumeForeground);
 function frame(){const now=Date.now();const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);draw();if(canvas.requestAnimationFrame)canvas.requestAnimationFrame(frame);else if(typeof requestAnimationFrame==='function')requestAnimationFrame(frame);else setTimeout(frame,16);}
 frame();
 
-module.exports = { state, Core, ROSTER, LEVELS, WAVES, startGame, startWave, waveTemplate, nextWave, spawnEnemy, damageEnemy, openSummon, swapOffers, receive, selectBackpackUnit, placeSelected, recallSelected, autoDeploy, castSkill, useBondSkill, selectedBond, bondState, supportBonus, effectiveTowerRange, update, draw };
+module.exports = { state, Core, ROSTER, LEVELS, WAVES, startGame, startWave, waveTemplate, nextWave, spawnEnemy, damageEnemy, openSummon, swapOffers, receive, selectBackpackUnit, placeSelected, recallSelected, autoDeploy, castSkill, useBondSkill, selectedBond, bondState, supportBonus, effectiveTowerRange, enemySpecialTrait, enemyCounterHint, enemyPanelLines, togglePause, pauseForBackground, resumeForeground, update, draw };

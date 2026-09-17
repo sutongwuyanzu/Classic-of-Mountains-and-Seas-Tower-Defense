@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#17120d" />
-    <meta name="shan-hai-build" content="sol-3d-combat-26" />
+    <meta name="shan-hai-build" content="sol-3d-combat-38" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-26" />
+    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-38" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -51,7 +51,7 @@
 
           <div class="save-strip">
             <span id="save-status">本地存档已启用</span>
-            <span class="build-label">构建 <b id="build-label">sol-3d-combat-26</b></span>
+            <span class="build-label">构建 <b id="build-label">sol-3d-combat-38</b></span>
             <button id="reset-save" type="button" title="重置存档">重置</button>
           </div>
         </section>
@@ -75,7 +75,8 @@
               <div class="resource-line"><span>分数</span><strong id="kill-label">0</strong></div>
               <div class="resource-line best-score"><span>最高</span><strong id="best-score-label">0</strong></div>
               <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 18</strong></div>
-              <button class="sound-toggle" id="sound-toggle" type="button" title="开关音效" aria-label="开关音效">♪</button>
+              <button class="sound-toggle" id="sound-toggle" type="button" title="静音" aria-label="静音">♪</button>
+              <button class="audio-settings" id="audio-settings" type="button" title="音频设置" aria-label="音频设置"><i></i><i></i><i></i></button>
             </div>
           </header>
 
@@ -196,6 +197,15 @@
         <div id="medals-list" class="medals-list"></div>
       </dialog>
 
+      <dialog id="audio-dialog" class="game-dialog audio-dialog" aria-labelledby="audio-title" aria-describedby="audio-copy">
+        <div class="dialog-head"><div><span>AUDIO MIX</span><h2 id="audio-title">音频设置</h2><p id="audio-copy">环境声会在暂停、后台和结算时淡出。</p></div><button id="audio-close" type="button" aria-label="关闭">×</button></div>
+        <div class="audio-controls">
+          <label class="audio-enabled"><span>总音频</span><input id="audio-enabled" type="checkbox" role="switch" checked><b>开启</b></label>
+          <label><span>环境声</span><output id="music-volume-value" for="music-volume">28%</output><input id="music-volume" type="range" min="0" max="100" value="28"></label>
+          <label><span>战斗音效</span><output id="sfx-volume-value" for="sfx-volume">100%</output><input id="sfx-volume" type="range" min="0" max="100" value="100"></label>
+        </div>
+      </dialog>
+
       <dialog id="pause-dialog" class="game-dialog pause-dialog">
         <div class="dialog-head"><div><span>BATTLE PAUSED</span><h2>战局暂停</h2><p>封印、敌群与投射物均已静止。</p></div></div>
         <div class="pause-actions"><button id="pause-resume" class="dialog-primary" type="button">继续守关</button><button id="pause-retry" class="dialog-secondary" type="button">重新守关</button><button id="pause-exit" class="dialog-secondary" type="button">放弃并返回</button></div>
@@ -203,6 +213,6 @@
     </div>
     <div class="orientation-lock" role="status">请旋转设备至横屏后继续</div>
     <script src="./shared/game-core.js?v=shared-core-3"></script>
-    <script src="./src/main.js?v=sol-3d-combat-26"></script>
+    <script src="./src/main.js?v=sol-3d-combat-38"></script>
   </body>
 </html>
