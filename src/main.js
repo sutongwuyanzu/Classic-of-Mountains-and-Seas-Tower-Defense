@@ -315,8 +315,10 @@ refs.fullscreenToggle = document.querySelector('#fullscreen-toggle');
 refs.selectedUnitMeta = document.querySelector('#selected-unit-meta');
 refs.resultCombatScore = document.querySelector('#result-combat-score');
 refs.resultVictoryScore = document.querySelector('#result-victory-score');
+refs.autoSkill = document.querySelector('#auto-skill');
+refs.selectedSkillMode = document.querySelector('#selected-skill-mode');
 const state = {
-  screen: 'select', mode: 'standard', stage: 0, difficulty: 'normal', selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(BASE_UNLOCK_IDS), completions: new Set(), beastGrowth: {}, medals: new Set(), xp: 0, tier: 0, soundEnabled: true, musicVolume: .28, sfxVolume: 1,
+  screen: 'select', mode: 'standard', stage: 0, difficulty: 'easy', selectedBeast: 'bifang', selectedUnitId: null, backpack: [], nextUnitId: 1, maxPopulation: 18, unlocked: new Set(BASE_UNLOCK_IDS), completions: new Set(), beastGrowth: {}, medals: new Set(), xp: 0, tier: 0, tutorialCompleted: false, skillAutoEnabled: false, skillAutoOverrides: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1,
   paused: false, backgroundPaused: false, resumeAfterDialog: false, tutorialMode: false, draggingUnitId: null, draggingTowerIndex: -1, draggingTowerOffset: { x: 0, y: 0 }, selectedTowerUid: null, selectedEnemy: null, speed: 1, lastTime: 0, wave: 0, waveTimer: 0, spawning: null, waveCooldown: 0, phase: 'prep', prepTimer: 15, battleTime: 0,
   energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScores: {}, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], visualEffects: [], defeated: [], logs: [], mouse: { x: 480, y: 270, inside: false },
@@ -421,6 +423,16 @@ function selectedEnemyMeta(enemy) {
   return `${status.length ? status.join(' · ') : '无特殊防御'} · 破封 ${enemy.sealDamage}`;
 }
 
+function enemyTraitBadge(enemy) {
+  if (enemy.immuneMag) return { label: '法免', fill: '#5d477a' };
+  if (enemy.immunePhy) return { label: '物免', fill: '#755147' };
+  if (enemy.stealthTimer > 0) return { label: '隐', fill: '#315d65' };
+  if (enemy.def.skill === 'heal') return { label: '疗', fill: '#39755b' };
+  if (enemy.def.skill === 'revive' && !enemy.revived) return { label: '复', fill: '#8c7142' };
+  if (enemy.def.skill === 'split' && !enemy.split) return { label: '裂', fill: '#a04c3c' };
+  return null;
+}
+
 function towerContainsPoint(tower, point) {
   const size = towerVisualSize(tower); const depth = depthScaleAt(tower.y);
   return Math.abs(point.x - tower.x) <= size * depth * .45 && point.y >= tower.y - size * depth + 8 && point.y <= tower.y + 28;
@@ -462,6 +474,19 @@ const hasCombatSprite = (id) => Boolean(combatSpriteSources[id]);
 const completionKey = (stage, difficulty) => `${stage}:${difficulty}`;
 const clearedStage = (stage) => DIFFICULTY_ORDER.some((difficulty) => state.completions.has(completionKey(stage, difficulty)));
 const clearedAllStages = (difficulty = null) => LEVELS.every((_, stage) => difficulty ? state.completions.has(completionKey(stage, difficulty)) : clearedStage(stage));
+function difficultyUnlocked(stage, difficulty) {
+  const index = DIFFICULTY_ORDER.indexOf(difficulty);
+  if (index <= 0) return true;
+  return DIFFICULTY_ORDER.slice(index - 1).some((id) => state.completions.has(completionKey(stage, id)));
+}
+function difficultyUnlockHint(stage, difficulty) {
+  if (difficulty === 'normal') return `通关「${LEVELS[stage].name}」简单难度后解锁`;
+  if (difficulty === 'hard') return `通关「${LEVELS[stage].name}」中等难度后解锁`;
+  return '';
+}
+function highestUnlockedDifficulty(stage) {
+  return [...DIFFICULTY_ORDER].reverse().find((difficulty) => difficultyUnlocked(stage, difficulty)) || 'easy';
+}
 const threeSpeedUnlocked = () => clearedAllStages();
 const isSteam = () => window.steamShell?.platform === 'steam';
 const endlessUnlocked = () => [...state.completions].length > 0;
@@ -794,10 +819,20 @@ function loadSave() {
     state.xp = Number(saved.xp) || 0;
     state.bestScores = saved.scoringVersion === SCORING_VERSION && saved.bestScores && typeof saved.bestScores === 'object' && !Array.isArray(saved.bestScores) ? saved.bestScores : {};
     state.tier = cultivationTierFor(state.xp);
-    state.difficulty = DIFFICULTIES[saved.difficulty] ? saved.difficulty : 'normal';
+    state.difficulty = DIFFICULTIES[saved.difficulty] ? saved.difficulty : 'easy';
     state.completions = new Set(Array.isArray(saved.completions) ? saved.completions : []);
     state.medals = new Set(Array.isArray(saved.medals) ? saved.medals : []);
     state.beastGrowth = saved.beastGrowth && typeof saved.beastGrowth === 'object' ? saved.beastGrowth : {};
+    const hasLegacyProgress = state.completions.size > 0
+      || state.medals.size > 0
+      || state.xp > 0
+      || (Array.isArray(saved.unlocked) && saved.unlocked.some((id) => !BASE_UNLOCK_IDS.includes(id)))
+      || Object.values(state.beastGrowth).some((growth) => Number(growth?.xp) > 0 || Number(growth?.appearances) > 0 || Number(growth?.kills) > 0);
+    state.tutorialCompleted = saved.tutorialCompleted === true || hasLegacyProgress;
+    state.skillAutoEnabled = saved.skillAutoEnabled === true;
+    state.skillAutoOverrides = saved.skillAutoOverrides && typeof saved.skillAutoOverrides === 'object' && !Array.isArray(saved.skillAutoOverrides)
+      ? Object.fromEntries(Object.entries(saved.skillAutoOverrides).filter(([id, value]) => BEASTS[id] && typeof value === 'boolean'))
+      : {};
     state.soundEnabled = saved.soundEnabled !== false;
     state.musicVolume = clamp(typeof saved.musicVolume === 'number' ? saved.musicVolume : .28, 0, 1);
     state.sfxVolume = clamp(typeof saved.sfxVolume === 'number' ? saved.sfxVolume : 1, 0, 1);
@@ -805,12 +840,16 @@ function loadSave() {
     const migratedUnlocks = saved.progressionVersion === PROGRESSION_VERSION && Array.isArray(saved.unlocked) ? saved.unlocked : BASE_UNLOCK_IDS;
     state.unlocked = new Set([...migratedUnlocks, ...BASE_UNLOCK_IDS]);
     applyProgressUnlocks();
+    if (!difficultyUnlocked(state.stage, state.difficulty)) state.difficulty = highestUnlockedDifficulty(state.stage);
   } catch {
     state.unlocked = new Set(BASE_UNLOCK_IDS);
     state.completions = new Set();
     state.medals = new Set();
     state.beastGrowth = {};
     state.bestScores = {};
+    state.tutorialCompleted = false;
+    state.skillAutoEnabled = false;
+    state.skillAutoOverrides = {};
     state.pendingResume = null;
   }
 }
@@ -832,7 +871,7 @@ function createWaveSnapshot() {
 async function saveProgress() {
   let payload;
   try {
-    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, soundEnabled: state.soundEnabled, musicVolume: state.musicVolume, sfxVolume: state.sfxVolume, waveSnapshot: createWaveSnapshot() });
+    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, tutorialCompleted: state.tutorialCompleted, skillAutoEnabled: state.skillAutoEnabled, skillAutoOverrides: state.skillAutoOverrides, soundEnabled: state.soundEnabled, musicVolume: state.musicVolume, sfxVolume: state.sfxVolume, waveSnapshot: createWaveSnapshot() });
   } catch (error) {
     document.querySelector('#save-status').textContent = '存档暂未更新，请重试';
     return { local: false, desktop: false, message: error.message };
@@ -868,11 +907,24 @@ function showScreen(name) {
 function renderSelect() {
   stageBackgroundFor(state.stage);
   refs.stageList.innerHTML = LEVELS.map((level, index) => {
-    const seals = DIFFICULTY_ORDER.map((difficulty) => `<i class="${state.completions.has(completionKey(index, difficulty)) ? 'is-cleared' : ''}" title="${DIFFICULTIES[difficulty].name}">${DIFFICULTIES[difficulty].name.slice(0, 1)}</i>`).join('');
+    const seals = DIFFICULTY_ORDER.map((difficulty) => {
+      const cleared = state.completions.has(completionKey(index, difficulty));
+      const unlocked = difficultyUnlocked(index, difficulty);
+      return `<i class="${cleared ? 'is-cleared' : unlocked ? '' : 'is-locked'}" title="${cleared ? `${DIFFICULTIES[difficulty].name}已通关` : unlocked ? `${DIFFICULTIES[difficulty].name}已解锁` : difficultyUnlockHint(index, difficulty)}">${unlocked ? DIFFICULTIES[difficulty].name.slice(0, 1) : '锁'}</i>`;
+    }).join('');
     return `<button class="stage-card ${index === state.stage ? 'is-selected' : ''}" data-stage="${index}" type="button"><span class="stage-number">0${index + 1}</span><span><strong>${level.name}</strong><small>${level.intro}</small></span><span class="stage-clears">${seals}</span></button>`;
   }).join('');
-  refs.stageList.querySelectorAll('[data-stage]').forEach((button) => button.addEventListener('click', () => { state.stage = Number(button.dataset.stage); renderSelect(); }));
-  refs.difficultySelect.querySelectorAll('[data-difficulty]').forEach((button) => button.classList.toggle('is-selected', button.dataset.difficulty === state.difficulty));
+  refs.stageList.querySelectorAll('[data-stage]').forEach((button) => button.addEventListener('click', () => { state.stage = Number(button.dataset.stage); if (!difficultyUnlocked(state.stage, state.difficulty)) state.difficulty = highestUnlockedDifficulty(state.stage); renderSelect(); }));
+  refs.difficultySelect.querySelectorAll('[data-difficulty]').forEach((button) => {
+    const difficulty = button.dataset.difficulty;
+    const unlocked = difficultyUnlocked(state.stage, difficulty);
+    button.disabled = !unlocked;
+    button.classList.toggle('is-selected', difficulty === state.difficulty);
+    button.classList.toggle('is-locked', !unlocked);
+    button.title = unlocked ? `${DIFFICULTIES[difficulty].name}难度已解锁` : difficultyUnlockHint(state.stage, difficulty);
+    const detail = button.querySelector('small');
+    if (detail) detail.textContent = unlocked ? { easy: '资源宽裕 · 敌军较弱', normal: '标准规则 · 特性完整', hard: '强特性 · 高评分' }[difficulty] : `未解锁 · ${difficulty === 'normal' ? '先通关简单' : '先通关中等'}`;
+  });
   refs.rosterList.innerHTML = ROSTER.map((beast) => {
     const data = beastDef(beast.id); const locked = !state.unlocked.has(beast.id); const growth = growthFor(beast.id);
     return `<button class="roster-card rarity-${RARITIES[beast.rarity]} ${locked ? 'is-locked' : ''}" data-beast="${beast.id}" type="button" ${locked ? 'disabled' : ''}>${portraitMarkup(beast)}<strong>${beast.name}</strong><small>${locked ? unlockHint(beast.id) : `${RARITIES[beast.rarity]} · 灵阶 ${growth.level}`}</small></button>`;
@@ -1016,7 +1068,42 @@ function bondOpportunity(beastId) {
   return BOND_DEFS.find((bond) => bond.members.includes(beastId) && bond.members.filter((id) => owned.has(id)).length === bond.need - 1) || null;
 }
 
+function summonHighlightFor(beastId) {
+  const upgradeTarget = allOwnedUnits().find((unit) => unit.id === beastId && unit.level < MAX_UNIT_LEVEL) || null;
+  return { bond: bondOpportunity(beastId), upgradeTarget };
+}
+
 function activeSkillFor(id) { return ACTIVE_SKILLS[id]; }
+
+function skillAutoModeFor(tower) {
+  const override = state.skillAutoOverrides[tower?.id];
+  return typeof override === 'boolean' ? override : state.skillAutoEnabled;
+}
+
+function selectedSkillModeLabel(tower) {
+  const override = state.skillAutoOverrides[tower?.id];
+  if (typeof override !== 'boolean') return `跟随${state.skillAutoEnabled ? '自动' : '手动'}`;
+  return `单独${override ? '自动' : '手动'}`;
+}
+
+function toggleGlobalSkillMode() {
+  state.skillAutoEnabled = !state.skillAutoEnabled;
+  addLog(`全局主动技能已切换为${state.skillAutoEnabled ? '自动释放' : '手动释放'}。`);
+  saveProgress();
+  updateHUD();
+}
+
+function cycleSelectedSkillMode() {
+  const tower = state.towers.find((item) => item.uid === state.selectedTowerUid);
+  if (!tower) { addLog('请先选择场上的妖灵，再设置单独技能释放方式。'); return; }
+  const current = state.skillAutoOverrides[tower.id];
+  if (typeof current !== 'boolean') state.skillAutoOverrides[tower.id] = !state.skillAutoEnabled;
+  else if (current !== state.skillAutoEnabled) state.skillAutoOverrides[tower.id] = state.skillAutoEnabled;
+  else delete state.skillAutoOverrides[tower.id];
+  addLog(`${beastDef(tower.id).name}技能设置为${selectedSkillModeLabel(tower)}。`);
+  saveProgress();
+  updateHUD();
+}
 
 function supportSkillFor(id) {
   const [name, stat, value, radius] = SUPPORT_SKILLS[id] || ['无', 'power', 0, 0];
@@ -1117,9 +1204,11 @@ function renderSummonOffers() {
   refs.summonOffers.classList.toggle('is-triple', advanced);
   refs.summonOffers.innerHTML = state.summonOffers.map((beast, index) => {
     const data = beastDef(beast.id);
-    const opportunity = bondOpportunity(beast.id);
+    const { bond: opportunity, upgradeTarget } = summonHighlightFor(beast.id);
     const profile = Core.describeBeast(beast, data, activeSkillFor(beast.id), BOND_DEFS, new Set(allOwnedUnits().map((unit) => unit.id)));
-    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]}" data-offer-index="${index}" type="button">${portraitMarkup(beast, true)}<span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>人口 ${populationCostFor(beast.id)} · 主动「${activeSkillFor(beast.id).name}」</small><span class="summon-profile"><i>${profile.damageType}</i><i>${profile.output}伤害</i><i>${profile.control}</i><i>${profile.growth}</i><i>羁绊潜力${profile.bondGrade}</i></span><small class="summon-growth">${counterEffectText(data)} · ${profile.growthText}</small>${opportunity ? `<small class="summon-bond-hint">可组成「${opportunity.name}」 · ${bondEffectText(opportunity)}</small>` : ''}</span><b>选择此卡</b></button>`;
+    const highlightClass = `${opportunity ? 'is-bond-opportunity' : ''} ${upgradeTarget ? 'is-upgrade-opportunity' : ''}`;
+    const highlightCopy = [opportunity ? `<small class="summon-bond-hint">羁绊可成 · 「${opportunity.name}」 · ${bondEffectText(opportunity)}</small>` : '', upgradeTarget ? `<small class="summon-upgrade-hint">同名可升 · ${beast.name} Lv.${upgradeTarget.level} → Lv.${upgradeTarget.level + 1}</small>` : ''].filter(Boolean).join('');
+    return `<button class="summon-offer rarity-${RARITIES[beast.rarity]} ${highlightClass}" data-offer-index="${index}" type="button">${portraitMarkup(beast, true)}<span><em>${RARITIES[beast.rarity]}</em><strong>${beast.name}</strong><small>人口 ${populationCostFor(beast.id)} · 主动「${activeSkillFor(beast.id).name}」</small><span class="summon-profile"><i>${profile.damageType}</i><i>${profile.output}伤害</i><i>${profile.control}</i><i>${profile.growth}</i><i>羁绊潜力${profile.bondGrade}</i></span><small class="summon-growth">${counterEffectText(data)} · ${profile.growthText}</small>${highlightCopy}</span><b>选择此卡</b></button>`;
   }).join('');
   const nextCost = rule.swaps[state.summonSwapCount];
   refs.summonSwap.disabled = nextCost == null || state.energy < nextCost;
@@ -1204,8 +1293,11 @@ function renderAdvancedResults() {
   refs.advancedResults.innerHTML = state.advancedBatch.map((unit, index) => {
     const beast = beastDef(unit.id);
     const profile = Core.describeBeast(beast, beast, activeSkillFor(unit.id), BOND_DEFS, new Set(allOwnedUnits().map((item) => item.id)));
+    const { bond, upgradeTarget } = summonHighlightFor(unit.id);
     const swapCost = rule.swaps[state.summonSwapCount];
-    return `<div class="advanced-result-wrap">${unitCard(unit, 'is-result')}<small>${profile.damageType} · ${profile.output}伤害 · ${profile.control} · ${profile.growth}</small><button type="button" data-batch-swap="${index}" ${swapCost == null || state.energy < swapCost ? 'disabled' : ''}>${swapCost == null ? '置换已用完' : `置换 ${swapCost}`}</button></div>`;
+    const highlightClass = `${bond ? 'is-bond-opportunity' : ''} ${upgradeTarget ? 'is-upgrade-opportunity' : ''}`;
+    const highlightCopy = [bond ? `羁绊可成 · ${bond.name}` : '', upgradeTarget ? `同名可升 Lv.${upgradeTarget.level} → Lv.${upgradeTarget.level + 1}` : ''].filter(Boolean).join(' · ');
+    return `<div class="advanced-result-wrap ${highlightClass}">${unitCard(unit, 'is-result')}<small>${highlightCopy ? `${highlightCopy}<br>` : ''}${profile.damageType} · ${profile.output}伤害 · ${profile.control} · ${profile.growth}</small><button type="button" data-batch-swap="${index}" ${swapCost == null || state.energy < swapCost ? 'disabled' : ''}>${swapCost == null ? '置换已用完' : `置换 ${swapCost}`}</button></div>`;
   }).join('');
   refs.advancedResults.querySelectorAll('[data-batch-swap]').forEach((button) => button.addEventListener('click', () => swapAdvancedResult(Number(button.dataset.batchSwap))));
 }
@@ -1310,11 +1402,38 @@ function initGame() {
   if (state.tutorialStep === 0) { state.phase = 'tutorial'; state.prepTimer = 0; }
   if (state.soundEnabled) ensureAudio();
   const mechanic = Core.STAGE_MECHANICS[state.stage];
-  showScreen('game'); startAmbient(); refs.gameTerrain.textContent = currentLevel().name; refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? `试炼·${trialRule.short}` : currentDifficulty().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.requiredBeastLabel.textContent = beastDef(state.requiredBeastId).name; refs.arenaHint.textContent = `本局必选「${beastDef(state.requiredBeastId).name}」；${mechanic.name}：${mechanic.copy}${isTrial() ? ` · 试炼「${trialRule.name}」：${trialRule.copy} · 种子 ${state.runSeed}` : ''}`; addLog(`${isEndless() ? '无尽封印' : isTrial() ? `固定种子试炼 ${state.runSeed} · ${trialRule.name}：${trialRule.copy}` : `${currentDifficulty().name}难度`} · ${mechanic.name}：${mechanic.copy}`); renderGameRoster(); renderGameBonds(); updateHUD();
+  const firstWaveThreat = waveRouteThreatText(waveTemplate(0));
+  showScreen('game'); startAmbient(); refs.gameTerrain.textContent = currentLevel().name; refs.gameDifficulty.textContent = isEndless() ? '无尽' : isTrial() ? `试炼·${trialRule.short}` : currentDifficulty().name; refs.gameLevel.textContent = `波次 1 / 整备`; refs.requiredBeastLabel.textContent = beastDef(state.requiredBeastId).name; refs.arenaHint.textContent = `第 1 波预告：${firstWaveThreat} · ${mechanic.name}：${mechanic.copy}${isTrial() ? ` · 试炼「${trialRule.name}」：${trialRule.copy} · 种子 ${state.runSeed}` : ''}`; addLog(`${isEndless() ? '无尽封印' : isTrial() ? `固定种子试炼 ${state.runSeed} · ${trialRule.name}：${trialRule.copy}` : `${currentDifficulty().name}难度`} · 首波预告：${firstWaveThreat}`); renderGameRoster(); renderGameBonds(); updateHUD();
 }
 
 function discardPendingResume() { state.pendingResume = null; saveProgress(); }
-function startStandardGame() { discardPendingResume(); state.mode = 'standard'; state.tutorialMode = false; initGame(); }
+function initTutorialGame() {
+  state.tutorialMode = true;
+  initGame();
+  if (state.tutorialStep !== 0) {
+    state.tutorialStep = 0;
+    state.phase = 'tutorial';
+    state.prepTimer = 0;
+  }
+  refs.arenaHint.textContent = '教学第一步：点击下方「普通单抽」，请出第一只妖灵。';
+  addLog('序章教学：先召灵，再选择妖灵并安置到道路两侧。');
+  updateHUD();
+}
+function startStandardGame() {
+  if (!difficultyUnlocked(state.stage, state.difficulty)) {
+    state.difficulty = highestUnlockedDifficulty(state.stage);
+    renderSelect();
+    return;
+  }
+  discardPendingResume();
+  state.mode = 'standard';
+  if (state.stage === 0 && !state.tutorialCompleted && state.completions.size === 0) {
+    initTutorialGame();
+    return;
+  }
+  state.tutorialMode = false;
+  initGame();
+}
 function startEndlessGame() {
   if (!endlessUnlocked()) return;
   discardPendingResume();
@@ -1323,7 +1442,14 @@ function startEndlessGame() {
   state.difficulty = 'normal';
   initGame();
 }
-function startTrialGame() { discardPendingResume(); state.mode = 'trial'; state.tutorialMode = false; initGame(); }
+function startTrialGame() {
+  if (!difficultyUnlocked(state.stage, state.difficulty)) {
+    state.difficulty = highestUnlockedDifficulty(state.stage);
+    renderSelect();
+    return;
+  }
+  discardPendingResume(); state.mode = 'trial'; state.tutorialMode = false; initGame();
+}
 
 function enforceTrialRuleBeforeWave() {
   const rule = currentTrialRule();
@@ -1372,6 +1498,7 @@ function startWave() {
   refs.waveLabel.textContent = `${state.wave + 1} / ${totalWaves()}`;
   refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint} · ${threatText}`;
   addLog(`第 ${state.wave + 1} 波：${meta.hint}`);
+  updateHUD();
 }
 
 function startNextWaveEarly() {
@@ -1417,6 +1544,7 @@ function spawnFromGroups(dt) {
       playSound('warning');
       refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · 关卡首领「${boss.def.name}」从${routeLabel}降临`;
       addLog(`终阵小怪已清除，关卡首领「${boss.def.name}」从${routeLabel}现身。若其破封，将造成 9 点伤害。`);
+      updateHUD();
       return;
     }
     const completedWave = state.wave;
@@ -1535,6 +1663,7 @@ function updateTowers(dt, bondState = bondsForTowers()) {
     tower.maxMana ||= manaStats.maxMana; tower.manaRegen ||= manaStats.manaRegen; tower.mana ??= tower.maxMana; tower.skillCd ??= 0; tower.skillShots ??= 0;
     tower.mana = Math.min(tower.maxMana, tower.mana + tower.manaRegen * (1 + support.manaRegen) * dt);
     tower.skillCd = Math.max(0, tower.skillCd - dt * (1 + support.cdr + bondState.totals.cdr));
+    if (state.phase === 'combat' && !state.pendingTargetSkillUid && skillAutoModeFor(tower) && castSpiritSkill(tower)) return;
     tower.cd -= dt * growth.haste * (1 + runPassive.haste) * (1 + bondState.totals.haste + support.haste + (allyBlessing ? .2 : 0));
     if (tower.cd > 0) return;
     const range = effectiveTowerRange(tower, bondState.totals, support, evolution);
@@ -1799,9 +1928,11 @@ function finishGame(won, abandoned = false) {
   state.screen = 'finishing'; state.finishTimer = 0;
   if (won) playSound('victory');
   const unlockedBefore = new Set(state.unlocked);
+  const difficultiesBefore = new Set(DIFFICULTY_ORDER.filter((difficulty) => difficultyUnlocked(state.stage, difficulty)));
   if (won && !isEndless()) state.completions.add(completionKey(state.stage, state.difficulty));
   applyProgressUnlocks();
   const newUnlocks = [...state.unlocked].filter((id) => !unlockedBefore.has(id));
+  const newDifficultyUnlocks = DIFFICULTY_ORDER.filter((difficulty) => !difficultiesBefore.has(difficulty) && difficultyUnlocked(state.stage, difficulty));
   const growthSummaries = awardBeastGrowth(won, abandoned);
   const activeBonds = bondsForTowers().active.filter((bond) => bond.formed).length;
   const remainingHp = Math.max(0, state.hp);
@@ -1832,6 +1963,7 @@ function finishGame(won, abandoned = false) {
     won, mode: state.mode, wave: state.wave + 1, hp: remainingHp, maxHp: state.maxHp, difficulty: state.difficulty,
     urCount: fieldedUrCount, maxRarity: Math.max(0, ...[...state.runFielded].map((id) => beastDef(id).rarity)), activeBonds, requiredFielded,
     maxGrowthKills: Math.max(0, ...allOwnedUnits().map((unit) => unit.growthKills || 0)), clearedAll: clearedAllStages(), clearedHardAll: clearedAllStages('hard'),
+    unlockedNormal: LEVELS.some((_, stage) => difficultyUnlocked(stage, 'normal')), unlockedHard: LEVELS.some((_, stage) => difficultyUnlocked(stage, 'hard')),
   });
   state.tier = cultivationTierFor(state.xp);
   const savePromise = saveProgress();
@@ -1849,12 +1981,13 @@ function finishGame(won, abandoned = false) {
   refs.resultRequired.textContent = `${beastDef(state.requiredBeastId).name} · ${requiredFielded ? `+${breakdown.required}` : '+0'}`;
   refs.resultKills.textContent = state.kills; refs.resultXp.textContent = `+${state.resultGrowthXp}`; refs.resultCombo.textContent = state.bestCombo; refs.resultRecap.textContent = combatRecap();
   const unlockCopy = newUnlocks.length ? ` 新解锁：${newUnlocks.map((id) => beastDef(id).name).join('、')}。` : '';
+  const difficultyUnlockCopy = newDifficultyUnlocks.length ? ` 解锁${newDifficultyUnlocks.map((difficulty) => `「${DIFFICULTIES[difficulty].name}」`).join('、')}难度。` : '';
   const growthCopy = growthSummaries.length ? ` ${growthSummaries.join('，')}。` : '';
   const medalCopy = newMedals.length ? ` 新勋章：${newMedals.map((id) => Core.MEDALS.find((medal) => medal.id === id)?.name).filter(Boolean).join('、')}。` : '';
   const capReasons = [gradeResult.integrityCap !== 'S' ? `封印完整度 ${Math.round(integrity * 100)}%，评级上限 ${gradeResult.integrityCap}` : '', !requiredFielded ? '未上阵必选妖灵，评级上限 A' : '', activeBonds === 0 ? '未触发羁绊，评级上限 A' : ''].filter(Boolean);
   const outcomeReason = abandoned ? '主动撤守' : state.trialFailedReason || (state.bossEscaped ? '终局首领已破封' : !won && remainingHp <= 0 ? '封印完整度归零' : '');
   const trialCopy = trialRule ? ` 试炼「${trialRule.name}」${won ? '达成' : '未达成'}。` : '';
-  const resultCopy = `${isEndless() ? `无尽模式抵达第 ${state.wave + 1} 波` : won ? '守关成功' : '守关失败'}${outcomeReason ? `（${outcomeReason}）` : ''}，${currentDifficulty().name}难度倍率 ×${currentDifficulty().score.toFixed(2)}，总分评级 ${gradeResult.scoreGrade}${capReasons.length ? `；${capReasons.join('；')}` : ''}。${trialCopy}${unlockCopy}${growthCopy}${medalCopy}`;
+  const resultCopy = `${isEndless() ? `无尽模式抵达第 ${state.wave + 1} 波` : won ? '守关成功' : '守关失败'}${outcomeReason ? `（${outcomeReason}）` : ''}，${currentDifficulty().name}难度倍率 ×${currentDifficulty().score.toFixed(2)}，总分评级 ${gradeResult.scoreGrade}${capReasons.length ? `；${capReasons.join('；')}` : ''}。${trialCopy}${difficultyUnlockCopy}${unlockCopy}${growthCopy}${medalCopy}`;
   refs.resultCopy.textContent = `${resultCopy} 存档更新中……`;
   showScreen('result');
   savePromise.then((saveResult) => {
@@ -1903,10 +2036,12 @@ function beginTutorialBattle() {
   if (state.tutorialStep !== 2) return;
   state.tutorialStep = 3;
   state.tutorialMode = false;
+  state.tutorialCompleted = true;
   state.phase = 'prep';
   state.prepTimer = 3;
   refs.arenaHint.textContent = '布阵完成，3 秒后开始第一波。观察敌人路线和攻击范围。';
   addLog('教学布阵完成，第一波将在 3 秒后开始。');
+  saveProgress();
   updateHUD();
 }
 
@@ -2149,9 +2284,10 @@ function drawFortune() {
   state.fortuneSpinning = true;
   const runId = state.runId;
   state.energy -= FORTUNE_COST;
-  const outcome = randomFromWeights([
-    ['ally', 25], ['enemy', 14], ['debuff', 22], ['half', 11], ['full', 11], ['double', 5], ['tenfold', 2], ['empty', 10],
-  ]);
+  const outcomeWeights = state.backpack.length < MAX_BACKPACK
+    ? [['ally', 24], ['enemy', 14], ['debuff', 22], ['half', 10], ['full', 10], ['double', 5], ['tenfold', 2], ['empty', 10], ['spirit', 3]]
+    : [['ally', 25], ['enemy', 14], ['debuff', 22], ['half', 11], ['full', 11], ['double', 5], ['tenfold', 2], ['empty', 10]];
+  const outcome = randomFromWeights(outcomeWeights);
   let result;
   if (outcome === 'ally') {
     addSignEffect('allyBuff', '天佑：全军攻防加持');
@@ -2166,6 +2302,18 @@ function drawFortune() {
     addSignEffect('enemyDebuff', '破甲迟滞：敌军受制');
     state.enemies.forEach(refreshEnemyModifiers);
     result = { name: '破甲迟滞', text: '本局敌军减速并降低护甲。', tone: 'good' };
+  } else if (outcome === 'spirit') {
+    const beast = randomSummon(SUMMON_WEIGHTS);
+    const received = beast ? receiveSummonedUnit(createUnit(beast)) : null;
+    if (beast && received) {
+      state.unlocked.add(beast.id);
+      renderGameRoster();
+      const upgradeCopy = received.promotions ? `${beast.name}升至 Lv.${received.unit.level}` : received.duplicate ? `${beast.name}已满阶，返还 ${received.compensation} 灵蕴` : `${beast.name}已入背包`;
+      result = { name: '签灵入阵', text: `小概率签出「${beast.name}」：${upgradeCopy}。`, tone: 'good' };
+    } else {
+      state.energy += FORTUNE_COST;
+      result = { name: '签灵返蕴', text: '当前召灵池为空，已返还本次转运签灵蕴。', tone: 'good' };
+    }
   } else {
     const refunds = { half: 15, full: 30, double: 60, tenfold: 300, empty: 0 };
     const labels = { half: '半签返蕴', full: '全额返还', double: '双倍返蕴', tenfold: '天命十返', empty: '谢谢惠顾' };
@@ -2174,7 +2322,7 @@ function drawFortune() {
     result = { name: labels[outcome], text: refund ? `返还 ${refund} 灵蕴。` : '灵蕴未返还，本签落空。', tone: refund ? 'good' : 'bad' };
   }
   state.lastSign = result;
-  const finalSymbols = result.tone === 'good' ? ['福', '灵', '吉'] : ['凶', '煞', '空'];
+  const finalSymbols = outcome === 'spirit' ? ['妖', '灵', '临'] : result.tone === 'good' ? ['福', '灵', '吉'] : ['凶', '煞', '空'];
   const reel = (symbol) => `<div class="slot-reel"><div class="slot-track"><i>山</i><i>海</i><i>玄</i><i>运</i><i>${symbol}</i></div></div>`;
   refs.fortuneResult.classList.remove('is-revealed');
   refs.fortuneResult.innerHTML = `<div class="slot-machine">${finalSymbols.map(reel).join('')}</div><strong class="fortune-${result.tone}">${result.name}</strong><span>${result.text}</span>`;
@@ -2325,18 +2473,28 @@ function useSpiritSkill() {
   castSpiritSkill(tower);
 }
 
+function combatWaveStatus() {
+  if (!Array.isArray(state.spawning)) return `余敌 ${state.enemies.length}`;
+  const total = state.spawning.reduce((sum, group) => sum + group.count, 0);
+  const spawned = state.spawning.reduce((sum, group) => sum + group.spawned, 0);
+  if (state.spawning.bossAfterClear && !state.spawning.bossSpawned && spawned >= total) return `首领待命 · 场上 ${state.enemies.length}`;
+  return `来敌 ${spawned}/${total} · 场上 ${state.enemies.length}`;
+}
+
 let lastHudRenderAt = -Infinity;
 function updateHUD(immediate = true) {
   const now = performance.now();
   if (!immediate && now - lastHudRenderAt < 100) return;
   lastHudRenderAt = now;
   const waveCount = totalWaves();
-  const phaseText = state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `${isBossWave(state.wave) ? '首领警戒' : '下一波'} ${Math.ceil(state.waveCooldown)}s` : `余敌 ${state.enemies.length}`;
+  const tutorialText = ['教学：先召灵', '教学：选择妖灵', '教学：布阵'][state.tutorialStep];
+  const phaseText = tutorialText || (state.phase === 'prep' ? `整备 ${Math.ceil(state.prepTimer)}s` : state.phase === 'rest' ? `${isBossWave(state.wave) ? '首领警戒' : '下一波'} ${Math.ceil(state.waveCooldown)}s` : combatWaveStatus());
   const selected = selectedUnit();
   const currentBest = Number(state.bestScores[completionKey(state.stage, state.difficulty)]) || 0;
   const waveNumber = state.wave + 1;
   refs.hpLabel.textContent = `${Math.max(0, state.hp)} / ${state.maxHp}`; refs.hpMeter.style.width = `${clamp(state.hp / state.maxHp * 100, 0, 100)}%`; refs.essenceLabel.textContent = Math.floor(state.energy); refs.killLabel.textContent = state.score; refs.bestScoreLabel.textContent = Math.max(currentBest, Math.round(state.score * currentDifficulty().score)); refs.waveLabel.textContent = `波次 ${waveNumber} / ${phaseText}`;
-  refs.gameLevel.textContent = `${isEndless() ? '无尽' : '波次'} ${waveNumber}${isEndless() ? '' : ` / ${waveCount}`} · ${phaseText}`;
+  refs.gameLevel.textContent = tutorialText ? `序章 · ${phaseText}` : `${isEndless() ? '无尽' : '波次'} ${waveNumber}${isEndless() ? '' : ` / ${waveCount}`} · ${phaseText}`;
+  refs.gameScreen.dataset.tutorialStep = tutorialText ? String(state.tutorialStep) : '';
   const hpBlocks = document.querySelector('#hp-blocks');
   if (hpBlocks) hpBlocks.innerHTML = Array.from({ length: state.maxHp }, (_, index) => `<i class="${index >= state.hp ? 'is-empty' : ''}"></i>`).join('');
   const cycleWave = state.wave % WAVES.length;
@@ -2350,6 +2508,17 @@ function updateHUD(immediate = true) {
   if (selected) refs.selectedUnitMeta.textContent = `${beastDef(selected.id).dmgType === 'mag' ? '法术' : beastDef(selected.id).dmgType === 'true' ? '真实' : '物理'} · ${counterEffectText(beastDef(selected.id))}`;
   refs.recallSelected.hidden = !state.selectedTowerUid;
   refs.recallSelected.disabled = state.backpack.length >= MAX_BACKPACK;
+  refs.autoSkill.classList.toggle('is-auto', state.skillAutoEnabled);
+  refs.autoSkill.querySelector('strong').textContent = state.skillAutoEnabled ? '自动释放' : '手动释放';
+  refs.autoSkill.title = `全局主动技能：${state.skillAutoEnabled ? '自动释放' : '手动释放'}；选中妖灵可设置单独模式`;
+  refs.autoSkill.setAttribute('aria-pressed', String(state.skillAutoEnabled));
+  refs.selectedSkillMode.hidden = !selectedTower;
+  if (selectedTower) {
+    const individualMode = skillAutoModeFor(selectedTower);
+    refs.selectedSkillMode.classList.toggle('is-auto', individualMode);
+    refs.selectedSkillMode.querySelector('strong').textContent = selectedSkillModeLabel(selectedTower);
+    refs.selectedSkillMode.title = `${beastDef(selectedTower.id).name}：${selectedSkillModeLabel(selectedTower)}。点击依次切换单独自动、单独手动、跟随全局`;
+  }
   if (selectedEnemy) { refs.selectedUnitLabel.title = selectedEnemyText(selectedEnemy); refs.selectedUnitMeta.textContent = selectedEnemyMeta(selectedEnemy); }
   const selectedSkill = selectedTower ? activeSkillFor(selectedTower.id) : null;
   const effectiveSkill = selectedTower && selectedSkill ? effectiveSkillStats(selectedTower, selectedSkill) : null;
@@ -2768,6 +2937,12 @@ function drawEnemy(enemy) {
     ctx.save(); ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(enemyAtlas, sx, sy, cellW, cellH, -radius, -radius, radius * 2, radius * 2); ctx.restore();
   } else { ctx.fillStyle = enemy.def.color; ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#f1ecdf'; ctx.font = 'bold 10px Segoe UI'; ctx.textAlign = 'center'; ctx.fillText(enemy.def.name.slice(0, 1), 0, 3); }
   ctx.globalAlpha = 1; const barWidth = Math.min(92, Math.max(42, radius * (isBoss ? 3.7 : 2.8))); const rawTop = 8 - size * depth - (isBoss ? 8 : 2); const top = Math.max((isBoss ? 24 : 10) - enemy.y, rawTop);
+  const traitBadge = enemyTraitBadge(enemy);
+  if (traitBadge) {
+    const badgeY = top - (isBoss ? 31 : 15);
+    const badgeWidth = traitBadge.label.length > 1 ? 27 : 17;
+    ctx.save(); ctx.fillStyle = traitBadge.fill; ctx.strokeStyle = 'rgba(246,226,179,.82)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(-badgeWidth * .5, badgeY - 9, badgeWidth, 14, 3); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff1ce'; ctx.font = '900 9px STKaiti, KaiTi, serif'; ctx.textAlign = 'center'; ctx.fillText(traitBadge.label, 0, badgeY + 1); ctx.restore();
+  }
   if (isBoss) { ctx.fillStyle = '#f4e2b0'; ctx.strokeStyle = 'rgba(31,22,16,.8)'; ctx.lineWidth = 3; ctx.font = '900 11px STKaiti, KaiTi, serif'; ctx.textAlign = 'center'; ctx.strokeText(enemy.def.name, 0, top - 7); ctx.fillText(enemy.def.name, 0, top - 7); }
   ctx.fillStyle = 'rgba(27,20,16,.9)'; ctx.beginPath(); ctx.roundRect(-barWidth * .5, top, barWidth, isBoss ? 8 : 6, 3); ctx.fill(); const hpRatio = clamp(enemy.hp / enemy.maxHp, 0, 1); ctx.fillStyle = hpRatio < .25 ? '#df5542' : '#58b693'; ctx.beginPath(); ctx.roundRect(-barWidth * .5, top, barWidth * hpRatio, isBoss ? 8 : 6, 3); ctx.fill();
   if (enemy.shield > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#a9e8ed'; ctx.shadowColor = '#84dce8'; ctx.shadowBlur = 12; ctx.globalAlpha = .52 + Math.sin(state.battleTime * 4) * .12; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -size * depth * .34, size * depth * .42, size * depth * .48, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
@@ -2902,6 +3077,8 @@ refs.nextWave.addEventListener('click', startNextWaveEarly);
 refs.recallAll.addEventListener('click', recallAll);
 refs.recallSelected.addEventListener('click', recallSelected);
 refs.fortuneSign.addEventListener('click', openFortuneSign);
+refs.autoSkill.addEventListener('click', toggleGlobalSkillMode);
+refs.selectedSkillMode.addEventListener('click', cycleSelectedSkillMode);
 refs.openFusion.addEventListener('click', () => { if (state.backpack.length < 2) { addLog('背包中至少需要两只妖灵才能合成。'); return; } refs.backpackDialog.close(); openFusion(); });
 refs.fuseBeasts.addEventListener('click', fuseSelected);
 refs.summonClose.addEventListener('click', () => closeGameDialog(refs.summonDialog));
@@ -2963,7 +3140,7 @@ refs.spiritSkill.addEventListener('click', useSpiritSkill);
 refs.teamSkill.addEventListener('click', useSkill);
 async function resetSave() {
   if (!window.confirm('确定重置全部局外进度吗？此操作不可撤销。')) return;
-  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'normal', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1 });
+  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'easy', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, tutorialCompleted: false, skillAutoEnabled: false, skillAutoOverrides: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1 });
   let local = true;
   let desktop = true;
   try {
@@ -2980,7 +3157,7 @@ async function resetSave() {
   document.querySelector('#save-status').textContent = local && desktop ? '存档已重置' : local ? '浏览器存档已重置，桌面存档失败' : desktop ? '桌面存档已重置，浏览器存档失败' : '存档重置失败，请重试';
 }
 document.querySelector('#reset-save').addEventListener('click', resetSave);
-document.querySelector('[data-start-tutorial]').addEventListener('click', () => { state.mode = 'standard'; state.tutorialMode = true; state.stage = 0; state.difficulty = 'easy'; initGame(); });
+document.querySelector('[data-start-tutorial]').addEventListener('click', () => { discardPendingResume(); state.mode = 'standard'; state.stage = 0; state.difficulty = 'easy'; initTutorialGame(); });
 
 function acceptsDesktopShortcut(event) {
   const target = event.target;

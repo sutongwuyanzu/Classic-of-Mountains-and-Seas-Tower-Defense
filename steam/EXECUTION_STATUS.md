@@ -4,6 +4,7 @@
 
 ## 当前基线
 
+- 当前方向：优先打磨游戏本体；Steam 后台、商店、平台接入和发售工作冻结，直至游戏本体重新验收。
 - 实际仓库：`C:\Users\WangMeng\Documents\瞎几把鼓捣`
 - 分支：`main`（跟踪 `origin/main`）
 - 基线提交：`982392e0a97efd0a9e8e273e242f20d01a7a7fce`

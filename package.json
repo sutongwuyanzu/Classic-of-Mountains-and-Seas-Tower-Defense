@@ -1,7 +1,7 @@
 {
   "name": "classic-of-mountains-and-seas-tower-defense",
   "version": "0.1.0",
-  "buildId": "sol-3d-combat-42",
+  "buildId": "sol-3d-combat-43",
   "private": true,
   "author": "sutongwuyanzu",
   "main": "electron/main.cjs",

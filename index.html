@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#17120d" />
-    <meta name="shan-hai-build" content="sol-3d-combat-42" />
+    <meta name="shan-hai-build" content="sol-3d-combat-43" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-42" />
+    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-43" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -51,7 +51,7 @@
 
           <div class="save-strip">
             <span id="save-status">本地存档已启用</span>
-            <span class="build-label">构建 <b id="build-label">sol-3d-combat-42</b></span>
+            <span class="build-label">构建 <b id="build-label">sol-3d-combat-43</b></span>
             <button id="reset-save" type="button" title="重置存档">重置</button>
           </div>
         </section>
@@ -110,6 +110,10 @@
             <span class="selected-spirit-mark">灵</span>
             <div id="game-roster" class="game-roster"></div>
             <div class="selected-unit-details"><strong id="selected-unit-label">未选择妖灵</strong><small id="selected-unit-meta"></small></div>
+            <div class="skill-mode-controls" aria-label="主动技能释放设置">
+              <button id="auto-skill" type="button" title="切换全局主动技能释放方式"><span>全局</span><strong>手动</strong></button>
+              <button id="selected-skill-mode" type="button" title="为选中妖灵设置独立释放方式" hidden><span>本灵</span><strong>跟随</strong></button>
+            </div>
             <button id="recall-selected" class="selected-recall" type="button" title="将选中的场上妖灵收入背包">下场</button>
           </section>
 
@@ -179,7 +183,7 @@
       </dialog>
 
       <dialog id="fortune-dialog" class="game-dialog fortune-dialog">
-        <div class="dialog-head"><div><span>FORTUNE REELS</span><h2>转运签</h2><p>点击即生效，签轮会在战场上即时揭晓福祸。</p></div><button id="fortune-close" type="button" aria-label="关闭">×</button></div>
+        <div class="dialog-head"><div><span>FORTUNE REELS</span><h2>转运签</h2><p>点击即生效，签轮会在战场上即时揭晓福祸；小概率签出随机妖灵。</p></div><button id="fortune-close" type="button" aria-label="关闭">×</button></div>
         <div id="fortune-result" class="fortune-result slot-result">签轮正在归位……</div>
       </dialog>
 
@@ -213,7 +217,7 @@
       </dialog>
     </div>
     <div class="orientation-lock" role="status">请旋转设备至横屏后继续</div>
-    <script src="./shared/game-core.js?v=shared-core-3"></script>
-    <script src="./src/main.js?v=sol-3d-combat-42"></script>
+    <script src="./shared/game-core.js?v=shared-core-4"></script>
+    <script src="./src/main.js?v=sol-3d-combat-43"></script>
   </body>
 </html>

@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function createShanHaiCore() {
   'use strict';
 
-  const CORE_VERSION = 3;
+  const CORE_VERSION = 4;
   const RARITIES = ['N', 'R', 'SR', 'SSR', 'UR'];
   const SUMMON_RULES = Object.freeze({
     normal: { cost: 20, choices: 2, swaps: [8, 16], weights: [[0, 58], [1, 34], [2, 7], [3, 1]] },
@@ -51,6 +51,8 @@
     { id: 'three_bonds', name: '三契同鸣', copy: '单局触发至少3组羁绊。', group: '阵容' },
     { id: 'required_guard', name: '天命入阵', copy: '上阵本局天命妖灵并完成守关。', group: '挑战' },
     { id: 'growth_20', name: '以战养灵', copy: '单局让一只成长型妖灵参与20次击破。', group: '妖灵' },
+    { id: 'normal_unlocked', name: '再启山门', copy: '首次完成简单难度，解锁对应关卡的中等难度。', group: '进阶' },
+    { id: 'hard_unlocked', name: '镇守高阶', copy: '首次完成中等难度，解锁对应关卡的困难难度。', group: '进阶' },
     { id: 'endless_20', name: '无尽初窥', copy: '无尽模式抵达第20波。', group: '无尽' },
     { id: 'endless_35', name: '长夜不息', copy: '无尽模式抵达第35波。', group: '无尽' },
     { id: 'endless_50', name: '山海同寿', copy: '无尽模式抵达第50波。', group: '无尽' },
@@ -161,6 +163,8 @@
     if (context.won && context.activeBonds >= 3) awards.push('three_bonds');
     if (context.won && context.requiredFielded) awards.push('required_guard');
     if (context.maxGrowthKills >= 20) awards.push('growth_20');
+    if (context.won && context.unlockedNormal) awards.push('normal_unlocked');
+    if (context.won && context.unlockedHard) awards.push('hard_unlocked');
     if (context.mode === 'endless' && context.wave >= 20) awards.push('endless_20');
     if (context.mode === 'endless' && context.wave >= 35) awards.push('endless_35');
     if (context.mode === 'endless' && context.wave >= 50) awards.push('endless_50');

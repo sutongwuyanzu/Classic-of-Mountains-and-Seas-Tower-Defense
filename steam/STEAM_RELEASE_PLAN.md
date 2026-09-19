@@ -4,6 +4,12 @@
 
 本文是后续实施计划，不是已完成证明。本次仅创建本文件，未实现计划中的功能。
 
+## 0. 2026-09-19 范围更新
+
+用户决定先打磨游戏本体，Steam 工作进入冻结状态。保留已完成的 Windows 构建、存档可靠性、素材台账和本地 SteamPipe 模板，但不继续进行 Steamworks SDK、Cloud、后台、商店、上传、送审或发售工作。
+
+恢复 Steam 工作的前提是游戏本体完成新的实际游玩验收：首局理解、战斗信息可读性、核心策略、性能和稳定性均有可复现证据。此更新优先于本文原有的 S05-S11 执行顺序。
+
 ## 1. 目标与范围
 
 用户已决定暂停微信小程序/小游戏方向，优先推进 Steam 上架。保留现有 `wechatgame/`、`miniprogram/` 和资源；微信账号注册、广告、真机调试不再作为桌面工作的前置条件。
@@ -32,7 +38,7 @@
 | 不应误用的旧工作树 | `C:\Users\WangMeng\.codex\worktrees\fa91\瞎几把鼓捣` |
 | 远程 | `https://github.com/sutongwuyanzu/Classic-of-Mountains-and-Seas-Tower-Defense.git` |
 | 分支与基线提交 | `main`，`982392e0a97efd0a9e8e273e242f20d01a7a7fce` |
-| 构建号 | `sol-3d-combat-42` |
+| 构建号 | `sol-3d-combat-43` |
 | 写本文前工作树 | 干净 |
 | 本次执行的检查 | `npm run check` 通过 |
 | 本次未执行 | 新一轮游戏实玩、Steam 客户端测试、干净 Windows 环境测试 |
