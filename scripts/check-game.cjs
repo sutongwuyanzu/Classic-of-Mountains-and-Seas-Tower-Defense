@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..');
@@ -7,6 +8,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const styles = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const preload = fs.readFileSync(path.join(root, 'electron', 'preload.cjs'), 'utf8');
+const { readJsonText, writeJsonText } = require(path.join(root, 'electron', 'save-store.cjs'));
 const startServer = fs.readFileSync(path.join(root, 'scripts', 'start-dev-server.ps1'), 'utf8');
 assert.match(packageJson.buildId, /^sol-[a-z0-9-]+$/);
 assert.match(indexHtml, new RegExp(`shan-hai-build" content="${packageJson.buildId}"`));
@@ -55,6 +57,13 @@ const desktopGame = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
 assert.match(desktopGame, /function supportsFullscreen\(\)/);
 assert.match(desktopGame, /refs\.fullscreenToggle\.addEventListener\('click', toggleFullscreen\);/);
 assert.match(desktopGame, /document\.addEventListener\('fullscreenchange', \(\) => \{[\s\S]*?fitAppToViewport/);
+assert.match(desktopGame, /function acceptsDesktopShortcut\(event\)/);
+assert.match(desktopGame, /event\.code === 'KeyF' && !openDialog/);
+assert.match(desktopGame, /event\.code === 'Space' \|\| event\.code === 'KeyP'/);
+assert.match(desktopGame, /event\.code === 'KeyN' && !state\.paused && state\.phase === 'rest'/);
+assert.match(indexHtml, /id="pause-game"[^>]*aria-keyshortcuts="P Space"/);
+assert.match(indexHtml, /id="next-wave"[^>]*aria-keyshortcuts="N"/);
+assert.match(indexHtml, /id="fullscreen-toggle"[^>]*aria-keyshortcuts="F"/);
 
 function readLiteralConst(source, name, bindings = {}) {
   const marker = `const ${name} = `;
@@ -144,6 +153,26 @@ assert.match(desktopGame, /const frameBondState = bondsForTowers\(\);\s*activeCo
 assert.doesNotMatch(preload, /require\('\.\.\/package\.json'\)/);
 assert.match(preload, /loadSave: \(\) => ipcRenderer\.sendSync\('save:load'\)/);
 assert.match(preload, /writeSave: \(payload\) => ipcRenderer\.invoke\('save:write', payload\)/);
+const saveTestDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'shan-hai-save-'));
+try {
+  const firstSave = JSON.stringify({ savedAt: 1, xp: 10 });
+  const secondSave = JSON.stringify({ savedAt: 2, xp: 20 });
+  const recoveredSave = JSON.stringify({ savedAt: 3, xp: 30 });
+  writeJsonText(saveTestDirectory, 'save-v2.json', firstSave);
+  writeJsonText(saveTestDirectory, 'save-v2.json', secondSave);
+  assert.equal(readJsonText(saveTestDirectory, 'save-v2.json'), secondSave);
+  assert.equal(fs.readFileSync(path.join(saveTestDirectory, 'save-v2.json.bak'), 'utf8'), firstSave);
+  fs.writeFileSync(path.join(saveTestDirectory, 'save-v2.json'), '{invalid');
+  assert.equal(readJsonText(saveTestDirectory, 'save-v2.json'), firstSave);
+  writeJsonText(saveTestDirectory, 'save-v2.json', recoveredSave);
+  assert.equal(readJsonText(saveTestDirectory, 'save-v2.json'), recoveredSave);
+  assert.equal(fs.readFileSync(path.join(saveTestDirectory, 'save-v2.json.bak'), 'utf8'), firstSave);
+  assert.throws(() => writeJsonText(saveTestDirectory, 'save-v2.json', '{invalid'));
+  assert.equal(readJsonText(saveTestDirectory, 'save-v2.json'), recoveredSave);
+  assert.equal(fs.readdirSync(saveTestDirectory).filter((name) => name.endsWith('.tmp')).length, 0);
+} finally {
+  fs.rmSync(saveTestDirectory, { recursive: true, force: true });
+}
 assert.match(startServer, /package\.json/);
 assert.equal(fs.readFileSync(path.join(root, 'shared', 'game-core.js'), 'utf8'), fs.readFileSync(path.join(root, 'wechatgame', 'shared', 'game-core.js'), 'utf8'));
 const Core = require(path.join(root, 'shared', 'game-core.js'));

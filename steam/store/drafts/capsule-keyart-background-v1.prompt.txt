@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: Steam store capsule artwork draft background for the game 山海异兽志; no in-image text.
+Primary request: create a premium horizontal key-art background for a Chinese Shan Hai Jing fantasy tower-defense game. A powerful red vermilion bird spirit with layered feather detail defends an ancient cinnabar seal stele on the left against a glowing mountain-cave rift on the right. The composition must communicate a single-player defensive battle at a glance, with a winding pale-gold path through a misty cavern, small distant hostile silhouettes on the path, and jade magical impact lights.
+Style/medium: high-end Chinese mineral-pigment scroll painting fused with polished game key art, textured xuan-paper grain, precise creature anatomy, richly rendered but legible at small size.
+Composition/framing: wide 16:9 landscape. Keep a calm, dark-ink negative-space band across the upper center for a future title overlay; keep the vermilion bird and seal fully visible, no cropped face. Clear layered depth, no UI frame.
+Lighting/mood: cinematic warm ochre and cinnabar highlights against deep ink, jade and teal magic, restrained contrast, heroic and mysterious.
+Constraints: only elements consistent with Shan Hai Jing mythic tower defense; no people, no human warrior, no weapons, no logos, no words, no letters, no numbers, no watermarks, no UI, no border, no gradient blobs. Preserve empty upper-center space for later typography.

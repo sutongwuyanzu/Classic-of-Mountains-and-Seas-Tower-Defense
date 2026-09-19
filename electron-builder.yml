@@ -11,10 +11,9 @@ files:
   - src/**/*
   - shared/**/*
   - assets/**/*
-  - '!assets/sprites/*-source.png'
-  - '!assets/sprites/*.prompt.txt'
-  - '!assets/fx/*-source.png'
-  - '!assets/fx/*.prompt.txt'
+  - '!assets/**/*-source.png'
+  - '!assets/**/*.prompt.txt'
+  - '!assets/animations/attacks/*-qc/**/*'
   - electron/**/*
 asar: true
 win:

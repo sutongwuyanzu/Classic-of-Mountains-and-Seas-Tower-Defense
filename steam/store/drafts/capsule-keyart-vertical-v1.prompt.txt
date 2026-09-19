@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: Steam store vertical capsule artwork draft background for the game 山海异兽志; no in-image text.
+Primary request: create a premium vertical key-art background for a Chinese Shan Hai Jing fantasy tower-defense game. A white tiger guardian spirit, fully visible in a powerful three-quarter stance, protects an ancient cinnabar seal stele from a jade-lit mountain-cave rift that descends from above. A glowing pale-gold defensive path spirals upward through the cavern and a few distant shadowy mythic beasts approach along it.
+Style/medium: high-end Chinese mineral-pigment scroll painting fused with polished game key art, xuan-paper texture, intricate fur and stone carving, game-ready clarity.
+Composition/framing: tall portrait composition. Reserve an uncluttered deep-ink band across the upper third for a future title overlay. White tiger and seal occupy the lower two-thirds with strong readable silhouette. No UI frame.
+Lighting/mood: warm ochre, cinnabar and gold accents against deep ink stone; controlled jade magic from the rift; dramatic but not overly dark.
+Constraints: only Shan Hai Jing mythic tower-defense visual language; no people, no human warrior, no modern weapons, no logos, no words, no letters, no numbers, no watermark, no UI, no border, no gradient blobs.

@@ -1,0 +1,12 @@
+"AppBuild"
+{
+  "AppID" "__STEAM_APP_ID__"
+  "Desc" "山海异兽志 __BUILD_LABEL__"
+  "BuildOutput" "__STEAM_BUILD_OUTPUT__"
+  "ContentRoot" "__STEAM_CONTENT_ROOT__"
+  "SetLive" ""
+  "Depots"
+  {
+    "__STEAM_DEPOT_ID__" "depot_build_windows.vdf"
+  }
+}

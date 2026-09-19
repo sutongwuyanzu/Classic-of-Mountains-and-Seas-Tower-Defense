@@ -77,14 +77,14 @@
               <div class="resource-line population-resource"><span>人口</span><strong id="population-label">0 / 18</strong></div>
               <button class="sound-toggle" id="sound-toggle" type="button" title="静音" aria-label="静音">♪</button>
               <button class="audio-settings" id="audio-settings" type="button" title="音频设置" aria-label="音频设置"><i></i><i></i><i></i></button>
-              <button class="fullscreen-toggle" id="fullscreen-toggle" type="button" title="进入全屏" aria-label="进入全屏" aria-pressed="false" hidden><span aria-hidden="true">⛶</span></button>
+              <button class="fullscreen-toggle" id="fullscreen-toggle" type="button" title="进入全屏" aria-label="进入全屏" aria-keyshortcuts="F" aria-pressed="false" hidden><span aria-hidden="true">⛶</span></button>
             </div>
           </header>
 
           <div class="arena-wrap">
             <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
             <div class="arena-message" id="arena-hint">怪物自右而来，守住左侧封印</div>
-            <button class="wave-advance" id="next-wave" type="button" hidden>提前开波</button>
+            <button class="wave-advance" id="next-wave" type="button" aria-keyshortcuts="N" hidden>提前开波</button>
             <div class="combat-log" id="combat-log" aria-live="polite"></div>
           </div>
 
@@ -96,7 +96,7 @@
           </aside>
 
           <aside class="command-rail">
-            <button class="rail-command" id="pause-game" type="button"><span>Ⅱ</span><strong>暂停</strong></button>
+            <button class="rail-command" id="pause-game" type="button" aria-keyshortcuts="P Space"><span>Ⅱ</span><strong>暂停</strong></button>
             <button class="rail-command" id="speed-game" type="button"><span>▶</span><strong>1倍速</strong></button>
             <button class="rail-command" id="open-bonds" type="button"><span>契</span><strong>羁绊</strong></button>
             <button class="rail-command" id="auto-deploy" type="button"><span>阵</span><strong>一键部署</strong></button>

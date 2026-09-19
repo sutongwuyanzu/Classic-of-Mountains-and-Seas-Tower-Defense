@@ -1,6 +1,6 @@
 # 山海异兽志 · Classic of Mountains and Seas Tower Defense
 
-这是一个独立重建的山海经主题塔防游戏，不是从 MakePlay 导出的原始工程。项目使用数据驱动的战斗逻辑、Canvas 绘制和 GPT Image 2 原创素材，复刻录屏中的核心玩法并面向桌面端和微信小程序发行。
+这是一个独立重建的山海经主题塔防游戏，不是从 MakePlay 导出的原始工程。项目使用数据驱动的战斗逻辑、Canvas 绘制和 GPT Image 2 原创素材，复刻录屏中的核心玩法并优先面向 Steam 桌面端发行。
 
 ## 运行
 
@@ -14,8 +14,8 @@ npm run dev
 
 ## 发行目标
 
-- Steam 桌面版：`npm install` 后执行 `npm run dist:portable` 生成单文件便携版；`npm run dist:steam` 生成安装包；`npm run dist:unpacked` 生成便于调试的解包目录。
-- 微信小游戏：先执行 `npm run sync:wechat`，再使用微信开发者工具打开 `wechatgame/`。该目录是 `compileType: game` 的原生 Canvas 工程；`miniprogram/` 仅保留为旧版参考。
+- Steam 桌面版：`npm install` 后执行 `npm run dist:steam` 生成 NSIS 安装包；`npm run dist:portable` 生成单个 EXE 的本地试玩构建；`npm run dist:unpacked` 生成便于调试的解包目录。详见 `steam/README.md`。
+- 微信小游戏：`wechatgame/` 和 `miniprogram/` 仅保留为兼容性参考，当前不继续开发或发布。
 
 ## 已实现
 

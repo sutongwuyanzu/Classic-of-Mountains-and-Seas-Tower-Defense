@@ -1,37 +1,11 @@
 const { app, BrowserWindow, Menu, ipcMain } = require('electron');
-const fs = require('node:fs');
 const path = require('node:path');
+const { readJsonText, writeJsonText } = require('./save-store.cjs');
 
-function dataPath(name) {
-  return path.join(app.getPath('userData'), name);
-}
-
-function readText(name, fallback = '') {
-  try { return fs.readFileSync(dataPath(name), 'utf8'); } catch { return fallback; }
-}
-
-function readJsonText(name, fallback = '') {
-  for (const candidate of [dataPath(name), `${dataPath(name)}.bak`]) {
-    try { const value = fs.readFileSync(candidate, 'utf8'); JSON.parse(value); return value; } catch {}
-  }
-  return fallback;
-}
-
-function writeText(name, value) {
-  const target = dataPath(name);
-  const temporary = `${target}.tmp`;
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(temporary, String(value), 'utf8');
-  if (fs.existsSync(target)) fs.copyFileSync(target, `${target}.bak`);
-  fs.rmSync(target, { force: true });
-  fs.renameSync(temporary, target);
-}
-
-ipcMain.on('save:load', (event) => { event.returnValue = readJsonText('save-v2.json', ''); });
+ipcMain.on('save:load', (event) => { event.returnValue = readJsonText(app.getPath('userData'), 'save-v2.json', ''); });
 ipcMain.handle('save:write', (_event, payload) => {
   try {
-    JSON.parse(payload);
-    writeText('save-v2.json', payload);
+    writeJsonText(app.getPath('userData'), 'save-v2.json', payload);
     return { ok: true };
   } catch (error) {
     console.error('Failed to write save:', error.message);
@@ -40,8 +14,13 @@ ipcMain.handle('save:write', (_event, payload) => {
 });
 ipcMain.on('achievement:unlock', (_event, achievementId) => {
   let current = [];
-  try { current = JSON.parse(readText('achievements.json', '[]')); } catch {}
-  if (!current.includes(achievementId)) { try { writeText('achievements.json', JSON.stringify([...current, achievementId])); } catch (error) { console.error('Failed to write achievement:', error.message); } }
+  try {
+    const saved = JSON.parse(readJsonText(app.getPath('userData'), 'achievements.json', '[]'));
+    current = Array.isArray(saved) ? saved : [];
+  } catch {}
+  if (typeof achievementId === 'string' && !current.includes(achievementId)) {
+    try { writeJsonText(app.getPath('userData'), 'achievements.json', JSON.stringify([...current, achievementId])); } catch (error) { console.error('Failed to write achievement:', error.message); }
+  }
 });
 
 function createWindow() {

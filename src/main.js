@@ -2982,6 +2982,31 @@ async function resetSave() {
 document.querySelector('#reset-save').addEventListener('click', resetSave);
 document.querySelector('[data-start-tutorial]').addEventListener('click', () => { state.mode = 'standard'; state.tutorialMode = true; state.stage = 0; state.difficulty = 'easy'; initGame(); });
 
+function acceptsDesktopShortcut(event) {
+  const target = event.target;
+  return !event.defaultPrevented && !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey && !event.isComposing && !(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement) && !target?.isContentEditable;
+}
+
+document.addEventListener('keydown', (event) => {
+  if (!acceptsDesktopShortcut(event)) return;
+  const openDialog = document.querySelector('dialog[open]');
+  if (event.code === 'KeyF' && !openDialog) {
+    event.preventDefault();
+    toggleFullscreen();
+    return;
+  }
+  if (state.screen !== 'game' || (openDialog && openDialog !== refs.pauseDialog)) return;
+  if (event.code === 'Space' || event.code === 'KeyP') {
+    event.preventDefault();
+    if (state.paused) resumePauseMenu(); else openPauseMenu();
+    return;
+  }
+  if (event.code === 'KeyN' && !state.paused && state.phase === 'rest') {
+    event.preventDefault();
+    startNextWaveEarly();
+  }
+});
+
 function fitAppToViewport() {
   const shell = document.querySelector('#app-shell');
   const portrait = window.innerHeight > window.innerWidth;
