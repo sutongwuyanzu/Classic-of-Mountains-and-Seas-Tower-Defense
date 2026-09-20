@@ -3196,8 +3196,12 @@ document.addEventListener('keydown', (event) => {
 function fitAppToViewport() {
   const shell = document.querySelector('#app-shell');
   const portrait = window.innerHeight > window.innerWidth;
-  const scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
-  shell.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  const scale = portrait
+    ? Math.min(window.innerHeight / 1280, window.innerWidth / 720)
+    : Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+  shell.style.transform = portrait
+    ? `translate(-50%, -50%) rotate(90deg) scale(${scale})`
+    : `translate(-50%, -50%) scale(${scale})`;
   document.body.classList.toggle('is-portrait', portrait);
   document.documentElement.style.setProperty('--ui-scale', scale);
 }
