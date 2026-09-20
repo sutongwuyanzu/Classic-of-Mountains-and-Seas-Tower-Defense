@@ -100,6 +100,8 @@ assert.match(desktopGame, /runStats: \{ damageByBeast: \{\}, shieldByBeast: \{\}
 assert.match(desktopGame, /function gameRandom\(stream = 'draw'\)/);
 assert.match(desktopGame, /function peekGameRandom\(stream = 'draw'\)/);
 assert.match(desktopGame, /function waveRouteThreatText\(groups, routeOffset = null\)/);
+assert.match(desktopGame, /const STAGE_PATHS = Object\.freeze\(/);
+assert.match(desktopGame, /function pathInfo\(level = currentLevel\(\)\) \{ return STAGE_PATHS\[level\.path\] \|\| STAGE_PATHS\.heaven; \}/);
 assert.match(desktopGame, /const threatText = waveRouteThreatText\(groups, routeOffset\);/);
 assert.match(desktopGame, /const nextThreatText = waveRouteThreatText\(waveTemplate\(state\.wave\)\);/);
 assert.match(desktopGame, /function startTrialGame\(\)/);
@@ -155,9 +157,12 @@ assert.match(desktopGame, /function damageEnemy\(enemy, amount, def, special = 0
 assert.match(desktopGame, /const pendingDamage = new Map\(\);/);
 assert.doesNotMatch(desktopGame, /function incomingDamage\(/);
 assert.match(desktopGame, /let activeCombatBondTotals = null;/);
+assert.match(desktopGame, /let activeCombatSupportBonuses = null;/);
+assert.match(desktopGame, /visualEffectsReduced = lowPowerEffects \|\| state\.enemies\.length >= 36 \|\| state\.projectiles\.length >= 28 \|\| state\.visualEffects\.length >= 70 \|\| state\.particles\.length >= 160;/);
+assert.match(desktopGame, /const particleDrawStep = visualEffectsReduced \? 2 : 1;\s*for \(let index = 0; index < state\.particles\.length; index \+= particleDrawStep\) drawParticle\(state\.particles\[index\]\);/);
 assert.match(desktopGame, /function updateTowers\(dt, bondState = bondsForTowers\(\)\)/);
 assert.match(desktopGame, /function bondTotals\(\) \{ return activeCombatBondTotals \|\| bondsForTowers\(\)\.totals; \}/);
-assert.match(desktopGame, /const frameBondState = bondsForTowers\(\);\s*activeCombatBondTotals = frameBondState\.totals;\s*try \{\s*spawnFromGroups\(simDt\); updateTowers\(simDt, frameBondState\);[\s\S]*?finally \{ activeCombatBondTotals = null; \}/);
+assert.match(desktopGame, /const frameBondState = bondsForTowers\(\);\s*activeCombatBondTotals = frameBondState\.totals;\s*activeCombatSupportBonuses = new Map\(\);\s*try \{\s*spawnFromGroups\(simDt\); updateTowers\(simDt, frameBondState\);[\s\S]*?finally \{ activeCombatBondTotals = null; activeCombatSupportBonuses = null; \}/);
 assert.doesNotMatch(preload, /require\('\.\.\/package\.json'\)/);
 assert.match(preload, /loadSave: \(\) => ipcRenderer\.sendSync\('save:load'\)/);
 assert.match(preload, /writeSave: \(payload\) => ipcRenderer\.invoke\('save:write', payload\)/);

@@ -327,6 +327,8 @@ const state = {
 };
 let desktopSaveQueue = Promise.resolve(true);
 let activeCombatBondTotals = null;
+let activeCombatSupportBonuses = null;
+let visualEffectsReduced = false;
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -745,13 +747,15 @@ function portraitMarkup(beast, fullArt = false) {
   return `<span class="portrait portrait-image ${useFullArt ? 'portrait-spirit' : ''}" style="--portrait-x:${portraitX};--portrait-y:${portraitY};${spriteStyle}"></span>`;
 }
 
-function pathInfo(level = currentLevel()) {
-  if (level.path === 'cave') return [{ sx: 884, sy: 438, points: [[884, 438], [720, 438], [650, 360], [800, 270], [660, 185], [770, 100], [530, 100], [470, 205], [300, 205], [240, 350], [130, 280], [74, 112]] }];
-  if (level.path === 'grass') return [{ sx: 884, sy: 420, points: [[884, 420], [690, 420], [600, 330], [760, 240], [700, 105], [480, 105], [420, 250], [250, 250], [180, 395], [74, 395]] }];
-  if (level.path === 'sea') return [{ sx: 884, sy: 270, points: [[884, 270], [760, 440], [600, 420], [520, 300], [680, 180], [530, 80], [360, 120], [300, 300], [140, 400], [74, 152]] }];
-  if (level.path === 'volcano') return [{ sx: 884, sy: 118, points: [[884, 118], [760, 118], [680, 225], [520, 105], [390, 230], [250, 104], [74, 104]] }, { sx: 884, sy: 422, points: [[884, 422], [760, 422], [680, 315], [520, 435], [390, 310], [250, 436], [74, 436]] }];
-  return [{ sx: 884, sy: 100, points: [[884, 100], [730, 100], [620, 210], [480, 145], [360, 270], [220, 270], [74, 270]] }, { sx: 884, sy: 440, points: [[884, 440], [730, 440], [620, 330], [480, 395], [360, 270], [220, 270], [74, 270]] }];
-}
+const STAGE_PATHS = Object.freeze({
+  cave: [{ sx: 884, sy: 438, points: [[884, 438], [720, 438], [650, 360], [800, 270], [660, 185], [770, 100], [530, 100], [470, 205], [300, 205], [240, 350], [130, 280], [74, 112]] }],
+  grass: [{ sx: 884, sy: 420, points: [[884, 420], [690, 420], [600, 330], [760, 240], [700, 105], [480, 105], [420, 250], [250, 250], [180, 395], [74, 395]] }],
+  sea: [{ sx: 884, sy: 270, points: [[884, 270], [760, 440], [600, 420], [520, 300], [680, 180], [530, 80], [360, 120], [300, 300], [140, 400], [74, 152]] }],
+  volcano: [{ sx: 884, sy: 118, points: [[884, 118], [760, 118], [680, 225], [520, 105], [390, 230], [250, 104], [74, 104]] }, { sx: 884, sy: 422, points: [[884, 422], [760, 422], [680, 315], [520, 435], [390, 310], [250, 436], [74, 436]] }],
+  heaven: [{ sx: 884, sy: 100, points: [[884, 100], [730, 100], [620, 210], [480, 145], [360, 270], [220, 270], [74, 270]] }, { sx: 884, sy: 440, points: [[884, 440], [730, 440], [620, 330], [480, 395], [360, 270], [220, 270], [74, 270]] }],
+});
+
+function pathInfo(level = currentLevel()) { return STAGE_PATHS[level.path] || STAGE_PATHS.heaven; }
 
 function interpolatePath(points, distanceAlong) {
   let remaining = distanceAlong;
@@ -1612,6 +1616,8 @@ function bondsForTowers(towers = state.towers) {
 }
 
 function supportBonusesFor(tower) {
+  const cached = activeCombatSupportBonuses?.get(tower.uid);
+  if (cached) return cached;
   const totals = { power: 0, haste: 0, range: 0, cdr: 0, manaRegen: 0 };
   state.towers.forEach((source) => {
     if (source.uid === tower.uid) return;
@@ -1620,6 +1626,7 @@ function supportBonusesFor(tower) {
     totals[support.stat] += support.value;
   });
   totals.power = Math.min(.42, totals.power); totals.haste = Math.min(.38, totals.haste); totals.range = Math.min(.32, totals.range); totals.cdr = Math.min(.48, totals.cdr); totals.manaRegen = Math.min(1, totals.manaRegen);
+  activeCombatSupportBonuses?.set(tower.uid, totals);
   return totals;
 }
 
@@ -2745,14 +2752,14 @@ function drawDefeated(defeated) {
   ctx.globalAlpha = clamp(defeated.life / defeated.maxLife, 0, 1) * .72;
   ctx.rotate((defeated.facing > 0 ? 1 : -1) * progress * .18);
   ctx.scale((defeated.facing > 0 ? -1 : 1) * depth * (1 + progress * .08), depth * (1 - progress * .32));
-  ctx.filter = lowPowerEffects ? 'none' : `grayscale(${Math.round(progress * 70)}%) brightness(${1 + progress * .35}) drop-shadow(0 8px 7px rgba(20,12,8,.45))`;
+  ctx.filter = visualEffectsReduced ? 'none' : `grayscale(${Math.round(progress * 70)}%) brightness(${1 + progress * .35}) drop-shadow(0 8px 7px rgba(20,12,8,.45))`;
   ctx.drawImage(sprite, -spriteWidth * .5, 12 - defeated.size, spriteWidth, defeated.size);
   ctx.restore();
 }
 
 function drawParticle(particle) {
   const alpha = clamp(particle.life / particle.maxLife, 0, 1);
-  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha; ctx.fillStyle = particle.color; ctx.shadowColor = particle.color; ctx.shadowBlur = lowPowerEffects ? 0 : 7;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = alpha; ctx.fillStyle = particle.color; ctx.shadowColor = particle.color; ctx.shadowBlur = visualEffectsReduced ? 0 : 7;
   ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size * (.55 + alpha * .65), 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
@@ -2792,8 +2799,8 @@ function drawProjectile(projectile) {
     const sx = (attackFrame % 2) * attackCellW;
     const sy = Math.floor(attackFrame / 2) * attackCellH;
     ctx.globalCompositeOperation = 'lighter';
-    if (!lowPowerEffects) { ctx.save(); ctx.globalAlpha = .32; ctx.filter = 'blur(6px)'; ctx.drawImage(attackSprite, sx, sy, attackCellW, attackCellH, -attackSize * .62, -attackSize * .62, attackSize * 1.24, attackSize * 1.24); ctx.restore(); }
-    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = .96; ctx.filter = lowPowerEffects ? 'none' : 'drop-shadow(0 2px 3px rgba(0,0,0,.35))';
+    if (!visualEffectsReduced) { ctx.save(); ctx.globalAlpha = .32; ctx.filter = 'blur(6px)'; ctx.drawImage(attackSprite, sx, sy, attackCellW, attackCellH, -attackSize * .62, -attackSize * .62, attackSize * 1.24, attackSize * 1.24); ctx.restore(); }
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = .96; ctx.filter = visualEffectsReduced ? 'none' : 'drop-shadow(0 2px 3px rgba(0,0,0,.35))';
     ctx.drawImage(attackSprite, sx, sy, attackCellW, attackCellH, -attackSize * .5, -attackSize * .5, attackSize, attackSize);
     ctx.filter = 'none';
   } else if (kind === 'ember') {
@@ -2837,7 +2844,7 @@ function drawProjectile(projectile) {
 }
 
 function drawCanvas() {
-  const level = currentLevel(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); drawStageBackdrop();
+  const level = currentLevel(); visualEffectsReduced = lowPowerEffects || state.enemies.length >= 36 || state.projectiles.length >= 28 || state.visualEffects.length >= 70 || state.particles.length >= 160; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); drawStageBackdrop();
   const shake = reducedMotion ? 0 : state.screenShake;
   ctx.save(); ctx.translate(Math.sin(state.battleTime * 57) * shake * .55, Math.cos(state.battleTime * 71) * shake * .34);
   drawStageAtmosphere(level);
@@ -2869,9 +2876,10 @@ function drawCanvas() {
   state.visualEffects.forEach((item) => { if (!BACK_EFFECTS.has(item.kind)) { item.renderType = 'effect'; renderQueue.push(item); } });
   renderQueue.sort((a, b) => (a.depthY ?? a.y) - (b.depthY ?? b.y) || renderDepth[a.renderType] - renderDepth[b.renderType]);
   renderQueue.forEach((item) => { if (item.renderType === 'tower') drawTower(item); else if (item.renderType === 'enemy') drawEnemy(item); else if (item.renderType === 'defeated') drawDefeated(item); else if (item.renderType === 'projectile') drawProjectile(item); else drawVisualEffect(item, 'front'); });
-  state.particles.forEach(drawParticle);
+  const particleDrawStep = visualEffectsReduced ? 2 : 1;
+  for (let index = 0; index < state.particles.length; index += particleDrawStep) drawParticle(state.particles[index]);
   const hitSpark = fxSprites['hit-spark'];
-  if (hitSpark?.complete && hitSpark.naturalWidth) state.hitBursts.forEach((item) => { const progress = 1 - item.life / item.maxLife; const size = item.size * (.72 + progress * .72); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = clamp(item.life / .2, 0, 1); ctx.filter = 'drop-shadow(0 0 8px rgba(255,240,190,.8))'; ctx.drawImage(hitSpark, item.x - size * .5, item.y - size * .5, size, size); ctx.restore(); });
+  if (hitSpark?.complete && hitSpark.naturalWidth) state.hitBursts.forEach((item) => { const progress = 1 - item.life / item.maxLife; const size = item.size * (.72 + progress * .72); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = clamp(item.life / .2, 0, 1); ctx.filter = visualEffectsReduced ? 'none' : 'drop-shadow(0 0 8px rgba(255,240,190,.8))'; ctx.drawImage(hitSpark, item.x - size * .5, item.y - size * .5, size, size); ctx.restore(); });
   state.damageTexts.forEach((item) => { const alpha = clamp(item.life / item.maxLife, 0, 1); ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = item.color; ctx.strokeStyle = 'rgba(29,20,14,.82)'; ctx.lineWidth = 3; ctx.font = `900 ${Math.round(13 * item.scale)}px Segoe UI`; ctx.textAlign = 'center'; ctx.strokeText(item.text, item.x, item.y); ctx.fillText(item.text, item.x, item.y); ctx.restore(); });
   ctx.restore();
   ctx.drawImage(vignetteTexture, 0, 0);
@@ -2905,7 +2913,7 @@ function drawTower(tower) {
     const stretchY = attackStyle === 'heavy' ? 1 - attackPulse * .08 : attackStyle === 'lunge' ? 1 + attackPulse * .045 : 1 + attackPulse * .03;
     const spriteWidth = size * (sprite.naturalWidth / Math.max(1, sprite.naturalHeight));
     ctx.save(); ctx.translate(-Math.cos(attackAngle) * recoil * 5 + motionX, -recoil * 3 + motionY); ctx.rotate(Math.sin(state.battleTime * 1.8 + tower.x) * .008 - Math.sin(attackAngle) * recoil * .025 + motionRotation); ctx.scale((facingRight ? -1 : 1) * depth * stretchX, depth * stretchY);
-    ctx.filter = lowPowerEffects ? (tower.attackFlash > 0 ? `brightness(${1 + tower.attackFlash * .45})` : 'none') : `brightness(${1 + tower.attackFlash * .36 + tower.castPulse * .18}) saturate(${1.06 + tower.castPulse * .22}) drop-shadow(0 7px 6px rgba(24,14,9,.48)) drop-shadow(0 0 ${4 + tower.attackFlash * 12}px ${def.color})`;
+    ctx.filter = visualEffectsReduced ? (tower.attackFlash > 0 ? `brightness(${1 + tower.attackFlash * .45})` : 'none') : `brightness(${1 + tower.attackFlash * .36 + tower.castPulse * .18}) saturate(${1.06 + tower.castPulse * .22}) drop-shadow(0 7px 6px rgba(24,14,9,.48)) drop-shadow(0 0 ${4 + tower.attackFlash * 12}px ${def.color})`;
     ctx.drawImage(sprite, -spriteWidth * .5, 15 - size + bob, spriteWidth, size);
     ctx.restore();
   } else if (beastAtlas.complete && beastAtlas.naturalWidth) {
@@ -2929,7 +2937,7 @@ function drawEnemy(enemy) {
     const facingRight = enemy.facing > 0;
     const spriteWidth = size * (sprite.naturalWidth / Math.max(1, sprite.naturalHeight));
     ctx.save(); ctx.translate(enemy.hitKick * hit * 7, -Math.abs(walk) * 1.7); ctx.rotate(walk * .012 + enemy.hitKick * hit * .035); ctx.scale((facingRight ? -1 : 1) * depth * spawn * (1 - hit * .025), depth * spawn * (1 + hit * .045 + walk * .012));
-    ctx.filter = lowPowerEffects ? (hit > 0 ? `brightness(${1.2 + hit * 1.1})` : 'none') : hit > 0 ? `brightness(${1.2 + hit * 1.2}) saturate(${1 + hit * .55}) drop-shadow(0 8px 7px rgba(22,13,9,.5)) drop-shadow(0 0 ${Math.round(hit * 12)}px ${enemy.def.color})` : 'drop-shadow(0 8px 7px rgba(22,13,9,.5))';
+    ctx.filter = visualEffectsReduced ? (hit > 0 ? `brightness(${1.2 + hit * 1.1})` : 'none') : hit > 0 ? `brightness(${1.2 + hit * 1.2}) saturate(${1 + hit * .55}) drop-shadow(0 8px 7px rgba(22,13,9,.5)) drop-shadow(0 0 ${Math.round(hit * 12)}px ${enemy.def.color})` : 'drop-shadow(0 8px 7px rgba(22,13,9,.5))';
     ctx.drawImage(sprite, -spriteWidth * .5, 12 - size, spriteWidth, size);
     ctx.restore();
   } else if (enemyAtlas.complete && enemyAtlas.naturalWidth) {
@@ -2967,9 +2975,10 @@ function tick(timestamp) {
     Object.keys(state.skillCooldowns).forEach((id) => { state.skillCooldowns[id] = Math.max(0, state.skillCooldowns[id] - simDt); });
     const frameBondState = bondsForTowers();
     activeCombatBondTotals = frameBondState.totals;
+    activeCombatSupportBonuses = new Map();
     try {
       spawnFromGroups(simDt); updateTowers(simDt, frameBondState); updateProjectiles(simDt); updateEnemies(simDt); updateEffects(simDt); updateHUD(false);
-    } finally { activeCombatBondTotals = null; }
+    } finally { activeCombatBondTotals = null; activeCombatSupportBonuses = null; }
   }
   if (state.screen === 'game' || state.screen === 'finishing') drawCanvas(); requestAnimationFrame(tick);
 }

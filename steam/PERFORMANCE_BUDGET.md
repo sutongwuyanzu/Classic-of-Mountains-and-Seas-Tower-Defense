@@ -26,6 +26,9 @@
 | HUD 更新 | 最多每 100 ms 一次 | `updateHUD(false)`。 |
 | 绘制队列 | 每帧复用 `renderQueue`，按深度排序 | `drawCanvas()`。 |
 | 低功耗策略 | CPU 核心数/设备内存较低或移动设备降低特效质量 | `lowPowerEffects` 与 `effectQuality`。 |
+| 密集战斗降级 | 敌人 `>=36`、投射物 `>=28`、特效 `>=70` 或粒子 `>=160` 时停用 Canvas 滤镜和阴影，并隔帧绘制粒子；优先维持操作与战斗逻辑帧时间 | `drawCanvas()` 的 `visualEffectsReduced`。 |
+| 每帧辅助光环 | 同一战斗帧按妖灵缓存辅助光环合计，避免目标筛选时重复扫描全部塔 | `supportBonusesFor()` 与 `tick()`。 |
+| 关卡路线 | 五张地图的路径点为静态数据，不在寻路、放置和渲染调用时重新分配数组 | `STAGE_PATHS` 与 `pathInfo()`。 |
 
 ## 当前采样状态
 
