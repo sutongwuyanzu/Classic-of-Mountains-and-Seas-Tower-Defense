@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#17120d" />
-    <meta name="shan-hai-build" content="sol-3d-combat-45" />
+    <meta name="shan-hai-build" content="sol-story-n05-v1" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'" />
     <title>山海异兽志</title>
-    <link rel="stylesheet" href="./styles.css?v=sol-3d-combat-45" />
+    <link rel="stylesheet" href="./styles.css?v=sol-story-n05-v1" />
   </head>
   <body>
     <div class="app-shell" id="app-shell">
@@ -22,6 +22,9 @@
 
           <button class="tutorial-entry" type="button" data-start-tutorial>
             <span>序章</span><strong>教学关 · 已开放</strong><small>熟悉召灵、布阵与封印</small>
+          </button>
+          <button class="story-entry" id="story-open" type="button">
+            <span>主线</span><strong>五境归名</strong><small id="story-progress">可选体验 · 不影响自由守关</small>
           </button>
 
           <div id="stage-list" class="stage-list" aria-label="关卡选择"></div>
@@ -56,6 +59,36 @@
           </div>
         </section>
 
+        <section id="story-screen" class="screen story-screen is-hidden" aria-labelledby="story-title">
+          <header class="story-header">
+            <button id="story-back" class="story-back" type="button">返回关卡</button>
+            <div><span>SHAN HAI RECORD</span><h2 id="story-title">五境归名</h2></div>
+            <button id="story-recap" class="story-recap" type="button">剧情回看</button>
+          </header>
+          <div class="story-layout">
+            <nav id="story-map" class="story-map" aria-label="五境章节"></nav>
+            <article class="story-reader" id="story-reader" aria-live="polite">
+              <div class="story-reader-art" id="story-reader-art" aria-hidden="true"><i></i><b></b><span class="story-reader-bindings"></span></div>
+              <div class="story-reader-copy">
+                <div class="story-reader-meta"><span id="story-reader-part">章节引子</span><em id="story-reader-theme"></em></div>
+                <h3 id="story-reader-title">幽都·独守初印</h3>
+                <p id="story-speaker">白泽</p>
+                <p id="story-line"></p>
+              </div>
+              <div class="story-reader-controls">
+                <button id="story-prev" type="button">上一页</button>
+                <span id="story-page">1 / 3</span>
+                <button id="story-next" type="button">下一页</button>
+              </div>
+              <div class="story-reader-actions">
+                <button id="story-intro" type="button">章节引子</button>
+                <button id="story-outro" type="button">章节结语</button>
+                <button id="story-begin" type="button">守住此境</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <section id="game-screen" class="screen game-screen is-hidden">
           <header class="battle-header">
             <div class="seal-status">
@@ -81,10 +114,11 @@
             </div>
           </header>
 
-          <div class="arena-wrap">
-            <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
-            <div class="arena-message" id="arena-hint">怪物自右而来，守住左侧封印</div>
-            <button class="wave-advance" id="next-wave" type="button" aria-keyshortcuts="N" hidden>提前开波</button>
+            <div class="arena-wrap">
+              <canvas id="game-canvas" width="960" height="540" aria-label="山海异兽志战场"></canvas>
+              <div class="arena-message" id="arena-hint">怪物自右而来，守住左侧封印</div>
+              <div class="story-whisper" id="story-whisper" aria-live="polite" hidden></div>
+              <button class="wave-advance" id="next-wave" type="button" aria-keyshortcuts="N" hidden>提前开波</button>
             <div class="combat-log" id="combat-log" aria-live="polite"></div>
           </div>
 
@@ -148,7 +182,7 @@
             <div class="result-combat"><span>击破 <b id="result-kills">0</b></span><span>成长经验 <b id="result-xp">+0</b></span><span>最高连击 <b id="result-combo">0</b></span></div>
             <p class="result-recap" id="result-recap"></p>
             <p class="result-copy" id="result-copy"></p>
-            <div class="result-actions"><button id="replay-game" type="button">再守一次</button><button id="return-select" type="button">返回关卡</button></div>
+            <div class="result-actions"><button id="replay-game" type="button">再守一次</button><button id="result-story-outro" type="button" hidden>查看章节结语</button><button id="return-select" type="button">返回关卡</button></div>
           </div>
         </section>
       </main>
@@ -218,6 +252,7 @@
     </div>
     <div class="orientation-lock" role="status">请旋转设备至横屏后继续</div>
     <script src="./shared/game-core.js?v=shared-core-4"></script>
-    <script src="./src/main.js?v=sol-3d-combat-45"></script>
+    <script src="./src/story-data.js?v=sol-story-n05-v1"></script>
+    <script src="./src/main.js?v=sol-story-n05-v1"></script>
   </body>
 </html>

@@ -1,5 +1,7 @@
 const Core = window.ShanHaiCore;
 if (!Core) throw new Error('ShanHaiCore shared rules failed to load');
+const Story = window.ShanHaiStory;
+if (!Story?.chapters?.length) throw new Error('ShanHaiStory campaign data failed to load');
 const RARITIES = Core.RARITIES;
 const SAVE_KEY = 'shan-hai-rebuild-v2';
 const LEGACY_SAVE_KEY = 'shan-hai-rebuild-v1';
@@ -308,7 +310,7 @@ const WAVE_META = [
   [8, 10, '隐匿与免疫敌群同至'], [9, 10, '朱厌护住飞廉大军'], [0, 0, '终阵小怪来袭，清场后首领降临'],
 ].map(([rest, bonus, hint]) => ({ rest, bonus, hint }));
 
-const refs = Object.fromEntries(['selectScreen', 'gameScreen', 'resultScreen', 'stageList', 'difficultySelect', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'endlessStart', 'trialStart', 'resumeGame', 'medalsOpen', 'medalCount', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'audioSettings', 'audioDialog', 'audioClose', 'audioEnabled', 'musicVolume', 'musicVolumeValue', 'sfxVolume', 'sfxVolumeValue', 'gameTerrain', 'gameDifficulty', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'nextWave', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'spiritSkill', 'spiritSkillLabel', 'teamSkill', 'skillLabel', 'replayGame', 'returnSelect', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultRecap', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonSwap', 'summonSwapNote', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openBackpack', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'evolutionDialog', 'evolutionChoices', 'medalsDialog', 'medalsList', 'medalsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
+const refs = Object.fromEntries(['selectScreen', 'storyScreen', 'gameScreen', 'resultScreen', 'stageList', 'difficultySelect', 'rosterList', 'bondPreviewList', 'selectedStageLabel', 'codexCount', 'cultivationSummary', 'startGame', 'endlessStart', 'trialStart', 'resumeGame', 'medalsOpen', 'medalCount', 'storyOpen', 'storyProgress', 'storyBack', 'storyRecap', 'storyMap', 'storyTitle', 'storyReaderArt', 'storyReaderPart', 'storyReaderTheme', 'storyReaderTitle', 'storySpeaker', 'storyLine', 'storyPrev', 'storyPage', 'storyNext', 'storyIntro', 'storyOutro', 'storyBegin', 'backToSelect', 'pauseGame', 'speedGame', 'soundToggle', 'audioSettings', 'audioDialog', 'audioClose', 'audioEnabled', 'musicVolume', 'musicVolumeValue', 'sfxVolume', 'sfxVolumeValue', 'gameTerrain', 'gameDifficulty', 'gameLevel', 'requiredBeastLabel', 'hpLabel', 'hpMeter', 'waveLabel', 'waveTrack', 'combatLog', 'arenaHint', 'nextWave', 'essenceLabel', 'killLabel', 'bestScoreLabel', 'populationLabel', 'backpackLabel', 'selectedUnitLabel', 'gameRoster', 'gameBonds', 'summonBeast', 'summonBeastFive', 'advancedSummon', 'advancedSummonFive', 'openBackpack', 'openBonds', 'autoDeploy', 'recallAll', 'fortuneSign', 'spiritSkill', 'spiritSkillLabel', 'teamSkill', 'skillLabel', 'storyWhisper', 'replayGame', 'returnSelect', 'resultStoryOutro', 'resultTitle', 'resultStage', 'resultScoreStamp', 'resultScoreTotal', 'resultBonds', 'resultHp', 'resultEnergy', 'resultUr', 'resultRequired', 'resultKills', 'resultXp', 'resultCombo', 'resultRecap', 'resultCopy', 'codexOpen', 'codexClose', 'codexDialog', 'codexDialogList', 'summonDialog', 'summonOffers', 'summonTitle', 'summonSubtitle', 'summonSwap', 'summonSwapNote', 'summonClose', 'advancedDialog', 'advancedResults', 'advancedTitle', 'advancedSubtitle', 'advancedClaim', 'advancedClose', 'backpackDialog', 'backpackList', 'backpackClose', 'openBackpack', 'openFusion', 'fusionDialog', 'fusionList', 'fusionSelection', 'fuseBeasts', 'fusionClose', 'fortuneDialog', 'fortuneResult', 'fortuneClose', 'bondsDialog', 'bondDialogList', 'bondsClose', 'evolutionDialog', 'evolutionChoices', 'medalsDialog', 'medalsList', 'medalsClose', 'pauseDialog', 'pauseResume', 'pauseRetry', 'pauseExit'].map((key) => [key, document.querySelector(`#${key.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`)}`)]));
 
 refs.recallSelected = document.querySelector('#recall-selected');
 refs.fullscreenToggle = document.querySelector('#fullscreen-toggle');
@@ -323,12 +325,13 @@ const state = {
   energy: 0, maxHp: 10, hp: 10, kills: 0, score: 0, bestScores: {}, combo: 0, bestCombo: 0, waveStarted: false,
   towers: [], enemies: [], projectiles: [], particles: [], hitBursts: [], damageTexts: [], visualEffects: [], defeated: [], logs: [], mouse: { x: 480, y: 270, inside: false },
   screenShake: 0, screenFlash: 0,
-  skillCooldowns: {}, skillBond: null, pendingTargetSkillUid: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], summonMode: 'normal', summonSwapCount: 0, summonAttempts: 0, requiredOffered: false, advancedBatch: [], advancedMode: 'normal', requiredBeastId: null, fortuneSpinning: false, fortuneTimers: [], runId: 0, finalScoreBreakdown: null, lastSign: null, resultGrowthXp: 0, bossEscaped: false, pendingResume: null, runFielded: new Set(), runBeastKills: {}, runEvolutions: {}, runStats: { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }, trialRuleId: null, trialFailedReason: '', runSeed: 1, randomStates: { draw: 1, route: 1, enemy: 1 }, waveStartedAt: 0,
+  skillCooldowns: {}, skillBond: null, pendingTargetSkillUid: null, finishTimer: 0, tutorialStep: -1, fusionSelection: [], signEffects: [], summonOffers: [], summonMode: 'normal', summonSwapCount: 0, summonAttempts: 0, requiredOffered: false, advancedBatch: [], advancedMode: 'normal', requiredBeastId: null, fortuneSpinning: false, fortuneTimers: [], runId: 0, finalScoreBreakdown: null, lastSign: null, resultGrowthXp: 0, bossEscaped: false, pendingResume: null, storySeen: new Set(), storyView: null, storyReturnScreen: 'select', storyRun: null, storyOutcomeStage: null, storyCueIds: new Set(), runFielded: new Set(), runBeastKills: {}, runEvolutions: {}, runStats: { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }, trialRuleId: null, trialFailedReason: '', runSeed: 1, randomStates: { draw: 1, route: 1, enemy: 1 }, waveStartedAt: 0,
 };
 let desktopSaveQueue = Promise.resolve(true);
 let activeCombatBondTotals = null;
 let activeCombatSupportBonuses = null;
 let visualEffectsReduced = false;
+let storyWhisperTimer = 0;
 
 const arena = { left: 38, right: 922, top: 46, bot: 510, roadW: 66, sealX: 74, sealY: 108, spawnR: 30, wardR: 34, plate: 24 };
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -692,7 +695,7 @@ function soundNoise(at, duration, gainValue, frequency = 900) {
 function playSound(kind) {
   if (!state.soundEnabled || state.sfxVolume <= 0 || !ensureAudio()) return;
   const now = performance.now();
-  const cooldown = { kill: 75, deploy: 50, wave: 400, warning: 800 }[kind] || 0;
+  const cooldown = { kill: 75, deploy: 50, wave: 400, warning: 800, storyBoss: 800, storyRevive: 800, storySeal: 900 }[kind] || 0;
   if (now - (soundTimestamps[kind] || 0) < cooldown) return;
   soundTimestamps[kind] = now;
   const at = audioContext.currentTime + .006;
@@ -704,6 +707,12 @@ function playSound(kind) {
     soundTone(at, 92, 72, .2, .11, 'sine'); soundTone(at + .1, 138, 110, .18, .075, 'triangle');
   } else if (kind === 'warning') {
     soundTone(at, 110, 82, .34, .12, 'sawtooth'); soundTone(at + .24, 110, 72, .42, .11, 'sawtooth'); soundNoise(at, .18, .035, 420);
+  } else if (kind === 'storyBoss') {
+    soundTone(at, 156, 128, .3, .09, 'triangle'); soundTone(at + .12, 234, 196, .25, .055, 'sine', .2);
+  } else if (kind === 'storyRevive') {
+    [392, 523, 659].forEach((note, index) => soundTone(at + index * .07, note, note * 1.018, .28, .045, 'sine', index * .25 - .25));
+  } else if (kind === 'storySeal') {
+    soundTone(at, 196, 220, .3, .06, 'triangle'); soundTone(at + .12, 392, 440, .48, .05, 'sine');
   } else if (kind === 'skill') {
     soundTone(at, 120, 64, .42, .12, 'sine'); soundNoise(at + .02, .32, .05, 2200); [420, 630, 945].forEach((note, index) => soundTone(at + .05 + index * .045, note, note * 1.45, .3, .05, 'triangle', index - 1));
   } else if (kind === 'breach') {
@@ -841,6 +850,7 @@ function loadSave() {
     state.musicVolume = clamp(typeof saved.musicVolume === 'number' ? saved.musicVolume : .28, 0, 1);
     state.sfxVolume = clamp(typeof saved.sfxVolume === 'number' ? saved.sfxVolume : 1, 0, 1);
     state.pendingResume = validWaveSnapshot(saved.waveSnapshot) ? saved.waveSnapshot : null;
+    state.storySeen = new Set(Array.isArray(saved.story?.seenScenes) ? saved.story.seenScenes.filter(validStorySceneId) : []);
     const migratedUnlocks = saved.progressionVersion === PROGRESSION_VERSION && Array.isArray(saved.unlocked) ? saved.unlocked : BASE_UNLOCK_IDS;
     state.unlocked = new Set([...migratedUnlocks, ...BASE_UNLOCK_IDS]);
     applyProgressUnlocks();
@@ -855,6 +865,7 @@ function loadSave() {
     state.skillAutoEnabled = false;
     state.skillAutoOverrides = {};
     state.pendingResume = null;
+    state.storySeen = new Set();
   }
 }
 
@@ -875,7 +886,8 @@ function createWaveSnapshot() {
 async function saveProgress() {
   let payload;
   try {
-    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, tutorialCompleted: state.tutorialCompleted, skillAutoEnabled: state.skillAutoEnabled, skillAutoOverrides: state.skillAutoOverrides, soundEnabled: state.soundEnabled, musicVolume: state.musicVolume, sfxVolume: state.sfxVolume, waveSnapshot: createWaveSnapshot() });
+    const waveSnapshot = createWaveSnapshot();
+    payload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: state.xp, tier: state.tier, bestScores: state.bestScores, difficulty: state.difficulty, unlocked: [...state.unlocked], completions: [...state.completions], medals: [...state.medals], beastGrowth: state.beastGrowth, tutorialCompleted: state.tutorialCompleted, skillAutoEnabled: state.skillAutoEnabled, skillAutoOverrides: state.skillAutoOverrides, soundEnabled: state.soundEnabled, musicVolume: state.musicVolume, sfxVolume: state.sfxVolume, story: { version: Story.version, seenScenes: [...state.storySeen].filter(validStorySceneId) }, waveSnapshot: waveSnapshot || state.pendingResume || null });
   } catch (error) {
     document.querySelector('#save-status').textContent = '存档暂未更新，请重试';
     return { local: false, desktop: false, message: error.message };
@@ -903,9 +915,132 @@ function showScreen(name) {
   state.screen = name;
   document.body.dataset.screen = name;
   refs.selectScreen.classList.toggle('is-hidden', name !== 'select');
+  refs.storyScreen.classList.toggle('is-hidden', name !== 'story');
   refs.gameScreen.classList.toggle('is-hidden', name !== 'game');
   refs.resultScreen.classList.toggle('is-hidden', name !== 'result');
-  if (name !== 'game') stopAmbient(); else updateAmbientState();
+  if (name !== 'game') {
+    hideStoryCue();
+    stopAmbient();
+  } else updateAmbientState();
+}
+
+function storyChapter(stage = state.stage) {
+  return Story.chapters.find((chapter) => chapter.stage === stage) || Story.chapters[0];
+}
+
+function storySceneId(chapter, scene) {
+  return `${chapter.id}_${scene}`;
+}
+
+function validStorySceneId(sceneId) {
+  return typeof sceneId === 'string' && Story.chapters.some((chapter) => sceneId === storySceneId(chapter, 'intro') || sceneId === storySceneId(chapter, 'outro'));
+}
+
+function stageStoryCompleted(stage) {
+  return DIFFICULTY_ORDER.some((difficulty) => state.completions.has(completionKey(stage, difficulty)));
+}
+
+function recommendedStoryStage() {
+  return (Story.chapters.find((chapter) => !stageStoryCompleted(chapter.stage)) || Story.chapters.at(-1)).stage;
+}
+
+function markStorySceneSeen(chapter, scene) {
+  const id = storySceneId(chapter, scene);
+  if (state.storySeen.has(id)) return;
+  state.storySeen.add(id);
+  saveProgress();
+}
+
+function renderStory() {
+  const view = state.storyView || { stage: recommendedStoryStage(), scene: 'intro', page: 0 };
+  const chapter = storyChapter(view.stage);
+  const scene = view.scene === 'outro' && stageStoryCompleted(chapter.stage) ? 'outro' : 'intro';
+  const lines = chapter[scene];
+  const page = clamp(Number(view.page) || 0, 0, lines.length - 1);
+  state.storyView = { stage: chapter.stage, scene, page };
+  const line = lines[page];
+  const bossId = chapter.stage % 2 === 0 ? 'taotie' : 'baize';
+  const isEnding = scene === 'outro' && Boolean(chapter.outroArt);
+  refs.storyTitle.textContent = Story.title;
+  refs.storyMap.innerHTML = Story.chapters.map((item) => {
+    const cleared = stageStoryCompleted(item.stage);
+    return `<button class="story-node ${item.stage === chapter.stage ? 'is-selected' : ''} ${cleared ? 'is-cleared' : ''}" type="button" data-story-stage="${item.stage}" style="--story-bg: url('${item.art || stageBackgroundSources[item.stage]}')"><small>第 ${item.stage + 1} 境</small><strong>${item.place}</strong><em>${cleared ? '古印已归位' : item.theme}</em></button>`;
+  }).join('');
+  refs.storyMap.querySelectorAll('[data-story-stage]').forEach((button) => button.addEventListener('click', () => openStory(Number(button.dataset.storyStage), 'intro', state.storyReturnScreen)));
+  refs.storyReaderArt.dataset.storyScene = `${chapter.id}-${scene}-${page}`;
+  refs.storyReaderArt.classList.toggle('is-outro', scene === 'outro');
+  refs.storyReaderArt.classList.toggle('is-ending', isEnding);
+  refs.storyReaderArt.classList.toggle('has-bindings', scene === 'intro' && chapter.bound === true);
+  refs.storyReaderArt.classList.toggle('has-portrait', !isEnding);
+  refs.storyReaderArt.style.setProperty('--story-bg', `url('${isEnding ? chapter.outroArt : chapter.art || stageBackgroundSources[chapter.stage]}')`);
+  refs.storyReaderArt.style.setProperty('--story-portrait', `url('${combatSpriteSources[bossId]}')`);
+  refs.storyReaderPart.textContent = scene === 'intro' ? '章节引子' : '章节结语';
+  refs.storyReaderTheme.textContent = chapter.theme;
+  refs.storyReaderTitle.textContent = chapter.title;
+  refs.storySpeaker.textContent = line.speaker;
+  refs.storyLine.textContent = line.text;
+  refs.storyPage.textContent = `${page + 1} / ${lines.length}`;
+  refs.storyPrev.disabled = page === 0;
+  refs.storyNext.disabled = page >= lines.length - 1;
+  refs.storyIntro.disabled = scene === 'intro';
+  refs.storyOutro.disabled = !stageStoryCompleted(chapter.stage) || scene === 'outro';
+  refs.storyOutro.title = stageStoryCompleted(chapter.stage) ? '查看该境守住后的结语' : '通关该境后可查看结语';
+  refs.storyBegin.textContent = stageStoryCompleted(chapter.stage) ? '重守此境' : '守住此境';
+  if (page === lines.length - 1) markStorySceneSeen(chapter, scene);
+}
+
+function openStory(stage = recommendedStoryStage(), scene = 'intro', returnScreen = 'select') {
+  const chapter = storyChapter(stage);
+  state.storyReturnScreen = returnScreen === 'result' ? 'result' : 'select';
+  state.storyView = { stage: chapter.stage, scene, page: 0 };
+  showScreen('story');
+  renderStory();
+}
+
+function closeStory() {
+  const returnScreen = state.storyReturnScreen;
+  state.storyReturnScreen = 'select';
+  showScreen(returnScreen);
+  if (returnScreen === 'select') renderSelect();
+}
+
+function startStoryBattle() {
+  const chapter = storyChapter(state.storyView?.stage);
+  state.stage = chapter.stage;
+  if (!difficultyUnlocked(state.stage, state.difficulty)) state.difficulty = highestUnlockedDifficulty(state.stage);
+  state.storyReturnScreen = 'select';
+  startStandardGame({ storyStage: chapter.stage });
+}
+
+function hideStoryCue() {
+  if (storyWhisperTimer) window.clearTimeout(storyWhisperTimer);
+  storyWhisperTimer = 0;
+  refs.storyWhisper.hidden = true;
+  refs.storyWhisper.textContent = '';
+}
+
+function storyBossSubtitle(enemy) {
+  if (state.mode !== 'standard' || state.storyRun !== state.stage || enemy?.role !== 'stageBoss') return '';
+  return storyChapter(state.stage).bossSubtitle || '';
+}
+
+function bossDisplayName(enemy) {
+  const subtitle = storyBossSubtitle(enemy);
+  return subtitle ? `${enemy.def.name}·${subtitle}` : enemy.def.name;
+}
+
+function showStoryCue(kind) {
+  if (state.screen !== 'game' || state.mode !== 'standard' || state.storyRun !== state.stage) return;
+  const chapter = storyChapter(state.stage);
+  const text = chapter.cues?.[kind];
+  const id = `${chapter.id}:${kind}`;
+  if (!text || state.storyCueIds.has(id)) return;
+  state.storyCueIds.add(id);
+  if (kind === 'revive') playSound('storyRevive');
+  if (storyWhisperTimer) window.clearTimeout(storyWhisperTimer);
+  refs.storyWhisper.textContent = `白泽：${text}`;
+  refs.storyWhisper.hidden = false;
+  storyWhisperTimer = window.setTimeout(hideStoryCue, 4200);
 }
 
 function renderSelect() {
@@ -939,6 +1074,8 @@ function renderSelect() {
   refs.codexCount.textContent = `${state.unlocked.size} / ${ROSTER.length}`;
   refs.medalCount.textContent = `${state.medals.size} / ${Core.MEDALS.length}`;
   refs.cultivationSummary.textContent = `${cultivation().name} · ${state.unlocked.size}/${ROSTER.length} 妖灵 · ${threeSpeedUnlocked() ? '3倍速已解锁' : '通关五关解锁3倍速'}`;
+  const restoredSeals = Story.chapters.filter((chapter) => stageStoryCompleted(chapter.stage)).length;
+  refs.storyProgress.textContent = restoredSeals ? `${restoredSeals} / ${Story.chapters.length} 境已归位 · 可随时回看` : '可选体验 · 不影响自由守关';
   refs.selectedStageLabel.textContent = `${LEVELS[state.stage].name} · ${currentDifficulty().name} · 15 波 · ${Core.STAGE_MECHANICS[state.stage].name}`;
   refs.endlessStart.hidden = false;
   refs.endlessStart.disabled = !endlessUnlocked();
@@ -1282,6 +1419,7 @@ function claimSummonOffer(index) {
   state.summonSwapCount = 0;
   closeGameDialog(refs.summonDialog);
   playSound('summon');
+  showStoryCue('summon');
   if (tutorialSummon && !result.promotions) { state.tutorialStep = 1; refs.arenaHint.textContent = '召灵完成：点击下方妖灵卡，先选中一只要上场的妖灵。'; }
   addLog(result.duplicate ? `${beast.name}已满 Lv.${MAX_UNIT_LEVEL}，重复召灵返还 ${result.compensation} 灵蕴。` : result.promotions ? `${beast.name}同种同阶合成，升至 Lv.${result.unit.level}。` : `${beast.name}已入阵，拖动卡牌到路边，或直接点击战场布阵。`);
   renderGameRoster();
@@ -1402,7 +1540,8 @@ function initGame() {
   resetRunRandom(initialSeed);
   const trialRule = isTrial() ? trialRuleForSeed(initialSeed) : null;
   const eligibleRequired = ROSTER.filter((beast) => state.unlocked.has(beast.id) && beast.rarity <= (trialRule?.rarityCap ?? RARITIES.length - 1));
-  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.visualEffects = []; state.defeated = []; state.screenShake = 0; state.screenFlash = 0; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.pendingTargetSkillUid = null; state.selectedEnemy = null; state.tutorialStep = state.tutorialMode && state.stage === 0 && !isEndless() ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.summonMode = 'normal'; state.summonSwapCount = 0; state.summonAttempts = 0; state.requiredOffered = false; state.advancedBatch = []; state.advancedMode = 'normal'; state.requiredBeastId = eligibleRequired[Math.floor(gameRandom('draw') * eligibleRequired.length)].id; state.fortuneSpinning = false; state.finalScoreBreakdown = null; state.resultGrowthXp = 0; state.bossEscaped = false; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.draggingTowerOffset = { x: 0, y: 0 }; state.selectedTowerUid = null; state.runFielded = new Set(); state.runBeastKills = {}; state.runEvolutions = {}; state.runStats = { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }; state.trialRuleId = trialRule?.id || null; state.trialFailedReason = ''; state.runSeed = initialSeed; state.waveStartedAt = 0;
+  hideStoryCue();
+  state.towers = []; state.backpack = []; state.selectedUnitId = null; state.nextUnitId = 1; state.enemies = []; state.projectiles = []; state.particles = []; state.hitBursts = []; state.damageTexts = []; state.visualEffects = []; state.defeated = []; state.screenShake = 0; state.screenFlash = 0; state.logs = []; state.skillCooldowns = {}; state.skillBond = null; state.pendingTargetSkillUid = null; state.selectedEnemy = null; state.tutorialStep = state.tutorialMode && state.stage === 0 && !isEndless() ? 0 : -1; state.fusionSelection = []; state.signEffects = []; state.summonOffers = []; state.summonMode = 'normal'; state.summonSwapCount = 0; state.summonAttempts = 0; state.requiredOffered = false; state.advancedBatch = []; state.advancedMode = 'normal'; state.requiredBeastId = eligibleRequired[Math.floor(gameRandom('draw') * eligibleRequired.length)].id; state.fortuneSpinning = false; state.finalScoreBreakdown = null; state.resultGrowthXp = 0; state.bossEscaped = false; state.resumeAfterDialog = false; state.draggingUnitId = null; state.draggingTowerIndex = -1; state.draggingTowerOffset = { x: 0, y: 0 }; state.selectedTowerUid = null; state.storyOutcomeStage = null; state.storyCueIds = new Set(); state.runFielded = new Set(); state.runBeastKills = {}; state.runEvolutions = {}; state.runStats = { damageByBeast: {}, shieldByBeast: {}, breachesByRoute: {}, sealLost: 0, waves: [] }; state.trialRuleId = trialRule?.id || null; state.trialFailedReason = ''; state.runSeed = initialSeed; state.waveStartedAt = 0;
   if (state.tutorialStep === 0) { state.phase = 'tutorial'; state.prepTimer = 0; }
   if (state.soundEnabled) ensureAudio();
   const mechanic = Core.STAGE_MECHANICS[state.stage];
@@ -1423,7 +1562,7 @@ function initTutorialGame() {
   addLog('序章教学：先召灵，再选择妖灵并安置到道路两侧。');
   updateHUD();
 }
-function startStandardGame() {
+function startStandardGame(options = {}) {
   if (!difficultyUnlocked(state.stage, state.difficulty)) {
     state.difficulty = highestUnlockedDifficulty(state.stage);
     renderSelect();
@@ -1431,6 +1570,7 @@ function startStandardGame() {
   }
   discardPendingResume();
   state.mode = 'standard';
+  state.storyRun = Number.isInteger(options.storyStage) && options.storyStage === state.stage ? options.storyStage : null;
   if (state.stage === 0 && !state.tutorialCompleted && state.completions.size === 0) {
     initTutorialGame();
     return;
@@ -1442,6 +1582,7 @@ function startEndlessGame() {
   if (!endlessUnlocked()) return;
   discardPendingResume();
   state.mode = 'endless';
+  state.storyRun = null;
   state.tutorialMode = false;
   state.difficulty = 'normal';
   initGame();
@@ -1452,7 +1593,7 @@ function startTrialGame() {
     renderSelect();
     return;
   }
-  discardPendingResume(); state.mode = 'trial'; state.tutorialMode = false; initGame();
+  discardPendingResume(); state.mode = 'trial'; state.storyRun = null; state.tutorialMode = false; initGame();
 }
 
 function enforceTrialRuleBeforeWave() {
@@ -1470,7 +1611,7 @@ function enforceTrialRuleBeforeWave() {
 function resumeWaveGame() {
   const snapshot = state.pendingResume;
   if (!validWaveSnapshot(snapshot)) { state.pendingResume = null; renderSelect(); return; }
-  state.mode = snapshot.mode; state.stage = snapshot.stage; state.difficulty = snapshot.difficulty; state.tutorialMode = false;
+  state.mode = snapshot.mode; state.stage = snapshot.stage; state.difficulty = snapshot.difficulty; state.storyRun = null; state.tutorialMode = false;
   initGame();
   state.wave = snapshot.wave; state.energy = snapshot.energy; state.hp = snapshot.hp; state.kills = snapshot.kills; state.score = snapshot.score; state.combo = snapshot.combo; state.bestCombo = snapshot.bestCombo;
   state.towers = snapshot.towers; state.backpack = snapshot.backpack; state.nextUnitId = Number(snapshot.nextUnitId) || 1; state.maxPopulation = Number(snapshot.maxPopulation) || 18; state.requiredBeastId = ROSTER.some((beast) => beast.id === snapshot.requiredBeastId) ? snapshot.requiredBeastId : state.requiredBeastId;
@@ -1502,6 +1643,7 @@ function startWave() {
   refs.waveLabel.textContent = `${state.wave + 1} / ${totalWaves()}`;
   refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · ${meta.hint} · ${threatText}`;
   addLog(`第 ${state.wave + 1} 波：${meta.hint}`);
+  if (state.wave === 4) showStoryCue('wave5');
   updateHUD();
 }
 
@@ -1545,9 +1687,11 @@ function spawnFromGroups(dt) {
       const boss = spawnEnemy(state.spawning.bossAfterClear, (.92 + state.stage * .04) * bossScale, bossRoute, 0, 'stageBoss');
       const routeLabel = routeCount > 1 ? `${bossRoute === 0 ? '上' : '下'}路` : '主路';
       state.spawning.bossSpawned = true;
-      playSound('warning');
-      refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · 关卡首领「${boss.def.name}」从${routeLabel}降临`;
-      addLog(`终阵小怪已清除，关卡首领「${boss.def.name}」从${routeLabel}现身。若其破封，将造成 9 点伤害。`);
+      playSound(storyBossSubtitle(boss) ? 'storyBoss' : 'warning');
+      const bossName = bossDisplayName(boss);
+      refs.arenaHint.textContent = `第 ${state.wave + 1} 波 · 关卡首领「${bossName}」从${routeLabel}降临`;
+      addLog(`终阵小怪已清除，关卡首领「${bossName}」从${routeLabel}现身。若其破封，将造成 9 点伤害。`);
+      showStoryCue('boss');
       updateHUD();
       return;
     }
@@ -1847,7 +1991,7 @@ function updateEnemies(dt) {
 }
 
 function killEnemy(enemy) {
-  if (enemy.def.skill === 'revive' && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * enemy.reviveRatio; enemy.shield = state.difficulty === 'hard' ? 180 : state.difficulty === 'easy' ? 70 : 120; enemy.spawnScale = 0; addVisualEffect('revive', enemy.x, enemy.y - 18, '#d9ca96', { size: 104, ttl: 1 }); state.screenFlash = Math.max(state.screenFlash, .18); addLog(`${enemy.def.name}触发复活，获得临时护盾。`); return; }
+  if (enemy.def.skill === 'revive' && !enemy.revived) { enemy.revived = true; enemy.hp = enemy.maxHp * enemy.reviveRatio; enemy.shield = state.difficulty === 'hard' ? 180 : state.difficulty === 'easy' ? 70 : 120; enemy.spawnScale = 0; addVisualEffect('revive', enemy.x, enemy.y - 18, '#d9ca96', { size: 104, ttl: 1 }); state.screenFlash = Math.max(state.screenFlash, .18); addLog(`${enemy.def.name}触发复活，获得临时护盾。`); if (enemy.role === 'stageBoss') showStoryCue('revive'); return; }
   if (enemy.def.skill === 'split' && !enemy.split) {
     enemy.split = true;
     for (let i = 0; i < 2; i += 1) spawnEnemy('xingxing', .55, enemy.route, enemy.d);
@@ -1931,6 +2075,7 @@ function finishGame(won, abandoned = false) {
   state.resumeAfterDialog = false;
   state.paused = false;
   state.backgroundPaused = false;
+  state.storyOutcomeStage = won && state.mode === 'standard' && state.storyRun === state.stage ? state.stage : null;
   stopAmbient();
   state.screen = 'finishing'; state.finishTimer = 0;
   if (won) playSound('victory');
@@ -1996,6 +2141,8 @@ function finishGame(won, abandoned = false) {
   const trialCopy = trialRule ? ` 试炼「${trialRule.name}」${won ? '达成' : '未达成'}。` : '';
   const resultCopy = `${isEndless() ? `无尽模式抵达第 ${state.wave + 1} 波` : won ? '守关成功' : '守关失败'}${outcomeReason ? `（${outcomeReason}）` : ''}，${currentDifficulty().name}难度倍率 ×${currentDifficulty().score.toFixed(2)}，总分评级 ${gradeResult.scoreGrade}${capReasons.length ? `；${capReasons.join('；')}` : ''}。${trialCopy}${difficultyUnlockCopy}${unlockCopy}${growthCopy}${medalCopy}`;
   refs.resultCopy.textContent = `${resultCopy} 存档更新中……`;
+  refs.resultStoryOutro.hidden = state.storyOutcomeStage == null;
+  refs.resultStoryOutro.parentElement.classList.toggle('is-story-outro', state.storyOutcomeStage != null);
   showScreen('result');
   savePromise.then((saveResult) => {
     if (state.screen !== 'result' || state.finalScoreBreakdown !== breakdown) return;
@@ -2951,7 +3098,7 @@ function drawEnemy(enemy) {
     const badgeWidth = traitBadge.label.length > 1 ? 27 : 17;
     ctx.save(); ctx.fillStyle = traitBadge.fill; ctx.strokeStyle = 'rgba(246,226,179,.82)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(-badgeWidth * .5, badgeY - 9, badgeWidth, 14, 3); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff1ce'; ctx.font = '900 9px STKaiti, KaiTi, serif'; ctx.textAlign = 'center'; ctx.fillText(traitBadge.label, 0, badgeY + 1); ctx.restore();
   }
-  if (isBoss) { ctx.fillStyle = '#f4e2b0'; ctx.strokeStyle = 'rgba(31,22,16,.8)'; ctx.lineWidth = 3; ctx.font = '900 11px STKaiti, KaiTi, serif'; ctx.textAlign = 'center'; ctx.strokeText(enemy.def.name, 0, top - 7); ctx.fillText(enemy.def.name, 0, top - 7); }
+  if (isBoss) { const name = bossDisplayName(enemy); ctx.fillStyle = '#f4e2b0'; ctx.strokeStyle = 'rgba(31,22,16,.8)'; ctx.lineWidth = 3; ctx.font = `900 ${name.length > 6 ? 9 : 11}px STKaiti, KaiTi, serif`; ctx.textAlign = 'center'; ctx.strokeText(name, 0, top - 7); ctx.fillText(name, 0, top - 7); }
   ctx.fillStyle = 'rgba(27,20,16,.9)'; ctx.beginPath(); ctx.roundRect(-barWidth * .5, top, barWidth, isBoss ? 8 : 6, 3); ctx.fill(); const hpRatio = clamp(enemy.hp / enemy.maxHp, 0, 1); ctx.fillStyle = hpRatio < .25 ? '#df5542' : '#58b693'; ctx.beginPath(); ctx.roundRect(-barWidth * .5, top, barWidth * hpRatio, isBoss ? 8 : 6, 3); ctx.fill();
   if (enemy.shield > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#a9e8ed'; ctx.shadowColor = '#84dce8'; ctx.shadowBlur = 12; ctx.globalAlpha = .52 + Math.sin(state.battleTime * 4) * .12; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -size * depth * .34, size * depth * .42, size * depth * .48, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
   if (enemy.stunned > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = '#f0d46f'; ctx.lineWidth = 2; ctx.globalAlpha = .8; ctx.beginPath(); ctx.ellipse(0, top - 14, 15, 5, state.battleTime * 2, 0, Math.PI * 2); ctx.stroke(); for (let index = 0; index < 3; index += 1) { const angle = state.battleTime * 3 + index * Math.PI * 2 / 3; ctx.fillStyle = '#fff1a8'; ctx.beginPath(); ctx.arc(Math.cos(angle) * 14, top - 14 + Math.sin(angle) * 5, 2, 0, Math.PI * 2); ctx.fill(); } ctx.restore(); }
@@ -3066,6 +3213,37 @@ refs.startGame.addEventListener('click', startStandardGame);
 refs.endlessStart.addEventListener('click', startEndlessGame);
 refs.trialStart.addEventListener('click', startTrialGame);
 refs.resumeGame.addEventListener('click', resumeWaveGame);
+refs.storyOpen.addEventListener('click', () => openStory());
+refs.storyBack.addEventListener('click', closeStory);
+refs.storyRecap.addEventListener('click', () => {
+  const chapter = storyChapter(state.storyView?.stage);
+  state.storyView = { stage: chapter.stage, scene: 'intro', page: 0 };
+  renderStory();
+});
+refs.storyPrev.addEventListener('click', () => {
+  if (!state.storyView || state.storyView.page <= 0) return;
+  state.storyView.page -= 1;
+  renderStory();
+});
+refs.storyNext.addEventListener('click', () => {
+  const chapter = storyChapter(state.storyView?.stage);
+  const lines = chapter[state.storyView?.scene === 'outro' ? 'outro' : 'intro'];
+  if (!state.storyView || state.storyView.page >= lines.length - 1) return;
+  state.storyView.page += 1;
+  renderStory();
+});
+refs.storyIntro.addEventListener('click', () => {
+  const chapter = storyChapter(state.storyView?.stage);
+  state.storyView = { stage: chapter.stage, scene: 'intro', page: 0 };
+  renderStory();
+});
+refs.storyOutro.addEventListener('click', () => {
+  const chapter = storyChapter(state.storyView?.stage);
+  if (!stageStoryCompleted(chapter.stage)) return;
+  state.storyView = { stage: chapter.stage, scene: 'outro', page: 0 };
+  renderStory();
+});
+refs.storyBegin.addEventListener('click', startStoryBattle);
 refs.difficultySelect.addEventListener('click', (event) => {
   const button = event.target.closest('[data-difficulty]');
   if (!button) return;
@@ -3118,8 +3296,13 @@ function abandonGame() {
   finishGame(false, true);
 }
 refs.backToSelect.addEventListener('click', abandonGame);
-refs.returnSelect.addEventListener('click', () => { showScreen('select'); renderSelect(); });
+refs.returnSelect.addEventListener('click', () => { state.storyRun = null; state.storyOutcomeStage = null; showScreen('select'); renderSelect(); });
 refs.replayGame.addEventListener('click', initGame);
+refs.resultStoryOutro.addEventListener('click', () => {
+  if (state.storyOutcomeStage == null) return;
+  playSound('storySeal');
+  openStory(state.storyOutcomeStage, 'outro', 'result');
+});
 refs.pauseGame.addEventListener('click', openPauseMenu);
 refs.pauseResume.addEventListener('click', resumePauseMenu);
 refs.pauseRetry.addEventListener('click', () => { refs.pauseDialog.close(); initGame(); });
@@ -3149,7 +3332,7 @@ refs.spiritSkill.addEventListener('click', useSpiritSkill);
 refs.teamSkill.addEventListener('click', useSkill);
 async function resetSave() {
   if (!window.confirm('确定重置全部局外进度吗？此操作不可撤销。')) return;
-  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'easy', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, tutorialCompleted: false, skillAutoEnabled: false, skillAutoOverrides: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1 });
+  const resetPayload = JSON.stringify({ savedAt: Date.now(), progressionVersion: PROGRESSION_VERSION, scoringVersion: SCORING_VERSION, xp: 0, tier: 0, bestScores: {}, difficulty: 'easy', unlocked: [...BASE_UNLOCK_IDS], completions: [], medals: [], beastGrowth: {}, tutorialCompleted: false, skillAutoEnabled: false, skillAutoOverrides: {}, soundEnabled: true, musicVolume: .28, sfxVolume: 1, story: { version: Story.version, seenScenes: [] } });
   let local = true;
   let desktop = true;
   try {
@@ -3166,7 +3349,7 @@ async function resetSave() {
   document.querySelector('#save-status').textContent = local && desktop ? '存档已重置' : local ? '浏览器存档已重置，桌面存档失败' : desktop ? '桌面存档已重置，浏览器存档失败' : '存档重置失败，请重试';
 }
 document.querySelector('#reset-save').addEventListener('click', resetSave);
-document.querySelector('[data-start-tutorial]').addEventListener('click', () => { discardPendingResume(); state.mode = 'standard'; state.stage = 0; state.difficulty = 'easy'; initTutorialGame(); });
+document.querySelector('[data-start-tutorial]').addEventListener('click', () => { discardPendingResume(); state.mode = 'standard'; state.storyRun = null; state.stage = 0; state.difficulty = 'easy'; initTutorialGame(); });
 
 function acceptsDesktopShortcut(event) {
   const target = event.target;
@@ -3247,6 +3430,7 @@ function pauseForBackground() {
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseForBackground(); });
 window.addEventListener('blur', pauseForBackground);
+window.addEventListener('pagehide', pauseForBackground);
 
 window.addEventListener('resize', fitAppToViewport);
 document.addEventListener('fullscreenchange', () => {
